@@ -1,3 +1,9 @@
+import Link from 'next/link';
+import { COMPANY } from '@/lib/legal';
+
+const colHead = { fontSize: '.62rem', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase' as const, color: '#C8A96B', marginBottom: '.8rem' };
+const linkStyle = { fontSize: '.8rem', color: '#9CA8BA', textDecoration: 'none' };
+
 export default function Footer({
   serviceName = 'Intelligent Customer Engagement Operation Center',
   serviceDescription = 'Intelligent customer engagement operations for modern business communications.',
@@ -37,6 +43,26 @@ export default function Footer({
               <a href={href} target="_blank" rel="noopener" style={{ fontSize: '.8rem', color: '#9CA8BA', textDecoration: 'none' }}>{label}</a>
             </div>
           ))}
+        </div>
+
+        <div>
+          <div style={colHead}>Legal</div>
+          {[
+            { href: '/privacy', label: 'Privacy Policy' },
+            { href: '/terms', label: 'Terms of Service' },
+            { href: '/sms-terms', label: 'SMS Terms' },
+          ].map(({ href, label }) => (
+            <div key={href} style={{ marginBottom: '.4rem' }}>
+              <Link href={href} style={linkStyle}>{label}</Link>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <div style={colHead}>Contact</div>
+          <div style={{ marginBottom: '.4rem' }}><a href={`mailto:${COMPANY.email}`} style={linkStyle}>{COMPANY.email}</a></div>
+          <div style={{ marginBottom: '.4rem', ...linkStyle }}>{COMPANY.phone}</div>
+          <div style={{ ...linkStyle, lineHeight: 1.6 }}>{COMPANY.address}</div>
         </div>
       </div>
 
