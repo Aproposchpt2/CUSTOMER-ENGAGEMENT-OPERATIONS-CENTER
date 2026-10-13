@@ -4,7 +4,7 @@ Operated by Apropos Group LLC d/b/a Stellar Unified Communications.
 The Sales Service System answers approved questions, captures prospect information and supports qualification. Lead Management, Customer 360, activities and tasks give authorized staff the context for human follow-up.
 Customers pay for platform access and actual monthly usage. Service estimates are provided through a personal consultation. Retaining an existing phone number depends on technical compatibility.
 ## Public pages
-- [24/7 Sales Service System & CRM | StellarUC](https://stellaruc.com/): Keep sales open 24/7 with intelligent call engagement, lead management, Customer 360 and human follow-up. Discuss transparent usage-based pricing in a personal consultation.
+- [Customer Engagement Operations Center - 24/7 Sales Service System | StellarUC](https://stellaruc.com/): Keep sales open 24/7 with intelligent call engagement, lead management, Customer 360 and human follow-up. Discuss transparent usage-based pricing in a personal consultation.
 - [Sales Platform, Lead Management & Customer 360 | StellarUC](https://stellaruc.com/platform): Explore StellarUC voice, SMS, web chat, lead management, Customer 360, agent workspaces, analytics and governed sales workflows.
 - [Live Sales Service Demo | StellarUC](https://stellaruc.com/demo): Call the StellarUC live demo to experience intelligent sales intake and see how a conversation becomes a lead with customer context and follow-up.
 - [Sales Engagement Platform for BPOs, MSPs & Agencies | StellarUC](https://stellaruc.com/partners): Explore the StellarUC platform for BPOs, MSPs and agencies: multichannel engagement, lead management, Customer 360 and a live intake demonstration.

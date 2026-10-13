@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 const pages: Record<string, { title: string; description: string }> = {
   "/": {
-    "title": "24/7 Sales Service System & CRM | StellarUC",
+    "title": "Customer Engagement Operations Center - 24/7 Sales Service System | StellarUC",
     "description": "Keep sales open 24/7 with intelligent call engagement, lead management, Customer 360 and human follow-up. Request a personal consultation to discuss transparent usage-based pricing."
   },
   "/platform": {
