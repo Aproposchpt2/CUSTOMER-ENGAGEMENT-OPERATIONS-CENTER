@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <title>Stellar UC</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F6E3A6"/><stop offset="0.5" stop-color="#E4C878"/><stop offset="1" stop-color="#A9852F"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="10" fill="#050505"/>
+  <rect x="2.5" y="2.5" width="59" height="59" rx="8" fill="none" stroke="#C8A84B" stroke-opacity="0.7" stroke-width="2"/>
+  <path fill-rule="evenodd" fill="url(#g)" d="M14 52 L32 15 L50 52 Z M19.5 52 L31.2 27 L41 52 Z"/>
+  <path d="M32 6 C33.3 11.7 33.3 11.7 39 13 C33.3 14.3 33.3 14.3 32 20 C30.7 14.3 30.7 14.3 25 13 C30.7 11.7 30.7 11.7 32 6Z" fill="#FFF6DA"/>
+</svg>
