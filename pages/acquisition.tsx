@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CALL_RECORDING_NOTICE } from '@/lib/legal';
 
 const PHONE_DISPLAY = '(725) 330-5102';
 const PHONE_TEL = 'tel:+17253305102';
@@ -90,6 +91,7 @@ export default function AcquisitionPage() {
           <span className="callLabel">Skip ahead — call it now</span>
           <span className="callNumber">{PHONE_DISPLAY}</span>
         </a>
+        <p style={{ fontSize: ".78rem", color: "#9E988B", lineHeight: 1.5, margin: "10px 0 0" }}>{CALL_RECORDING_NOTICE}</p>
       </section>
 
       <section className="sections">

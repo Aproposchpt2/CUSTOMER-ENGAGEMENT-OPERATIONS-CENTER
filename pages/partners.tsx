@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { CALL_RECORDING_NOTICE } from '@/lib/legal';
 
 const PHONE_DISPLAY = '(725) 330-5102';
 const PHONE_TEL = 'tel:+17253305102';
@@ -31,6 +32,7 @@ export default function PartnersPage() {
           </a>
           <Link href="/demo" className="ghostCta">Full guided demo →</Link>
         </div>
+        <p style={{ fontSize: ".78rem", color: "#9E988B", lineHeight: 1.5, margin: "10px 0 0" }}>{CALL_RECORDING_NOTICE}</p>
       </section>
 
       <section className="why">

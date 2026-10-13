@@ -1,6 +1,8 @@
 import { trackPublicEvent } from '@/lib/publicAnalytics';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useMemo, useState, type FormEvent } from 'react';
+import { SMS_CONSENT_TEXT } from '@/lib/legal';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -19,6 +21,7 @@ export default function IntakePage() {
   const [businessName, setBusinessName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [smsConsent, setSmsConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function IntakePage() {
       const res = await fetch('/api/public/intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, businessName, phone, email, clientToken }),
+        body: JSON.stringify({ name, businessName, phone, email, smsConsent, clientToken }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || 'Something went wrong. Please try again.');
@@ -81,7 +84,14 @@ export default function IntakePage() {
                 <label htmlFor="email">Email Address</label>
                 <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={submitting} />
 
+                <label className="consent" htmlFor="smsConsent">
+                  <input id="smsConsent" name="smsConsent" type="checkbox" checked={smsConsent} onChange={(e) => setSmsConsent(e.target.checked)} disabled={submitting} />
+                  <span>{SMS_CONSENT_TEXT} See our <Link href="/sms-terms">SMS Terms</Link>.</span>
+                </label>
+
                 {error && <div className="error">{error}</div>}
+
+                <p className="agree">By submitting, you agree to our <Link href="/terms">Terms of Service</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>
 
                 <button type="submit" disabled={submitting}>{submitting ? 'Submitting…' : 'Get Started'}</button>
               </form>
@@ -105,6 +115,10 @@ export default function IntakePage() {
         button:hover:not(:disabled){filter:brightness(1.06)}
         button:disabled{opacity:.6;cursor:default}
         .error{color:#ff9696;font-size:.85rem;margin-top:-4px}
+        label.consent{display:flex;gap:10px;align-items:flex-start;margin:4px 0 0;color:#9eb3c4;font-size:.78rem;font-weight:400;letter-spacing:0;text-transform:none;line-height:1.5}
+        label.consent input{width:18px;height:18px;margin:2px 0 0;padding:0;flex:none;accent-color:#69d8ff}
+        .agree{color:#718ba0;font-size:.76rem;line-height:1.5;margin:0}
+        .consent :global(a),.agree :global(a){color:#69d8ff}
         .success{text-align:center}
         .success h1{margin-top:12px}
         .success p{color:#9eb3c4;font-size:1rem;line-height:1.6}

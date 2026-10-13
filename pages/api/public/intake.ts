@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { normalizePhone } from '../intake/webhook';
+import { SMS_CONSENT_TEXT } from '@/lib/legal';
 
 // Public, no-auth intake form submission (see pages/intake.tsx). Minimum-friction by design:
 // name, business name, phone, email only -- no qualification questions. Per
@@ -77,6 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const phoneRaw = text(body.phone, 40);
     const emailRaw = text(body.email).toLowerCase();
     const clientToken = text(body.clientToken, 80);
+    const smsConsent = body.smsConsent === true;
 
     if (!name) return res.status(400).json({ error: 'Name is required.' });
     if (!businessName) return res.status(400).json({ error: 'Business name is required.' });
@@ -101,7 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         status: 'completed',
         started_at: now,
         ended_at: now,
-        metadata: { source: 'stellaruc_demo_intake', name, businessName, phone, email: emailRaw },
+        metadata: {
+          source: 'stellaruc_demo_intake', name, businessName, phone, email: emailRaw,
+          sms_consent: { granted: smsConsent, text: smsConsent ? SMS_CONSENT_TEXT : null, at: now },
+        },
       },
       { onConflict: 'tenant_id,channel,external_id', ignoreDuplicates: true },
     );
