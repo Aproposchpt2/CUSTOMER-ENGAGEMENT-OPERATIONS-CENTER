@@ -37,10 +37,11 @@ export default function Footer({
         <div>
           <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: '#C8A96B', marginBottom: '.8rem' }}>Company</div>
           {[
+            { href: '/about', label: 'About Stellar UC' },
             { href: 'https://aproposgroupllc.com', label: 'Apropos Group LLC' },
           ].map(({ href, label }) => (
             <div key={href} style={{ marginBottom: '.4rem' }}>
-              <a href={href} target="_blank" rel="noopener" style={{ fontSize: '.8rem', color: '#9CA8BA', textDecoration: 'none' }}>{label}</a>
+              {href.startsWith("/") ? <Link href={href} style={linkStyle}>{label}</Link> : <a href={href} target="_blank" rel="noopener" style={linkStyle}>{label}</a>}
             </div>
           ))}
         </div>
