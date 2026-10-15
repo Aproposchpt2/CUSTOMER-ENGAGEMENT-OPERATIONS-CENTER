@@ -5,6 +5,16 @@ import { effectiveHost, isAllowedOnAppHost, isAppHost, isBlockedOnOperatorHost, 
 const DEMO_SESSION_COOKIE = 'ai4cc_demo_started_at';
 
 export async function middleware(request: NextRequest) {
+  // The isolated GPT-Live evaluation does not use tenant sessions or Supabase.
+  // Netlify team SSO protects this dedicated site; the API also requires its own access code.
+  const privateVoiceHost = request.nextUrl.hostname === 'stellaruc-private-voice-poc.netlify.app' ||
+    request.nextUrl.hostname.endsWith('--stellaruc-private-voice-poc.netlify.app');
+  if (privateVoiceHost && (request.nextUrl.pathname === '/experimental-voice' ||
+    request.nextUrl.pathname === '/api/experimental-voice-session')) {
+    const response = NextResponse.next();
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return response;
+  }
   // Customer workspaces ({slug}.<root domain>): no sales/marketing pages, no Apropos data mirrors,
   // and the root URL goes straight to the workspace. Tenant membership itself is enforced
   // server-side per request (lib/ai4ccServer.ts), never from anything the browser sends.
