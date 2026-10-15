@@ -81,13 +81,14 @@ export default function VoiceProofOfConcept() {
         if (v.type === 'session.started') { setStatus('Connected — speak to the support desk'); log('GPT-Live session started'); }
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
-        if (v.type === 'response.function_call_arguments.done' && v.name === 'submit_support_intake') {
+        const call = v.type === 'response.output_item.done' ? v.item : v;
+        if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake') {
           void (async () => {
             let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
             try {
               if (submitted.current) throw new Error('Intake already submitted this session');
               if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
-              const args = JSON.parse(v.arguments || '{}');
+              const args = JSON.parse(call.arguments || '{}');
               if (!window.confirm('Submit this fictional customer and support case to the staging database?')) throw new Error('Test operator declined record creation');
               submitted.current = true;
               const response = await fetch('/api/experimental-support-intake', {
@@ -100,7 +101,7 @@ export default function VoiceProofOfConcept() {
               log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
             } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
             if (dc.readyState === 'open') {
-              dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:v.call_id,output:JSON.stringify(result)}}));
+              dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:call.call_id,output:JSON.stringify(result)}}));
               dc.send(JSON.stringify({type:'response.create'}));
             }
           })();
