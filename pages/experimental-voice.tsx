@@ -60,11 +60,11 @@ export default function VoiceProofOfConcept() {
       const session = await sessionResponse.json();
       if (!sessionResponse.ok) throw new Error(session.error + (session.detail ? ': ' + session.detail : ''));
       if (!session.transport?.sdp) throw new Error('Missing GPT-Live SDP answer');
+      setStatus('Completing voice connection...');
       await connection.setRemoteDescription({ type: 'answer', sdp: session.transport.sdp });
-      setStatus('Connecting to GPT-Live...');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to connect');
       stop();
+      setError(e instanceof Error ? e.message : 'Unable to connect');
     } finally { setBusy(false); }
   }
   function endConversation() {
