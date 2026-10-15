@@ -1,0 +1,35 @@
+name: Deploy Protected Stellar UC Voice POC
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: stellaruc-private-voice-poc-deploy
+  cancel-in-progress: false
+jobs:
+  deploy-private-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: stellaruc-voice-poc
+    env:
+      NETLIFY_SITE_ID: a98fcd5a-893e-4eb7-835b-146f516ff47d
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+    steps:
+      - name: Confirm branch and deployment credentials
+        shell: bash
+        run: |
+          test "$GITHUB_REF" = "refs/heads/experiment/gpt-live-voice-poc" || { echo "Only the experimental branch may deploy"; exit 1; }
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "Configure NETLIFY_AUTH_TOKEN in the protected environment"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Automated tests
+        run: npm test
+      - name: Build and deploy to dedicated SSO-protected Netlify site
+        run: npx --yes netlify-cli@latest deploy --build --prod --site "$NETLIFY_SITE_ID" --message "Private GPT-Live experiment $GITHUB_SHA"
