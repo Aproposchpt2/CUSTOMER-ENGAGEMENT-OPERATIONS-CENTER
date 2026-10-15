@@ -3,6 +3,9 @@ import Head from 'next/head';
 
 export default function VoiceProofOfConcept() {
   const [accessCode, setAccessCode] = useState('');
+  const [tenantId, setTenantId] = useState('');
+  const intakeSessionId = useRef('');
+  const submitted = useRef(false);
   const [status, setStatus] = useState('Disconnected');
   const [error, setError] = useState('');
   const [events, setEvents] = useState<string[]>([]);
@@ -25,7 +28,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current) return;
-    setBusy(true); setError(''); setEvents([]);
+    setBusy(true); setError(''); setEvents([]); submitted.current = false; intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -41,7 +44,36 @@ export default function VoiceProofOfConcept() {
       };
       stream.current.getTracks().forEach(track => connection.addTrack(track, stream.current!));
       const dc = connection.createDataChannel('oai-events'); channel.current = dc;
-      dc.onmessage = e => { try { const v = JSON.parse(e.data); if (v.type === 'session.started') { setStatus('Connected — speak to the support desk'); log('GPT-Live session started'); } if (v.type === 'session.closed') { log('Session finalized; usage: ' + JSON.stringify(v.usage || {})); stop(); } if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown')); } catch {} };
+      dc.onmessage = e => { try {
+        const v = JSON.parse(e.data);
+        if (v.type === 'session.started') { setStatus('Connected — speak to the support desk'); log('GPT-Live session started'); }
+        if (v.type === 'session.closed') { log('Session finalized'); stop(); }
+        if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
+        if (v.type === 'response.function_call_arguments.done' && v.name === 'submit_support_intake') {
+          void (async () => {
+            let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
+            try {
+              if (submitted.current) throw new Error('Intake already submitted this session');
+              if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
+              const args = JSON.parse(v.arguments || '{}');
+              if (!window.confirm('Submit this fictional customer and support case to the staging database?')) throw new Error('Test operator declined record creation');
+              submitted.current = true;
+              const response = await fetch('/api/experimental-support-intake', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({...args, tenantId, sessionId:intakeSessionId.current})
+              });
+              const payload = await response.json();
+              if (!response.ok || !payload.customerId || !payload.caseId) throw new Error(payload.error || 'Save not confirmed');
+              result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
+              log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
+            } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
+            if (dc.readyState === 'open') {
+              dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:v.call_id,output:JSON.stringify(result)}}));
+              dc.send(JSON.stringify({type:'response.create'}));
+            }
+          })();
+        }
+      } catch {} };
       const offer = await connection.createOffer();
       await connection.setLocalDescription(offer);
       if (connection.iceGatheringState !== 'complete') {
@@ -79,8 +111,8 @@ export default function VoiceProofOfConcept() {
     <div style={{maxWidth:720,margin:'auto'}}>
       <p style={{color:'#d8b86a',letterSpacing:2}}>STELLAR UC · PRIVATE ENGINEERING TEST</p>
       <h1>Intelligent Customer Product Support Desk</h1>
-      <p>Experimental support intake voice evaluation. Use fictional customer information only. This demo does not create customer records, support tickets, or live follow-ups.</p>
-      <label htmlFor="access">Private test access code</label>
+      <p>Experimental support intake voice evaluation. Use fictional customer information only. Staging writes require a signed-in tenant administrator, server enablement, and explicit operator confirmation. No real customer follow-ups occur.</p>
+      <label htmlFor="tenant">Staging tenant ID (authorized administrator)</label><input id="tenant" value={tenantId} onChange={e=>setTenantId(e.target.value)} placeholder="Tenant UUID" style={{display:"block",width:"100%",padding:12,margin:"8px 0 20px",background:"#171e2b",color:"white",border:"1px solid #c8a85a",borderRadius:6}}/><label htmlFor="access">Private test access code</label>
       <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>setAccessCode(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
         <button disabled={busy || !!pc.current || !accessCode} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
