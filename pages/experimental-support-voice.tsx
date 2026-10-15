@@ -1,9 +1,13 @@
 import { useRef, useState } from 'react';
 import Head from 'next/head';
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function VoiceProofOfConcept() {
   const [accessCode, setAccessCode] = useState('');
-  const [tenantId, setTenantId] = useState('');
+  const [tenantId, setTenantId] = useState('5885a020-d363-4c27-910a-c035eda132f5');
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [authMessage, setAuthMessage] = useState('Not signed in to staging');
   const intakeSessionId = useRef('');
   const submitted = useRef(false);
   const [status, setStatus] = useState('Disconnected');
@@ -18,6 +22,26 @@ export default function VoiceProofOfConcept() {
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const log = (message: string) => setEvents(previous => [...previous.slice(-19), message]);
+  function stagingClient() {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    if (!url?.includes('hvzauakkhlivzeqatfqm') || !key) throw new Error('Staging login not configured');
+    return createBrowserClient(url, key);
+  }
+  async function sendOtp() {
+    try {
+      const { error } = await stagingClient().auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+      if (error) throw error;
+      setAuthMessage('Check your email for the staging sign-in code');
+    } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Sign-in failed');}
+  }
+  async function verifyOtp() {
+    try {
+      const { error } = await stagingClient().auth.verifyOtp({email,token:otp,type:'email'});
+      if (error) throw error;
+      setAuthMessage('Staging sign-in successful. The preflight will verify administrator authorization.');
+    } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Verification failed');}
+  }
   function stop() {
     if (closeTimeout.current) { clearTimeout(closeTimeout.current); closeTimeout.current = null; }
     if (sessionTimeout.current) { clearTimeout(sessionTimeout.current); sessionTimeout.current = null; }
@@ -120,6 +144,15 @@ export default function VoiceProofOfConcept() {
       <p style={{color:'#d8b86a',letterSpacing:2}}>STELLAR UC · PRIVATE ENGINEERING TEST</p>
       <h1>Intelligent Customer Product Support Desk</h1>
       <p>Experimental support intake voice evaluation. Use fictional customer information only. Staging writes require a signed-in tenant administrator, server enablement, and explicit operator confirmation. No real customer follow-ups occur.</p>
+      <h2>Staging administrator sign-in</h2>
+      <p>Use the email associated with the existing staging tenant Owner account. This is separate from Netlify SSO.</p>
+      <label htmlFor="email">Staging account email</label>
+      <input id="email" type="email" value={email} onChange={e=>setEmail(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 12px',background:'#171e2b',color:'white'}} />
+      <button type="button" onClick={()=>void sendOtp()} disabled={!email.includes('@')} style={{padding:10,marginBottom:12}}>Email sign-in code</button>
+      <label htmlFor="otp">Email verification code</label>
+      <input id="otp" type="text" value={otp} onChange={e=>setOtp(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 12px',background:'#171e2b',color:'white'}} />
+      <button type="button" onClick={()=>void verifyOtp()} disabled={!otp || !email} style={{padding:10,marginBottom:12}}>Verify staging sign-in</button>
+      <p role="status">{authMessage}</p>
       <label htmlFor="tenant">Staging tenant ID (authorized administrator)</label><input id="tenant" value={tenantId} onChange={e=>setTenantId(e.target.value)} placeholder="Tenant UUID" style={{display:"block",width:"100%",padding:12,margin:"8px 0 20px",background:"#171e2b",color:"white",border:"1px solid #c8a85a",borderRadius:6}}/><label htmlFor="access">Private test access code</label>
       <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>setAccessCode(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
