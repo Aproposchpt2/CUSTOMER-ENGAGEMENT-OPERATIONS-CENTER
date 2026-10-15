@@ -10,6 +10,7 @@ export default function VoiceProofOfConcept() {
   const [authMessage, setAuthMessage] = useState('Not signed in to staging');
   const intakeSessionId = useRef('');
   const submitted = useRef(false);
+  const toolRegistered = useRef(false);
   const processedCalls = useRef<Set<string>>(new Set());
   const [status, setStatus] = useState('Disconnected');
   const [error, setError] = useState('');
@@ -83,7 +84,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -106,17 +107,35 @@ export default function VoiceProofOfConcept() {
       };
       stream.current.getTracks().forEach(track => connection.addTrack(track, stream.current!));
       const dc = connection.createDataChannel('oai-events'); channel.current = dc;
+      dc.onopen = () => {
+        dc.send(JSON.stringify({type:'session.update',session:{
+          type:'realtime',
+          tools:[{type:'function',name:'submit_support_intake',
+            description:'Submit a fictional customer support intake to staging only after confirming all details. Call once, then wait for the real database result.',
+            parameters:{type:'object',properties:{
+              name:{type:'string'},email:{type:'string'},phone:{type:'string'},
+              product:{type:'string'},purchaseDate:{type:'string',description:'YYYY-MM-DD'},
+              issue:{type:'string'},steps:{type:'string'},impact:{type:'string'},
+              priority:{type:'string',enum:['LOW','NORMAL','HIGH','URGENT']}
+            },required:['name','email','phone','product','purchaseDate','issue','steps','impact','priority']}
+          }],tool_choice:'auto'
+        }}));
+        log('Support-intake tool registration requested');
+      };
       dc.onmessage = e => { try {
         const v = JSON.parse(e.data);
-        if (v.type === 'session.started') { setStatus('Connected — speak to the support desk'); log('GPT-Live session started'); }
+        if (v.type === 'session.started' || v.type === 'session.created') { setStatus('Connected — registering support intake'); log('Voice session established'); }
+        if (v.type === 'session.updated') { toolRegistered.current = Array.isArray(v.session?.tools) && v.session.tools.some((t:{name?:string})=>t.name === 'submit_support_intake'); if (toolRegistered.current) {setStatus('Connected — support intake ready'); log('Support intake tool registered');} else log('Support intake tool not confirmed'); }
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
         const call = v.type === 'response.output_item.done' ? v.item : v;
+        if (v.type === 'response.function_call_arguments.done' && !call?.name && v.name !== 'submit_support_intake') { /* Wait for completed output item with tool name. */ }
         if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake' && typeof call.call_id === 'string' && !processedCalls.current.has(call.call_id)) {
           processedCalls.current.add(call.call_id);
           void (async () => {
             let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
             try {
+              if (!toolRegistered.current) throw new Error('Support intake tool registration not verified');
               if (submitted.current) throw new Error('Intake already submitted this session');
               if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
               const args = JSON.parse(call.arguments || '{}');
@@ -137,7 +156,7 @@ export default function VoiceProofOfConcept() {
             }
           })();
         }
-      } catch {} };
+      } catch { log('Unable to parse session event'); } };
       const offer = await connection.createOffer();
       await connection.setLocalDescription(offer);
       if (connection.iceGatheringState !== 'complete') {
