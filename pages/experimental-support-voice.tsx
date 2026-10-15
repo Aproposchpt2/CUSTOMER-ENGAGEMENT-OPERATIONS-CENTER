@@ -16,6 +16,7 @@ export default function VoiceProofOfConcept() {
   const [events, setEvents] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [readiness, setReadiness] = useState('Not checked');
+  const [preflightPassed, setPreflightPassed] = useState(false);
   const pc = useRef<RTCPeerConnection | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -30,6 +31,7 @@ export default function VoiceProofOfConcept() {
     return createBrowserClient(url, key);
   }
   async function sendOtp() {
+    setPreflightPassed(false);
     try {
       const { error } = await stagingClient().auth.signInWithOtp({email,options:{shouldCreateUser:false}});
       if (error) throw error;
@@ -37,11 +39,28 @@ export default function VoiceProofOfConcept() {
     } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Sign-in failed');}
   }
   async function verifyOtp() {
+    setPreflightPassed(false);
     try {
       const { error } = await stagingClient().auth.verifyOtp({email,token:otp,type:'email'});
       if (error) throw error;
       setAuthMessage('Staging sign-in successful. The preflight will verify administrator authorization.');
     } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Verification failed');}
+  }
+  async function verifyReadiness() {
+    setPreflightPassed(false);
+    setReadiness('Checking authenticated staging access...');
+    try {
+      const response = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
+      const result = await response.json();
+      if (!response.ok || !result.ready || !result.tenantIds?.includes(tenantId)) {
+        setReadiness('FAILED: staging administrator authentication, tenant membership, access code or write configuration is not ready');
+        return;
+      }
+      setPreflightPassed(true);
+      setReadiness('PASS: staging authenticated administrator, selected tenant and test writes verified');
+    } catch {
+      setReadiness('FAILED: readiness endpoint could not be reached');
+    }
   }
   function stop() {
     if (closeTimeout.current) { clearTimeout(closeTimeout.current); closeTimeout.current = null; }
@@ -53,7 +72,7 @@ export default function VoiceProofOfConcept() {
     setStatus('Disconnected');
   }
   async function start() {
-    if (busy || pc.current) return;
+    if (busy || pc.current || !preflightPassed) return;
     setBusy(true); setError(''); setEvents([]); submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
@@ -156,10 +175,11 @@ export default function VoiceProofOfConcept() {
       <input id="otp" type="text" value={otp} onChange={e=>setOtp(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 12px',background:'#171e2b',color:'white'}} />
       <button type="button" onClick={()=>void verifyOtp()} disabled={!otp || !email} style={{padding:10,marginBottom:12}}>Verify staging sign-in</button>
       <p role="status">{authMessage}</p>
-      <label htmlFor="tenant">Staging tenant ID (authorized administrator)</label><input id="tenant" value={tenantId} onChange={e=>setTenantId(e.target.value)} placeholder="Tenant UUID" style={{display:"block",width:"100%",padding:12,margin:"8px 0 20px",background:"#171e2b",color:"white",border:"1px solid #c8a85a",borderRadius:6}}/><label htmlFor="access">Private test access code</label>
-      <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>setAccessCode(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
+      <label htmlFor="tenant">Staging tenant ID (authorized administrator)</label><input id="tenant" value={tenantId} onChange={e=>{setTenantId(e.target.value);setPreflightPassed(false);}} placeholder="Tenant UUID" style={{display:"block",width:"100%",padding:12,margin:"8px 0 20px",background:"#171e2b",color:"white",border:"1px solid #c8a85a",borderRadius:6}}/><label htmlFor="access">Private test access code</label>
+      <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>{setAccessCode(e.target.value);setPreflightPassed(false);}} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-        <button disabled={busy || !!pc.current || !accessCode} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
+        <button disabled={busy || !accessCode || !!pc.current} onClick={()=>void verifyReadiness()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>Verify staging readiness</button>
+        <button disabled={busy || !!pc.current || !accessCode || !preflightPassed} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
         <button disabled={!pc.current} onClick={endConversation} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
       </div>
       <p role="status">Status: {busy ? 'Checking staging readiness and preparing session...' : status}</p><p role="status">Database readiness: {readiness}</p>
