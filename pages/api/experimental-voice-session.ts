@@ -5,7 +5,9 @@ const INSTRUCTIONS = `You are Stellar UC's Intelligent Sales Specialist in an IS
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (!req.headers.origin || new URL(req.headers.origin).host !== req.headers.host) return res.status(403).json({ error: 'Origin mismatch' });
+  let sameOrigin = false;
+  try { sameOrigin = Boolean(req.headers.origin && new URL(req.headers.origin).host === req.headers.host); } catch { /* reject malformed origins */ }
+  if (!sameOrigin) return res.status(403).json({ error: 'Origin mismatch' });
   if (typeof req.body?.sdp !== 'string' || req.body.sdp.length < 100 || req.body.sdp.length > 65536) return res.status(400).json({ error: 'Valid SDP offer required' });
   const expected = process.env.STELLAR_VOICE_POC_ACCESS_CODE;
   if (!expected) return res.status(503).json({ error: 'Private test access is not configured' });
@@ -34,7 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       signal: AbortSignal.timeout(20000)
     });
     const payload = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) return res.status(502).json({ error: 'GPT-Live session request failed', status: upstream.status, detail: payload?.error?.message || 'Check GPT-Live model access and billing' });
+    if (!upstream.ok) {
+      console.error('Private voice session upstream error', { status: upstream.status, code: payload?.error?.code || 'unknown' });
+      return res.status(502).json({ error: 'Voice session unavailable; verify configured model access and session API compatibility' });
+    }
     if (typeof payload?.transport?.sdp !== 'string') return res.status(502).json({ error: 'GPT-Live session response missing SDP answer' });
     return res.status(201).json({ session: { id: payload.session?.id }, transport: { type: 'webrtc', sdp: payload.transport.sdp } });
   } catch {
