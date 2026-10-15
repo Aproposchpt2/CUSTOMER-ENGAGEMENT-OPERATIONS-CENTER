@@ -5,7 +5,8 @@ const INSTRUCTIONS = `You are Stellar UC's Intelligent Sales Specialist in an IS
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) return res.status(403).json({ error: 'Origin mismatch' });
+  if (!req.headers.origin || new URL(req.headers.origin).host !== req.headers.host) return res.status(403).json({ error: 'Origin mismatch' });
+  if (typeof req.body?.sdp !== 'string' || req.body.sdp.length < 100 || req.body.sdp.length > 65536) return res.status(400).json({ error: 'Valid SDP offer required' });
   const expected = process.env.STELLAR_VOICE_POC_ACCESS_CODE;
   if (!expected) return res.status(503).json({ error: 'Private test access is not configured' });
   const provided = req.headers['x-poc-access-code'];
@@ -13,24 +14,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const key = process.env.OPENAI_API_KEY;
   if (!key) return res.status(503).json({ error: 'OpenAI API key unavailable' });
   try {
-    const upstream = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
+    const upstream = await fetch('https://api.openai.com/v1/live/sessions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         session: {
-          type: 'realtime',
-          model: process.env.STELLAR_VOICE_POC_MODEL || 'gpt-realtime',
-          instructions: INSTRUCTIONS,
-          audio: { output: { voice: 'marin' } }
-        }
+          model: 'gpt-live-1',
+          instructions: 'You are the Stellar UC Intelligent Sales Specialist in a private demonstration. Be natural and concise. Delegate complex sales analysis and questions about business details to the reasoning backend. Never claim to have performed a real-world action.',
+          delegation: {
+            type: 'responses',
+            responses: {
+              model: 'gpt-5.6-terra',
+              instructions: INSTRUCTIONS
+            }
+          }
+        },
+        transport: { type: 'webrtc', sdp: req.body.sdp }
       }),
-      signal: AbortSignal.timeout(12000)
+      signal: AbortSignal.timeout(20000)
     });
     const payload = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) return res.status(502).json({ error: 'OpenAI session request failed', status: upstream.status, detail: payload?.error?.message || 'Check model access and API billing' });
-    const token = payload?.value || payload?.client_secret?.value;
-    if (!token) return res.status(502).json({ error: 'OpenAI did not return an ephemeral client credential' });
-    return res.status(200).json({ client_secret: token, model: process.env.STELLAR_VOICE_POC_MODEL || 'gpt-realtime' });
+    if (!upstream.ok) return res.status(502).json({ error: 'GPT-Live session request failed', status: upstream.status, detail: payload?.error?.message || 'Check GPT-Live model access and billing' });
+    if (typeof payload?.transport?.sdp !== 'string') return res.status(502).json({ error: 'GPT-Live session response missing SDP answer' });
+    return res.status(201).json({ session: { id: payload.session?.id }, transport: { type: 'webrtc', sdp: payload.transport.sdp } });
   } catch {
     return res.status(502).json({ error: 'Unable to create realtime session' });
   }
