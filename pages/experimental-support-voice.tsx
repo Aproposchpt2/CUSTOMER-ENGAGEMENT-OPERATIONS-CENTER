@@ -10,6 +10,7 @@ export default function VoiceProofOfConcept() {
   const [authMessage, setAuthMessage] = useState('Not signed in to staging');
   const intakeSessionId = useRef('');
   const submitted = useRef(false);
+  const processedCalls = useRef<Set<string>>(new Set());
   const [status, setStatus] = useState('Disconnected');
   const [error, setError] = useState('');
   const [events, setEvents] = useState<string[]>([]);
@@ -53,7 +54,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current) return;
-    setBusy(true); setError(''); setEvents([]); submitted.current = false; intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -82,7 +83,8 @@ export default function VoiceProofOfConcept() {
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
         const call = v.type === 'response.output_item.done' ? v.item : v;
-        if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake') {
+        if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake' && typeof call.call_id === 'string' && !processedCalls.current.has(call.call_id)) {
+          processedCalls.current.add(call.call_id);
           void (async () => {
             let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
             try {
