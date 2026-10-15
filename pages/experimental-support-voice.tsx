@@ -10,6 +10,7 @@ export default function VoiceProofOfConcept() {
   const [error, setError] = useState('');
   const [events, setEvents] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [readiness, setReadiness] = useState('Not checked');
   const pc = useRef<RTCPeerConnection | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -31,6 +32,13 @@ export default function VoiceProofOfConcept() {
     setBusy(true); setError(''); setEvents([]); submitted.current = false; intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
+      const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
+      const check = await readinessResponse.json();
+      if (!readinessResponse.ok || !check.ready || !check.tenantIds?.includes(tenantId)) {
+        setReadiness('Not ready: staging writes, authenticated admin membership, or tenant selection requires attention');
+        throw new Error('Staging record-creation preflight failed. Voice test not started.');
+      }
+      setReadiness('Ready: authorized staging tenant and writes enabled');
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       const connection = new RTCPeerConnection();
       sessionTimeout.current = setTimeout(() => { log('15-minute test duration reached'); stop(); }, 15 * 60 * 1000);
@@ -118,7 +126,7 @@ export default function VoiceProofOfConcept() {
         <button disabled={busy || !!pc.current || !accessCode} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
         <button disabled={!pc.current} onClick={endConversation} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
       </div>
-      <p role="status">Status: {busy ? 'Preparing microphone and session...' : status}</p>
+      <p role="status">Status: {busy ? 'Checking staging readiness and preparing session...' : status}</p><p role="status">Database readiness: {readiness}</p>
       {error && <p role="alert" style={{color:'#ffb5b5'}}>{error}</p>}
       <h2>Suggested intelligence challenge</h2>
       <blockquote style={{borderLeft:'3px solid #d7b968',paddingLeft:18,lineHeight:1.6}}>Hello, I purchased a StellarConnect 500 wireless device and it keeps losing its network connection. Can you help?</blockquote>
