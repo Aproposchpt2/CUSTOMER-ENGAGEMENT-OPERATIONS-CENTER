@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('hvzauakkhlivzeqatfqm'))
     return res.status(503).json({ error: 'Staging database required' });
   const origin = req.headers.origin;
-  if (!origin || new URL(origin).host !== req.headers.host)
+  if (!origin || (() => { try { return new URL(origin).host !== req.headers.host; } catch { return true; } })())
     return res.status(403).json({ error: 'Origin mismatch' });
   const supabase = createClient(req, res);
   const { data: auth, error: authError } = await supabase.auth.getUser();
