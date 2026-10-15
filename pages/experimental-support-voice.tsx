@@ -53,7 +53,17 @@ export default function VoiceProofOfConcept() {
       const response = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
       const result = await response.json();
       if (!response.ok || !result.ready || !result.tenantIds?.includes(tenantId)) {
-        setReadiness('FAILED: staging administrator authentication, tenant membership, access code or write configuration is not ready');
+        const explanations: Record<string,string> = {
+          ORIGIN_MISMATCH:'Request origin did not match the private test site',
+          ACCESS_CODE_REJECTED:'Private test access code is incorrect or not configured',
+          STAGING_CONFIG_MISSING:'Staging database URL is not configured',
+          STAGING_SESSION_NOT_FOUND:'Staging sign-in was not available to the server; sign in again',
+          TENANT_MEMBERSHIP_LOOKUP_FAILED:'Staging tenant membership could not be verified',
+          TEST_WRITES_DISABLED:'Private staging support test writes are disabled',
+          NO_ACTIVE_ADMIN_MEMBERSHIP:'Signed-in account is not an active Owner or Admin for this tenant'
+        };
+        const reason = String(result.reason || 'UNKNOWN');
+        setReadiness('FAILED ['+reason+']: '+(explanations[reason] || 'Staging readiness check did not pass'));
         return;
       }
       setPreflightPassed(true);
