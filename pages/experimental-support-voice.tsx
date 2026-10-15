@@ -125,7 +125,8 @@ export default function VoiceProofOfConcept() {
       dc.onmessage = e => { try {
         const v = JSON.parse(e.data);
         if (v.type === 'session.started' || v.type === 'session.created') { setStatus('Connected — registering support intake'); log('Voice session established'); }
-        if (v.type === 'session.updated') { toolRegistered.current = Array.isArray(v.session?.tools) && v.session.tools.some((t:{name?:string})=>t.name === 'submit_support_intake'); if (toolRegistered.current) {setStatus('Connected — support intake ready'); log('Support intake tool registered');} else log('Support intake tool not confirmed'); }
+        if (v.type === 'session.updated') { toolRegistered.current = Array.isArray(v.session?.tools) && v.session.tools.some((t:{name?:string})=>t.name === 'submit_support_intake'); if (toolRegistered.current) {setStatus('Connected — support intake ready'); log('Support intake tool registered');} else log('Support intake tool not confirmed; inspect agent event'); }
+        if (typeof v.type === 'string' && (/tool|function_call|session.update|response.output_item/.test(v.type))) log('Protocol event: ' + v.type + (v.error?.code ? ' [' + String(v.error.code).slice(0,60) + ']' : ''));
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
         const call = v.type === 'response.output_item.done' ? v.item : v;
