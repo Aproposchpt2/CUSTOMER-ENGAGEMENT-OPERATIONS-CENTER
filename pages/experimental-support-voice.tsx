@@ -154,7 +154,7 @@ export default function VoiceProofOfConcept() {
         body: JSON.stringify({ sdp: connection.localDescription?.sdp })
       });
       const session = await sessionResponse.json();
-      if (!sessionResponse.ok) throw new Error(session.error + (session.detail ? ': ' + session.detail : ''));
+      if (!sessionResponse.ok) { const d = session.diagnostic; throw new Error(session.error + (d ? ' [upstream '+(d.upstreamStatus || 'connection')+', '+(d.code || 'unknown')+', '+(d.type || 'unknown')+(d.param ? ', parameter '+d.param : '')+']' : '')); }
       if (!session.transport?.sdp) throw new Error('Missing GPT-Live SDP answer');
       setStatus('Completing voice connection...');
       await connection.setRemoteDescription({ type: 'answer', sdp: session.transport.sdp });
