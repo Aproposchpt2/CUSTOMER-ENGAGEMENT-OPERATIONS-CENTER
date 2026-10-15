@@ -1,34 +1,26 @@
-# Stellar UC — GPT-Live isolated proof of concept
+# Stellar UC — Isolated realtime voice proof of concept
+Status: IMPLEMENTED IN SOURCE; NOT BUILT OR DEPLOYED. Branch: `experiment/gpt-live-voice-poc`. Do not merge to `main` or deploy to production without explicit owner approval.
 
-Status: EXPERIMENTAL. Branch: experiment/gpt-live-voice-poc. Do not merge or deploy to production without explicit owner approval.
+## Delivered
+- `pages/experimental-voice.tsx`: browser microphone/WebRTC evaluation interface.
+- `pages/api/experimental-voice-session.ts`: protected session broker using existing server-side `OPENAI_API_KEY`.
+- Uses `gpt-realtime` as a conservative API model default. `STELLAR_VOICE_POC_MODEL` can override it after model access and the precise supported API model identifier are verified. GPT-Live-1 access and backend reasoning delegation have **not** been confirmed or implemented.
+- Agent prompt covers 24/7/365, up to 20 simultaneous conversations (a target pending end-to-end load verification), sales qualification, and usage-based pricing.
 
-## Objective
-Provide a private browser-based voice test using `gpt-live-1` with a reasoning backend, then compare against `gpt-realtime-2.1` in a separate test. Preserve existing ElevenLabs, Twilio, tenant records, routes, and public website.
-
-## Access and security
-- Use a dedicated OpenAI project API key configured only as a server-side environment secret `OPENAI_API_KEY`. Never commit the key or send it to a browser.
-- Generate short-lived client/session credentials on a server route with authenticated access and request limits. Follow the current OpenAI GPT-Live getting-started and session docs rather than assuming the Realtime API handshake is identical.
-- Keep the test endpoint private and separate from production. Do not create or mutate production customer records.
-- Set budget/usage alerts and a hard maximum session duration where supported.
+## Deployment prerequisites
+1. Set a long random secret `STELLAR_VOICE_POC_ACCESS_CODE` only on the isolated preview environment. Do not share it in chat or commit it.
+2. Reuse the existing server-side `OPENAI_API_KEY`; verify it belongs to the funded OpenAI project.
+3. Deploy only a protected branch preview or separate test Netlify site. Do not deploy this experiment on `stellaruc.com`.
+4. Verify the OpenAI realtime session endpoint/model contract against current official documentation; build and run automated tests.
+5. Enforce server-side rate limiting, session concurrency/time budget, and appropriate private-site access before making the preview accessible. A static access code alone is not a substitute for robust deployment access control.
+6. Confirm real two-way audio, interruptions, browser compatibility, API usage, and cleanup on hangup.
 
 ## Acceptance tests
-1. Two-way spoken dialogue, interruptions and barge-in.
-2. Unexpected customer requests and clarification questions.
-3. Multi-step sales qualification and objection handling.
-4. Reasoning delegation for a complicated customer scenario.
-5. Honest admission of uncertainty and correct human handoff recommendation.
-6. Accurate structured lead summary (in test memory only).
-7. Session termination, error recovery, and no leaked credentials.
-8. Record latency, reasoning accuracy, task completion, and actual OpenAI usage costs.
+- Spoken dialogue, interruption/barge-in, multi-step qualification, objection handling.
+- Explain abandoned calls and measure baseline vs outcomes without promising return.
+- Do not invent business facts, integrations, prices, or completed actions.
+- No production tenant data, Twilio calls, or ElevenLabs modifications.
+- Verify 20-call capacity in a separate end-to-end load test, not this single-browser demonstration.
 
-## Test persona
-Stellar UC Intelligent Sales Specialist. Professional, concise, friendly. Do not invent pricing, availability, or business facts. Ask permission before collecting personal information. No live business actions in this experiment.
-
-## Next implementation
-After the owner completes the OpenAI API key setup, add a server-side authenticated session route and an isolated browser voice UI to this branch; then deploy a private preview, verify connection, and provide the preview URL for acceptance testing.
-
-References:
-https://developers.openai.com/api/docs/models/gpt-live-1
-https://developers.openai.com/api/docs/guides/live
-https://developers.openai.com/api/docs/guides/live-delegation
-https://developers.openai.com/api/docs/guides/live-partner-integrations
+## Current limitations
+This first code slice does not include an admin prompt editor, tenant knowledge retrieval, backend reasoning delegation, session hard caps, rate limiting, build verification, or deployed preview. It must not be represented as a completed demonstration.
