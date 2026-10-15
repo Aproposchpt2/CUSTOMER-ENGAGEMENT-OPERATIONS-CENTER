@@ -38,12 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const payload = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
-      console.error('Private voice session upstream error', { status: upstream.status, code: payload?.error?.code || 'unknown' });
-      return res.status(502).json({ error: 'Voice session unavailable; verify configured model access and session API compatibility' });
+      const code = typeof payload?.error?.code === 'string' ? payload.error.code.slice(0,80) : 'unknown';
+      const type = typeof payload?.error?.type === 'string' ? payload.error.type.slice(0,80) : 'unknown';
+      const param = typeof payload?.error?.param === 'string' ? payload.error.param.slice(0,80) : null;
+      console.error('Private support voice upstream rejection', { status: upstream.status, code, type, param });
+      return res.status(502).json({ error: 'Voice session rejected by upstream service', diagnostic: { upstreamStatus: upstream.status, code, type, param } });
     }
     if (typeof payload?.transport?.sdp !== 'string') return res.status(502).json({ error: 'GPT-Live session response missing SDP answer' });
     return res.status(201).json({ session: { id: payload.session?.id }, transport: { type: 'webrtc', sdp: payload.transport.sdp } });
-  } catch {
-    return res.status(502).json({ error: 'Unable to create realtime session' });
+  } catch (e) {
+    const category = e instanceof Error && e.name === 'TimeoutError' ? 'UPSTREAM_TIMEOUT' : 'UPSTREAM_CONNECTION_ERROR';
+    console.error('Private support voice session transport failure', { category });
+    return res.status(502).json({ error: 'Unable to create realtime session', diagnostic: { code: category } });
   }
 }
