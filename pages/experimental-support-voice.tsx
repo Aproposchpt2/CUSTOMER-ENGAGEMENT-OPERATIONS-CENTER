@@ -24,7 +24,16 @@ export default function VoiceProofOfConcept() {
   const channel = useRef<RTCDataChannel | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const log = (message: string) => setEvents(previous => [...previous.slice(-19), message]);
+  const diagnosticEvents = useRef<{at:string;message:string}[]>([]);
+  function downloadDiagnostics() {
+    const report = {schemaVersion:1,product:'Stellar UC CSS Private POC',generatedAt:new Date().toISOString(),testOnly:true,sessionId:intakeSessionId.current,voiceStatus:status,readiness,toolRegistered:toolRegistered.current,intakeSubmissionAttempted:submitted.current,events:diagnosticEvents.current};
+    const blob = new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href=url; anchor.download='stellaruc-css-diagnostics-'+Date.now()+'.json';
+    document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
+  }
+  const log = (message: string) => { diagnosticEvents.current.push({at:new Date().toISOString(),message:message.slice(0,180)}); setEvents(previous => [...previous.slice(-19), message]); };
   function stagingClient() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -84,7 +93,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -216,7 +225,7 @@ export default function VoiceProofOfConcept() {
       {error && <p role="alert" style={{color:'#ffb5b5'}}>{error}</p>}
       <h2>Suggested intelligence challenge</h2>
       <blockquote style={{borderLeft:'3px solid #d7b968',paddingLeft:18,lineHeight:1.6}}>Hello, I purchased a StellarConnect 500 wireless device and it keeps losing its network connection. Can you help?</blockquote>
-      <h2>Session events</h2>
+      <h2>Session events</h2><button type="button" onClick={downloadDiagnostics} style={{padding:12,marginBottom:12,background:'#d7b968',color:'#151515',border:0,borderRadius:8}}>Download Diagnostic Report (.json)</button>
       <ul>{events.map((v,i)=><li key={i}>{v}</li>)}</ul>
       <p style={{opacity:.7,fontSize:13}}>Microphone access is requested only when you start. Audio is sent to OpenAI for this test. Do not provide confidential information. Usage incurs API charges. No calls are placed through Twilio.</p>
     </div>
