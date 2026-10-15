@@ -11,8 +11,10 @@ export default function VoiceProofOfConcept() {
   const stream = useRef<MediaStream | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
   const channel = useRef<RTCDataChannel | null>(null);
+  const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const log = (message: string) => setEvents(previous => [...previous.slice(-19), message]);
   function stop() {
+    if (closeTimeout.current) { clearTimeout(closeTimeout.current); closeTimeout.current = null; }
     channel.current?.close(); channel.current = null;
     pc.current?.close(); pc.current = null;
     stream.current?.getTracks().forEach(t => t.stop()); stream.current = null;
@@ -24,11 +26,6 @@ export default function VoiceProofOfConcept() {
     setBusy(true); setError(''); setEvents([]);
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
-      const sessionResponse = await fetch('/api/experimental-voice-session', {
-        method: 'POST', headers: { 'x-poc-access-code': accessCode }
-      });
-      const session = await sessionResponse.json();
-      if (!sessionResponse.ok) throw new Error(session.error + (session.detail ? ': ' + session.detail : ''));
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       const connection = new RTCPeerConnection();
       pc.current = connection;
@@ -41,20 +38,38 @@ export default function VoiceProofOfConcept() {
       };
       stream.current.getTracks().forEach(track => connection.addTrack(track, stream.current!));
       const dc = connection.createDataChannel('oai-events'); channel.current = dc;
-      dc.onmessage = e => { try { const v = JSON.parse(e.data); if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown')); if (v.type === 'response.done') log('Agent response completed'); } catch {} };
-      const offer = await connection.createOffer(); await connection.setLocalDescription(offer);
-      const response = await fetch('https://api.openai.com/v1/realtime/calls', {
+      dc.onmessage = e => { try { const v = JSON.parse(e.data); if (v.type === 'session.started') { setStatus('Connected — speak to the specialist'); log('GPT-Live session started'); } if (v.type === 'session.closed') { log('Session finalized; usage: ' + JSON.stringify(v.usage || {})); stop(); } if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown')); } catch {} };
+      const offer = await connection.createOffer();
+      await connection.setLocalDescription(offer);
+      if (connection.iceGatheringState !== 'complete') {
+        await new Promise<void>((resolve, reject) => {
+          const timer = setTimeout(() => { connection.removeEventListener('icegatheringstatechange', check); reject(new Error('ICE gathering timed out')); }, 10000);
+          function check() { if (connection.iceGatheringState === 'complete') { clearTimeout(timer); connection.removeEventListener('icegatheringstatechange', check); resolve(); } }
+          connection.addEventListener('icegatheringstatechange', check);
+          check();
+        });
+      }
+      const sessionResponse = await fetch('/api/experimental-voice-session', {
         method: 'POST',
-        headers: { Authorization: 'Bearer ' + session.client_secret, 'Content-Type': 'application/sdp' },
-        body: offer.sdp
+        headers: { 'Content-Type': 'application/json', 'x-poc-access-code': accessCode },
+        body: JSON.stringify({ sdp: connection.localDescription?.sdp })
       });
-      if (!response.ok) throw new Error('Realtime connection rejected (' + response.status + '): ' + (await response.text()).slice(0,250));
-      await connection.setRemoteDescription({ type: 'answer', sdp: await response.text() });
-      setStatus('Connecting...');
+      const session = await sessionResponse.json();
+      if (!sessionResponse.ok) throw new Error(session.error + (session.detail ? ': ' + session.detail : ''));
+      if (!session.transport?.sdp) throw new Error('Missing GPT-Live SDP answer');
+      await connection.setRemoteDescription({ type: 'answer', sdp: session.transport.sdp });
+      setStatus('Connecting to GPT-Live...');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to connect');
       stop();
     } finally { setBusy(false); }
+  }
+  function endConversation() {
+    if (channel.current?.readyState === 'open') {
+      setStatus('Finalizing session...');
+      channel.current.send(JSON.stringify({ type: 'session.close' }));
+      closeTimeout.current = setTimeout(stop, 15000);
+    } else stop();
   }
   return <main style={{minHeight:'100vh',background:'#080c15',color:'#f6f0e5',padding:'clamp(20px,5vw,60px)',fontFamily:'system-ui,sans-serif'}}>
     <Head><title>Stellar UC | Private Voice Evaluation</title><meta name="robots" content="noindex,nofollow"/></Head>
@@ -66,7 +81,7 @@ export default function VoiceProofOfConcept() {
       <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>setAccessCode(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
         <button disabled={busy || !!pc.current || !accessCode} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
-        <button disabled={!pc.current} onClick={stop} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
+        <button disabled={!pc.current} onClick={endConversation} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
       </div>
       <p role="status">Status: {busy ? 'Preparing microphone and session...' : status}</p>
       {error && <p role="alert" style={{color:'#ffb5b5'}}>{error}</p>}
