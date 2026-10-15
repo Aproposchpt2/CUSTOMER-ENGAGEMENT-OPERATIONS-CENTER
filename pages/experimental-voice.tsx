@@ -12,9 +12,11 @@ export default function VoiceProofOfConcept() {
   const audio = useRef<HTMLAudioElement | null>(null);
   const channel = useRef<RTCDataChannel | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const log = (message: string) => setEvents(previous => [...previous.slice(-19), message]);
   function stop() {
     if (closeTimeout.current) { clearTimeout(closeTimeout.current); closeTimeout.current = null; }
+    if (sessionTimeout.current) { clearTimeout(sessionTimeout.current); sessionTimeout.current = null; }
     channel.current?.close(); channel.current = null;
     pc.current?.close(); pc.current = null;
     stream.current?.getTracks().forEach(t => t.stop()); stream.current = null;
@@ -28,12 +30,13 @@ export default function VoiceProofOfConcept() {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
       const connection = new RTCPeerConnection();
+      sessionTimeout.current = setTimeout(() => { log('15-minute test duration reached'); stop(); }, 15 * 60 * 1000);
       pc.current = connection;
       const player = new Audio();
       player.autoplay = true; audio.current = player;
       connection.ontrack = e => { player.srcObject = e.streams[0]; void player.play().catch(() => log('Tap screen to enable audio playback')); };
       connection.onconnectionstatechange = () => {
-        if (connection.connectionState === 'connected') setStatus('Connected — speak to the specialist');
+        if (connection.connectionState === 'connected') setStatus('Transport connected — awaiting agent readiness');
         if (['failed', 'closed', 'disconnected'].includes(connection.connectionState)) stop();
       };
       stream.current.getTracks().forEach(track => connection.addTrack(track, stream.current!));
