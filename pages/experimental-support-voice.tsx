@@ -27,6 +27,17 @@ export default function VoiceProofOfConcept() {
   // Privacy-by-design: diagnostic exports contain only fixed event codes, never arbitrary
   // upstream messages, customer fields, case IDs, authentication material or transcripts.
   const diagnosticEvents = useRef<{at:string;code:string}[]>([]);
+  // Fictional-test-only transcript buffer. No server persistence or audio recording.
+  const transcript = useRef<{at:string;speaker:'customer'|'representative';text:string}[]>([]);
+  function downloadTranscript() {
+    const blob = new Blob([JSON.stringify({schemaVersion:1,testOnly:true,
+      warning:'Fictional test data only. Browser-local transcript; completeness depends on live event support.',
+      exportedAt:new Date().toISOString(),turns:transcript.current},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');
+    a.href=url;a.download='stellaruc-css-transcript-'+Date.now()+'.json';
+    document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
   function safeDiagnosticCode(message: string): string {
     if (message.startsWith('Protocol event: ')) {
       const eventType = message.slice('Protocol event: '.length).split(' ')[0];
@@ -126,7 +137,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; transcript.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -169,6 +180,14 @@ export default function VoiceProofOfConcept() {
         if (v.type === 'session.started' || v.type === 'session.created') { setStatus('Connected — registering support intake'); log('Voice session established'); }
         if (v.type === 'session.updated') { toolRegistered.current = Array.isArray(v.session?.tools) && v.session.tools.some((t:{name?:string})=>t.name === 'submit_support_intake'); if (toolRegistered.current) {setStatus('Connected — support intake ready'); log('Support intake tool registered');} else log('Support intake tool not confirmed; inspect agent event'); }
         if (typeof v.type === 'string' && (/tool|function_call|session.update|response.output_item/.test(v.type))) log('Protocol event: ' + v.type + (v.error?.code ? ' [' + String(v.error.code).slice(0,60) + ']' : ''));
+        if (v.type === 'conversation.item.input_audio_transcription.completed' && typeof v.transcript === 'string') {
+          transcript.current.push({at:new Date().toISOString(),speaker:'customer',text:v.transcript.slice(0,10000)});
+          log('Customer transcript segment captured');
+        }
+        if (v.type === 'response.output_audio_transcript.done' && typeof v.transcript === 'string') {
+          transcript.current.push({at:new Date().toISOString(),speaker:'representative',text:v.transcript.slice(0,10000)});
+          log('Representative transcript segment captured');
+        }
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
         const call = v.type === 'response.output_item.done' ? v.item : v;
@@ -258,7 +277,7 @@ export default function VoiceProofOfConcept() {
       {error && <p role="alert" style={{color:'#ffb5b5'}}>{error}</p>}
       <h2>Suggested intelligence challenge</h2>
       <blockquote style={{borderLeft:'3px solid #d7b968',paddingLeft:18,lineHeight:1.6}}>Hello, I purchased a StellarConnect 500 wireless device and it keeps losing its network connection. Can you help?</blockquote>
-      <h2>Session events</h2><button type="button" onClick={downloadDiagnostics} style={{padding:12,marginBottom:12,background:'#d7b968',color:'#151515',border:0,borderRadius:8}}>Download Diagnostic Report (.json)</button>
+      <h2>Session events</h2><button type="button" onClick={downloadDiagnostics} style={{padding:12,marginBottom:12,background:'#d7b968',color:'#151515',border:0,borderRadius:8}}>Download Diagnostic Report (.json)</button><button type="button" onClick={downloadTranscript} style={{padding:12,marginLeft:8,marginBottom:12,background:"#363b45",color:"white",border:0,borderRadius:8}}>Download Test Transcript (.json)</button>
       <ul>{events.map((v,i)=><li key={i}>{v}</li>)}</ul>
       <p style={{opacity:.7,fontSize:13}}>Microphone access is requested only when you start. Audio is sent to OpenAI for this test. Do not provide confidential information. Usage incurs API charges. No calls are placed through Twilio.</p>
     </div>
