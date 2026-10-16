@@ -164,7 +164,6 @@ export default function VoiceProofOfConcept() {
       const dc = connection.createDataChannel('oai-events'); channel.current = dc;
       dc.onopen = () => {
         dc.send(JSON.stringify({type:'session.update',session:{
-          type:'realtime',
           tools:[{type:'function',name:'submit_support_intake',
             description:'Submit a fictional customer support intake to staging only after confirming all details. Call once, then wait for the real database result.',
             parameters:{type:'object',properties:{
