@@ -250,6 +250,29 @@ export default function VoiceProofOfConcept() {
       setError(e instanceof Error ? e.message : 'Unable to connect');
     } finally { setBusy(false); }
   }
+  async function verifyStagingIntakeIndependently() {
+    if (!preflightPassed || pc.current || busy) return;
+    if (!window.confirm('Create ONE fictional Robert Anderson support case in STAGING to verify the database path? This is independent of voice.')) return;
+    setBusy(true);
+    try {
+      const sessionId = crypto.randomUUID();
+      const response = await fetch('/api/experimental-support-intake', {
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({tenantId,sessionId,name:'Robert Anderson',email:'robert.anderson@example.com',
+          phone:'(702) 555-0142',product:'StellarConnect 500 Wireless Device',purchaseDate:'2026-10-10',
+          issue:'Fictional test: intermittent wireless disconnections during customer communications.',
+          steps:'Restarted device and reconnected wireless network.',impact:'Customer communications interrupted.',
+          priority:'HIGH'})
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.customerId || !payload.caseId) throw new Error('Staging persistence not confirmed (HTTP '+response.status+')');
+      log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
+      setReadiness('Staging test write VERIFIED. Case ID: '+payload.caseId);
+    } catch (err) {
+      log('Support intake not saved: '+(err instanceof Error ? err.message : 'unknown'));
+      setError('Independent staging intake test failed; no case ID confirmed.');
+    } finally {setBusy(false);}
+  }
   function endConversation() {
     if (channel.current?.readyState === 'open') {
       setStatus('Finalizing session...');
@@ -263,6 +286,7 @@ export default function VoiceProofOfConcept() {
       <p style={{color:'#d8b86a',letterSpacing:2}}>STELLAR UC · PRIVATE ENGINEERING TEST</p>
       <h1>Intelligent Customer Product Support Desk</h1>
       <p>Experimental support intake voice evaluation. Use fictional customer information only. Staging writes require a signed-in tenant administrator, server enablement, and explicit operator confirmation. No real customer follow-ups occur.</p>
+      <p style={{border:'1px solid #c8a85a',padding:12}}>Protocol notice: the experimental GPT-Live endpoint rejected session.tools. Voice tool registration is NOT verified. Use the independent staging-write test below to validate database persistence separately; it does not prove voice-to-case automation.</p>
       <h2>Staging administrator sign-in</h2>
       <p>Use the email associated with the existing staging tenant Owner account. This is separate from Netlify SSO.</p>
       <label htmlFor="email">Staging account email</label>
@@ -276,6 +300,7 @@ export default function VoiceProofOfConcept() {
       <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>{setAccessCode(e.target.value);setPreflightPassed(false);}} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
         <button disabled={busy || !accessCode || !!pc.current} onClick={()=>void verifyReadiness()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>Verify staging readiness</button>
+        <button type="button" disabled={busy || !!pc.current || !preflightPassed} onClick={()=>void verifyStagingIntakeIndependently()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8}}>Verify fictional staging case write (no voice)</button>
         <button disabled={busy || !!pc.current || !accessCode || !preflightPassed} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
         <button disabled={!pc.current} onClick={endConversation} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
       </div>
