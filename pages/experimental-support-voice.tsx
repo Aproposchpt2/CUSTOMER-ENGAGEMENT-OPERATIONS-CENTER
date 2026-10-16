@@ -27,6 +27,7 @@ export default function VoiceProofOfConcept() {
   // Privacy-by-design: diagnostic exports contain only fixed event codes, never arbitrary
   // upstream messages, customer fields, case IDs, authentication material or transcripts.
   const diagnosticEvents = useRef<{at:string;code:string}[]>([]);
+  const protocolError = useRef<{code:string;type:string;parameter:string}|null>(null);
   // Fictional-test-only transcript buffer. No server persistence or audio recording.
   const transcript = useRef<{at:string;speaker:'customer'|'representative';text:string}[]>([]);
   function downloadTranscript() {
@@ -65,6 +66,7 @@ export default function VoiceProofOfConcept() {
       sessionStarted:Boolean(intakeSessionId.current),
       toolRegistered:toolRegistered.current,
       intakeSubmissionAttempted:submitted.current,
+      protocolError:protocolError.current,
       eventCount:diagnosticEvents.current.length,
       events:diagnosticEvents.current};
     const blob = new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
@@ -137,7 +139,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; transcript.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -189,7 +191,12 @@ export default function VoiceProofOfConcept() {
           log('Representative transcript segment captured');
         }
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
-        if (v.type === 'error') log('Agent error: ' + (v.error?.message || 'unknown'));
+        if (v.type === 'error') {
+          // Capture bounded machine-readable error metadata; never export raw error messages.
+          const safeField = (value:unknown) => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : 'unavailable';
+          protocolError.current = {code:safeField(v.error?.code),type:safeField(v.error?.type),parameter:safeField(v.error?.param)};
+          log('Agent error: ' + (v.error?.message || 'unknown'));
+        }
         const call = v.type === 'response.output_item.done' ? v.item : v;
         if (v.type === 'response.function_call_arguments.done' && !call?.name && v.name !== 'submit_support_intake') { /* Wait for completed output item with tool name. */ }
         if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake' && typeof call.call_id === 'string' && !processedCalls.current.has(call.call_id)) {
