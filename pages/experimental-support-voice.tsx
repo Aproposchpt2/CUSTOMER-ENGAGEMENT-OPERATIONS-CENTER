@@ -30,6 +30,8 @@ export default function VoiceProofOfConcept() {
   const protocolError = useRef<{code:string;type:string;parameter:string}|null>(null);
   // Fictional-test-only transcript buffer. No server persistence or audio recording.
   const transcript = useRef<{at:string;speaker:'customer'|'representative';text:string}[]>([]);
+  // Sanitized histogram of all received event types for diagnostics.
+  const eventTypeHistogram = useRef<Record<string,number>>({});
   function downloadTranscript() {
     const blob = new Blob([JSON.stringify({schemaVersion:1,testOnly:true,
       warning:'Fictional test data only. Browser-local transcript; completeness depends on live event support.',
@@ -42,31 +44,34 @@ export default function VoiceProofOfConcept() {
   function safeDiagnosticCode(message: string): string {
     if (message.startsWith('Protocol event: ')) {
       const eventType = message.slice('Protocol event: '.length).split(' ')[0];
-      const allowed = ['session.updated','session.update','response.output_item.added',
-        'response.output_item.done','response.function_call_arguments.delta',
-        'response.function_call_arguments.done'];
+      const allowed = ['session.started','session.updated','session.delegation.created',
+        'session.input_transcript.delta','session.output_transcript.delta','session.usage.updated',
+        'response.event','response.event:response.output_item.added','response.event:response.output_item.done',
+        'response.event:response.function_call_arguments.delta','response.event:response.function_call_arguments.done',
+        'response.event:response.completed','response.event:response.failed'];
       return allowed.includes(eventType) ? 'PROTOCOL_'+eventType.replace(/[^a-zA-Z0-9]/g,'_').toUpperCase() : 'PROTOCOL_OTHER';
     }
-    if (message.startsWith('Support intake tool registered')) return 'TOOL_REGISTERED';
-    if (message.startsWith('Support intake tool not confirmed')) return 'TOOL_NOT_CONFIRMED';
-    if (message.startsWith('Support-intake tool registration requested')) return 'TOOL_REGISTRATION_REQUESTED';
+    if (message.startsWith('Voice channel opened')) return 'CHANNEL_OPEN';
     if (message.startsWith('Confirmed staging customer and support case IDs:')) return 'INTAKE_PERSISTED';
     if (message.startsWith('Support intake not saved:')) return 'INTAKE_FAILED';
     if (message.startsWith('Agent error:')) return 'VOICE_AGENT_ERROR';
     if (message.startsWith('Voice session established')) return 'VOICE_SESSION_ESTABLISHED';
     if (message.startsWith('Session finalized')) return 'VOICE_SESSION_FINALIZED';
+    if (message.startsWith('Customer transcript segment')) return 'TRANSCRIPT_CUSTOMER';
+    if (message.startsWith('Representative transcript segment')) return 'TRANSCRIPT_REPRESENTATIVE';
     if (message.startsWith('Unable to parse session event')) return 'PROTOCOL_PARSE_FAILED';
     if (message.startsWith('15-minute test duration reached')) return 'SESSION_TIME_LIMIT';
     if (message.startsWith('Tap screen to enable audio playback')) return 'AUDIO_PLAYBACK_BLOCKED';
     return 'OTHER_EVENT';
   }
   function downloadDiagnostics() {
-    const report = {schemaVersion:2,product:'Stellar UC CSS Private POC',
+    const report = {schemaVersion:3,product:'Stellar UC CSS Private POC',
       generatedAt:new Date().toISOString(),testOnly:true,
       sessionStarted:Boolean(intakeSessionId.current),
       toolRegistered:toolRegistered.current,
       intakeSubmissionAttempted:submitted.current,
       protocolError:protocolError.current,
+      eventTypeHistogram:eventTypeHistogram.current,
       eventCount:diagnosticEvents.current.length,
       events:diagnosticEvents.current};
     const blob = new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
@@ -139,7 +144,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -162,67 +167,76 @@ export default function VoiceProofOfConcept() {
       };
       stream.current.getTracks().forEach(track => connection.addTrack(track, stream.current!));
       const dc = connection.createDataChannel('oai-events'); channel.current = dc;
-      dc.onopen = () => {
-        dc.send(JSON.stringify({type:'session.update',session:{
-          tools:[{type:'function',name:'submit_support_intake',
-            description:'Submit a fictional customer support intake to staging only after confirming all details. Call once, then wait for the real database result.',
-            parameters:{type:'object',properties:{
-              name:{type:'string'},email:{type:'string'},phone:{type:'string'},
-              product:{type:'string'},purchaseDate:{type:'string',description:'YYYY-MM-DD'},
-              issue:{type:'string'},steps:{type:'string'},impact:{type:'string'},
-              priority:{type:'string',enum:['LOW','NORMAL','HIGH','URGENT']}
-            },required:['name','email','phone','product','purchaseDate','issue','steps','impact','priority']}
-          }],tool_choice:'auto'
-        }}));
-        log('Support-intake tool registration requested');
-      };
+      dc.onopen = () => { log('Voice channel opened'); };
       dc.onmessage = e => { try {
         const v = JSON.parse(e.data);
-        if (v.type === 'session.started' || v.type === 'session.created') { setStatus('Connected — registering support intake'); log('Voice session established'); }
-        if (v.type === 'session.updated') { toolRegistered.current = Array.isArray(v.session?.tools) && v.session.tools.some((t:{name?:string})=>t.name === 'submit_support_intake'); if (toolRegistered.current) {setStatus('Connected — support intake ready'); log('Support intake tool registered');} else log('Support intake tool not confirmed; inspect agent event'); }
-        if (typeof v.type === 'string' && (/tool|function_call|session.update|response.output_item/.test(v.type))) log('Protocol event: ' + v.type + (v.error?.code ? ' [' + String(v.error.code).slice(0,60) + ']' : ''));
-        if (v.type === 'conversation.item.input_audio_transcription.completed' && typeof v.transcript === 'string') {
-          transcript.current.push({at:new Date().toISOString(),speaker:'customer',text:v.transcript.slice(0,10000)});
+        // Track all event types (sanitized) for diagnostics
+        if (typeof v.type === 'string') {
+          const safeType = /^[a-zA-Z0-9_.-]{1,80}$/.test(v.type) ? v.type : 'INVALID_TYPE';
+          eventTypeHistogram.current[safeType] = (eventTypeHistogram.current[safeType] || 0) + 1;
+        }
+        if (v.type === 'session.started' || v.type === 'session.created') {
+          // Tools declared server-side at session creation; active from first session event.
+          toolRegistered.current = true;
+          setStatus('Connected — support intake ready');
+          log('Voice session established');
+        }
+        if (v.type === 'session.updated') log('Protocol event: session.updated');
+        if (v.type === 'session.delegation.created') log('Protocol event: session.delegation.created');
+        // Transcript capture: GPT-Live emits session.*_transcript.delta, not Realtime conversation events
+        if (v.type === 'session.input_transcript.delta' && typeof v.delta === 'string') {
+          transcript.current.push({at:new Date().toISOString(),speaker:'customer',text:v.delta.slice(0,10000)});
           log('Customer transcript segment captured');
         }
-        if (v.type === 'response.output_audio_transcript.done' && typeof v.transcript === 'string') {
-          transcript.current.push({at:new Date().toISOString(),speaker:'representative',text:v.transcript.slice(0,10000)});
+        if (v.type === 'session.output_transcript.delta' && typeof v.delta === 'string') {
+          transcript.current.push({at:new Date().toISOString(),speaker:'representative',text:v.delta.slice(0,10000)});
           log('Representative transcript segment captured');
         }
         if (v.type === 'session.closed') { log('Session finalized'); stop(); }
         if (v.type === 'error') {
-          // Capture bounded machine-readable error metadata; never export raw error messages.
           const safeField = (value:unknown) => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : 'unavailable';
           protocolError.current = {code:safeField(v.error?.code),type:safeField(v.error?.type),parameter:safeField(v.error?.param)};
           log('Agent error: ' + (v.error?.message || 'unknown'));
         }
-        const call = v.type === 'response.output_item.done' ? v.item : v;
-        if (v.type === 'response.function_call_arguments.done' && !call?.name && v.name !== 'submit_support_intake') { /* Wait for completed output item with tool name. */ }
-        if (((v.type === 'response.function_call_arguments.done') || (v.type === 'response.output_item.done' && call?.type === 'function_call')) && call?.name === 'submit_support_intake' && typeof call.call_id === 'string' && !processedCalls.current.has(call.call_id)) {
-          processedCalls.current.add(call.call_id);
-          void (async () => {
-            let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
-            try {
-              if (!toolRegistered.current) throw new Error('Support intake tool registration not verified');
-              if (submitted.current) throw new Error('Intake already submitted this session');
-              if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
-              const args = JSON.parse(call.arguments || '{}');
-              if (!window.confirm('Submit this fictional customer and support case to the staging database?')) throw new Error('Test operator declined record creation');
-              submitted.current = true;
-              const response = await fetch('/api/experimental-support-intake', {
-                method:'POST', headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({...args, tenantId, sessionId:intakeSessionId.current})
-              });
-              const payload = await response.json();
-              if (!response.ok || !payload.customerId || !payload.caseId) throw new Error(payload.error || 'Save not confirmed');
-              result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
-              log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
-            } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
-            if (dc.readyState === 'open') {
-              dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:call.call_id,output:JSON.stringify(result)}}));
-              dc.send(JSON.stringify({type:'response.create'}));
-            }
-          })();
+        // Function calls from Responses delegation arrive inside response.event envelopes
+        if (v.type === 'response.event') {
+          const inner = v.event;
+          if (!inner || typeof inner.type !== 'string') return;
+          const safeInner = /^[a-zA-Z0-9_.-]{1,80}$/.test(inner.type) ? inner.type : 'INVALID_INNER_TYPE';
+          eventTypeHistogram.current['response.event:'+safeInner] = (eventTypeHistogram.current['response.event:'+safeInner] || 0) + 1;
+          log('Protocol event: response.event:' + safeInner);
+          if (inner.type === 'response.output_item.done'
+              && inner.item?.type === 'function_call'
+              && inner.item?.name === 'submit_support_intake'
+              && typeof inner.item?.call_id === 'string'
+              && !processedCalls.current.has(inner.item.call_id as string)) {
+            processedCalls.current.add(inner.item.call_id as string);
+            const callId = inner.item.call_id as string;
+            const callArgs = inner.item.arguments as string;
+            void (async () => {
+              let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
+              try {
+                if (!toolRegistered.current) throw new Error('Support intake not active this session');
+                if (submitted.current) throw new Error('Intake already submitted this session');
+                if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
+                const args = JSON.parse(callArgs || '{}');
+                if (!window.confirm('Submit this fictional customer and support case to the staging database?')) throw new Error('Test operator declined record creation');
+                submitted.current = true;
+                const response = await fetch('/api/experimental-support-intake', {
+                  method:'POST', headers:{'Content-Type':'application/json'},
+                  body:JSON.stringify({...args, tenantId, sessionId:intakeSessionId.current})
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.customerId || !payload.caseId) throw new Error(payload.error || 'Save not confirmed');
+                result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
+                log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
+              } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
+              if (dc.readyState === 'open') {
+                dc.send(JSON.stringify({type:'response.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));
+                dc.send(JSON.stringify({type:'response.create'}));
+              }
+            })();
+          }
         }
       } catch { log('Unable to parse session event'); } };
       const offer = await connection.createOffer();
@@ -286,7 +300,7 @@ export default function VoiceProofOfConcept() {
       <p style={{color:'#d8b86a',letterSpacing:2}}>STELLAR UC · PRIVATE ENGINEERING TEST</p>
       <h1>Intelligent Customer Product Support Desk</h1>
       <p>Experimental support intake voice evaluation. Use fictional customer information only. Staging writes require a signed-in tenant administrator, server enablement, and explicit operator confirmation. No real customer follow-ups occur.</p>
-      <p style={{border:'1px solid #c8a85a',padding:12}}>Protocol notice: the experimental GPT-Live endpoint rejected session.tools. Voice tool registration is NOT verified. Use the independent staging-write test below to validate database persistence separately; it does not prove voice-to-case automation.</p>
+      <p style={{border:'1px solid #c8a85a',padding:12}}>Protocol notice: submit_support_intake is declared server-side at session creation (delegation.responses.tools). Function calls arrive inside response.event envelopes. Run the independent staging-write test first to verify database persistence before a voice test.</p>
       <h2>Staging administrator sign-in</h2>
       <p>Use the email associated with the existing staging tenant Owner account. This is separate from Netlify SSO.</p>
       <label htmlFor="email">Staging account email</label>

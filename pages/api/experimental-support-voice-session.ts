@@ -28,7 +28,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             type: 'responses',
             responses: {
               model: 'gpt-5.6-terra',
-              instructions: INSTRUCTIONS
+              instructions: INSTRUCTIONS,
+              tools: [
+                {
+                  type: 'function',
+                  name: 'submit_support_intake',
+                  description: 'Submit a fictional customer support intake to staging only after confirming all details with the caller. Call exactly once, then wait for the real database result before speaking a case ID.',
+                  parameters: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string' },
+                      email: { type: 'string' },
+                      phone: { type: 'string' },
+                      product: { type: 'string' },
+                      purchaseDate: { type: 'string', description: 'YYYY-MM-DD' },
+                      issue: { type: 'string' },
+                      steps: { type: 'string' },
+                      impact: { type: 'string' },
+                      priority: { type: 'string', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] }
+                    },
+                    required: ['name', 'email', 'phone', 'product', 'purchaseDate', 'issue', 'steps', 'impact', 'priority'],
+                    additionalProperties: false
+                  }
+                }
+              ],
+              tool_choice: 'auto'
             }
           }
         },
