@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 
 const pages: Record<string, { title: string; description: string }> = {
   "/": {
-    "title": "Customer Engagement Operations Center - 24/7 Sales Service System | StellarUC",
-    "description": "Keep sales open 24/7 with intelligent call engagement, lead management, Customer 360 and human follow-up. Request a personal consultation to discuss transparent usage-based pricing."
+    "title": "24/7 Sales Answering & Lead Capture | Stellar UC",
+    "description": "Engage after-hours and overflow sales callers, capture leads and keep your business number where compatible. Explore transparent Usage-Based Pricing with Stellar UC."
   },
   "/platform": {
     "title": "Sales Platform, Lead Management & Customer 360 | StellarUC",
@@ -18,9 +18,9 @@ const pages: Record<string, { title: string; description: string }> = {
     "title": "Sales Engagement Platform for BPOs, MSPs & Agencies | StellarUC",
     "description": "Explore the StellarUC platform for BPOs, MSPs and agencies: multichannel engagement, lead management, Customer 360 and a live intake demonstration."
   },
-  "/acquisition": {
-    "title": "Customer Engagement Platform Overview | StellarUC",
-    "description": "Review StellarUC customer engagement, voice, SMS, web chat, lead workflows, Customer 360 and platform operations."
+  "/about": {
+    "title": "About Stellar UC & Apropos Group LLC",
+    "description": "Meet the experience and vision behind Stellar UC, Apropos Group LLC’s Sales Service System and Customer Engagement Operations Center."
   },
   "/platform/flow-authoring": {
     "title": "Flow Design & Automation | StellarUC",
@@ -49,13 +49,13 @@ export default function SearchMetadata() {
     '@context': 'https://schema.org',
     '@graph': [
       { '@type': 'Organization', '@id': origin + '/#organization', name: 'Apropos Group LLC', url: 'https://aproposgroupllc.com/' },
-      { '@type': 'WebSite', '@id': origin + '/#website', name: 'StellarUC', url: origin + '/', publisher: { '@id': origin + '/#organization' } },
-      { '@type': 'WebPage', '@id': url + '#webpage', url, name: page.title, description: page.description, isPartOf: { '@id': origin + '/#website' } },
+      { '@type': 'WebSite', '@id': origin + '/#website', name: 'Stellar UC', alternateName: ['StellarUC', 'Stellar Unified Communications'], url: origin + '/', publisher: { '@id': origin + '/#organization' } },
+      { '@type': 'WebPage', '@id': url + '#webpage', url, name: page.title, description: page.description, isPartOf: { '@id': origin + '/#website' }, about: { '@id': origin + '/#sales-service' } },
       ...(pathname === '/' || pathname === '/platform' ? [{
-        '@type': 'Service', '@id': origin + '/#sales-service', name: 'Sales Service System', url: origin + '/',
+        '@type': 'Service', '@id': origin + '/#sales-service', name: 'Sales Service System', alternateName: 'Intelligent Customer Engagement Operation Center — Sales Service System', brand: { '@type': 'Brand', name: 'Stellar UC' }, url: origin + '/',
         provider: { '@id': origin + '/#organization' },
         serviceType: '24/7 sales engagement, lead management and Customer 360',
-        description: 'Around-the-clock inbound sales engagement with lead capture, customer context and human follow-up. Customers pay for platform access and actual monthly usage.'
+        description: 'Around-the-clock inbound sales engagement with lead capture, customer context and human follow-up. Keep the existing business number where technically compatible. Customers pay for services delivered, not unused usage capacity; lower usage means lower applicable usage charges.'
       }] : [])
     ]
   };
@@ -64,7 +64,7 @@ export default function SearchMetadata() {
     <meta name="description" content={page.description} key="description" />
     <meta name="robots" content="index,follow,max-image-preview:large" key="robots" />
     <link rel="canonical" href={url} key="canonical" />
-    <meta property="og:site_name" content="StellarUC" key="og:site_name" />
+    <meta property="og:site_name" content="Stellar UC" key="og:site_name" />
     <meta property="og:type" content="website" key="og:type" />
     <meta property="og:title" content={page.title} key="og:title" />
     <meta property="og:description" content={page.description} key="og:description" />
