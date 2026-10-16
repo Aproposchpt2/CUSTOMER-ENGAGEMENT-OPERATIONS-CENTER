@@ -24,16 +24,49 @@ export default function VoiceProofOfConcept() {
   const channel = useRef<RTCDataChannel | null>(null);
   const closeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const diagnosticEvents = useRef<{at:string;message:string}[]>([]);
+  // Privacy-by-design: diagnostic exports contain only fixed event codes, never arbitrary
+  // upstream messages, customer fields, case IDs, authentication material or transcripts.
+  const diagnosticEvents = useRef<{at:string;code:string}[]>([]);
+  function safeDiagnosticCode(message: string): string {
+    if (message.startsWith('Protocol event: ')) {
+      const eventType = message.slice('Protocol event: '.length).split(' ')[0];
+      const allowed = ['session.updated','session.update','response.output_item.added',
+        'response.output_item.done','response.function_call_arguments.delta',
+        'response.function_call_arguments.done'];
+      return allowed.includes(eventType) ? 'PROTOCOL_'+eventType.replace(/[^a-zA-Z0-9]/g,'_').toUpperCase() : 'PROTOCOL_OTHER';
+    }
+    if (message.startsWith('Support intake tool registered')) return 'TOOL_REGISTERED';
+    if (message.startsWith('Support intake tool not confirmed')) return 'TOOL_NOT_CONFIRMED';
+    if (message.startsWith('Support-intake tool registration requested')) return 'TOOL_REGISTRATION_REQUESTED';
+    if (message.startsWith('Confirmed staging customer and support case IDs:')) return 'INTAKE_PERSISTED';
+    if (message.startsWith('Support intake not saved:')) return 'INTAKE_FAILED';
+    if (message.startsWith('Agent error:')) return 'VOICE_AGENT_ERROR';
+    if (message.startsWith('Voice session established')) return 'VOICE_SESSION_ESTABLISHED';
+    if (message.startsWith('Session finalized')) return 'VOICE_SESSION_FINALIZED';
+    if (message.startsWith('Unable to parse session event')) return 'PROTOCOL_PARSE_FAILED';
+    if (message.startsWith('15-minute test duration reached')) return 'SESSION_TIME_LIMIT';
+    if (message.startsWith('Tap screen to enable audio playback')) return 'AUDIO_PLAYBACK_BLOCKED';
+    return 'OTHER_EVENT';
+  }
   function downloadDiagnostics() {
-    const report = {schemaVersion:1,product:'Stellar UC CSS Private POC',generatedAt:new Date().toISOString(),testOnly:true,sessionId:intakeSessionId.current,voiceStatus:status,readiness,toolRegistered:toolRegistered.current,intakeSubmissionAttempted:submitted.current,events:diagnosticEvents.current};
+    const report = {schemaVersion:2,product:'Stellar UC CSS Private POC',
+      generatedAt:new Date().toISOString(),testOnly:true,
+      sessionStarted:Boolean(intakeSessionId.current),
+      toolRegistered:toolRegistered.current,
+      intakeSubmissionAttempted:submitted.current,
+      eventCount:diagnosticEvents.current.length,
+      events:diagnosticEvents.current};
     const blob = new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href=url; anchor.download='stellaruc-css-diagnostics-'+Date.now()+'.json';
-    document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
+    document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-  const log = (message: string) => { diagnosticEvents.current.push({at:new Date().toISOString(),message:message.slice(0,180)}); setEvents(previous => [...previous.slice(-19), message]); };
+  const log = (message: string) => {
+    diagnosticEvents.current.push({at:new Date().toISOString(),code:safeDiagnosticCode(message)});
+    setEvents(previous => [...previous.slice(-19), message]);
+  };
   function stagingClient() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
