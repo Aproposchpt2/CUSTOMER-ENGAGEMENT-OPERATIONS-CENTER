@@ -369,20 +369,21 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   // ── Send session.start to configure the Live API session ──────────────────
   // Called once: after WS is open AND intake is complete
   function startSession(instructions, tools) {
+    // Staging support: omit session.input — the brief gpt-live-1 direct-audio path produces
+    // inaudible output. Greeting fires via response.create in session.started handler instead,
+    // which routes through delegation (gpt-5.6-terra) and produces audible session.output_transcript.
+    const sessionInput = !(STAGING_ONLY && profile === 'support')
+      ? { input: [{ role: 'developer', content: [{ type: 'input_text', text:
+          profile === 'support'
+            ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
+            : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
+        }] }] }
+      : {};
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
-        // Live speech startup is seeded context, not a delegated response.create.
-        input: [{ role: 'developer', content: [{ type: 'input_text', text:
-          STAGING_ONLY && profile === 'support'
-            // Staging: let the approved agent greet naturally (matches browser POC baseline b8ce29ad)
-            ? 'Greet the caller now. Introduce yourself as the Stellar UC Support Desk representative. Be natural and warm.'
-            : profile === 'support'
-              // Production: exact two-part greeting script per owner direction
-              ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
-              : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
-        }] }],
+        ...sessionInput,
         instructions: STAGING_ONLY && profile === 'support' ? APPROVED_SUPPORT_BRIEF : profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
@@ -398,7 +399,6 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         },
       },
     });
-    // GPT-Live needs continuous audio (including silence) to advance spoken output.
   }
 
   // ── Execute a tool call ────────────────────────────────────────────────────
@@ -470,8 +470,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
           logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
-          // Hold early caller speech, but keep Live's audio clock running with PCMU silence.
-          // response.create starts backend work; it does not trigger Live speech.
+          // For staging support: session.input alone only produces brief gpt-live-1 direct audio
+          // (no transcript events, inaudible on a real call). Force the greeting through the
+          // delegation path (gpt-5.6-terra) with response.create — produces session.output_transcript.delta
+          // and audible speech.
+          if (STAGING_ONLY && profile === 'support') {
+            sendToOpenAI({ type: 'response.create' });
+          }
+          // Hold early caller speech until greeting mark echo; keep Live audio clock with PCMU silence.
           const silence = Buffer.alloc(160, 0xff).toString('base64');
           startupSilence = setInterval(() => {
             if (!callEnded && !greetingPlayed)

@@ -86,7 +86,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       <Parameter name="bridge_token" value="${token}"/>
     </Stream>
   </Connect>
-  <Say voice="alice">We were unable to connect your call. Please try again in a moment.</Say>
+  <Hangup/>
 </Response>`;
   return res.status(200).send(twiml);
 }
