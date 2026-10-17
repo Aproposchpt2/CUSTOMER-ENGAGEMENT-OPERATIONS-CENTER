@@ -21,6 +21,8 @@ const MAX_CALL_MS = parseInt(process.env.MAX_CALL_DURATION_MS || '2700000', 10);
 const TOKEN_TTL_SECS = 120;
 
 let activeCalls = 0;
+const recentEvents = []; // rolling 50-event log for /debug
+function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
 // ─── HMAC token validation (minted by Netlify TwiML endpoint) ────────────────
 function validateBridgeToken(token) {
@@ -245,7 +247,7 @@ const supportTools = [
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
-  console.log(`[${callSid}] ${profile} call started, caller: ${callerPhone}`);
+  logEvent(`[${callSid}] ${profile} call started, caller: ${callerPhone}`);
   activeCalls++;
   let openaiWs = null;
   let streamSid = null;
@@ -263,7 +265,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     callEnded = true;
     clearTimeout(deadline);
     activeCalls = Math.max(0, activeCalls - 1);
-    console.log(`[${callSid}] cleanup: ${reason}`);
+    logEvent(`[${callSid}] cleanup: ${reason}`);
     if (openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
@@ -326,26 +328,34 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       {
         headers: {
           Authorization: `Bearer ${OPENAI_API_KEY}`,
-          'OpenAI-Beta': 'realtime=v1',
         },
       }
     );
 
     openaiWs.on('open', () => {
-      console.log(`[${callSid}] OpenAI connected`);
+      logEvent(`[${callSid}] OpenAI connected`);
       sendToOpenAI({
         type: 'session.update',
         session: {
-          voice: profile === 'sales' ? 'alloy' : 'echo',
+          type: 'realtime',
+          output_modalities: ['audio'],
           instructions,
-          input_audio_format: 'g711_ulaw',
-          output_audio_format: 'g711_ulaw',
-          turn_detection: {
-            type: 'server_vad',
-            threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: 600,
-            create_response: true,
+          audio: {
+            input: {
+              format: { type: 'audio/pcmu' },
+              turn_detection: {
+                type: 'server_vad',
+                threshold: 0.5,
+                prefix_padding_ms: 300,
+                silence_duration_ms: 600,
+                create_response: true,
+                interrupt_response: true,
+              },
+            },
+            output: {
+              format: { type: 'audio/pcmu' },
+              voice: profile === 'sales' ? 'alloy' : 'echo',
+            },
           },
           tools,
           tool_choice: 'auto',
@@ -377,12 +387,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         delete toolCallBuffers[id];
         executeTool(id, buf.name || msg.name, buf.args || msg.arguments || '{}');
       } else if (t === 'error') {
-        console.error(`[${callSid}] OpenAI error`, msg.error?.message || JSON.stringify(msg.error));
+        logEvent(`[${callSid}] OpenAI error: ${msg.error?.message || JSON.stringify(msg.error)}`);
       }
     });
 
-    openaiWs.on('close', () => cleanup('OPENAI_CLOSE'));
-    openaiWs.on('error', (e) => { console.error(`[${callSid}] OpenAI ws error`, e.message); cleanup('OPENAI_ERROR'); });
+    openaiWs.on('close', (code, reason) => { logEvent(`[${callSid}] OpenAI ws closed: ${code} ${reason}`); cleanup('OPENAI_CLOSE'); });
+    openaiWs.on('error', (e) => { logEvent(`[${callSid}] OpenAI ws error: ${e.message}`); cleanup('OPENAI_ERROR'); });
   }
 
   // ── Handle Twilio Media Streams messages ───────────────────────────────────
@@ -393,7 +403,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     if (msg.event === 'start') {
       streamSid = msg.start?.streamSid || msg.streamSid;
       const params = msg.start?.customParameters || {};
-      console.log(`[${callSid}] stream started, streamSid: ${streamSid}`);
+      logEvent(`[${callSid}] stream started, streamSid: ${streamSid}`);
 
       let instructions = '';
       let tools = [];
@@ -415,7 +425,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           tools = supportTools;
         }
       } catch (e) {
-        console.error(`[${callSid}] intake call failed:`, e.message);
+        logEvent(`[${callSid}] intake call failed: ${e.message}`);
         instructions = profile === 'sales' ? SALES_SYSTEM_PROMPT : SUPPORT_SYSTEM_PROMPT;
         tools = profile === 'sales' ? salesTools(null, 'no') : supportTools;
       }
@@ -446,22 +456,56 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls }));
 
+  // Diagnostic endpoint — validates a freshly-minted token and probes OpenAI
+  app.get('/debug', async (req, res) => {
+    const results = { hmacSecretSet: !!BRIDGE_HMAC_SECRET, openaiKeySet: !!OPENAI_API_KEY, model: OPENAI_MODEL };
+    // Self-mint a token and validate it
+    try {
+      const ts = Math.floor(Date.now() / 1000);
+      const nonce = crypto.randomBytes(8).toString('hex');
+      const payload = `sales:${ts}:${nonce}`;
+      const sig = crypto.createHmac('sha256', BRIDGE_HMAC_SECRET).update(payload).digest('hex');
+      const token = `${payload}:${sig}`;
+      results.selfMintValid = validateBridgeToken(token) === 'sales';
+    } catch (e) { results.selfMintError = e.message; }
+    // Probe OpenAI Realtime WebSocket (just the upgrade, no audio)
+    try {
+      await new Promise((resolve, reject) => {
+        const ws = new WebSocket(`wss://api.openai.com/v1/realtime?model=${OPENAI_MODEL}`, {
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+        });
+        const t = setTimeout(() => { ws.close(); reject(new Error('timeout')); }, 6000);
+        ws.once('open', () => { clearTimeout(t); results.openaiConnected = true; ws.close(); resolve(); });
+        ws.once('error', (e) => { clearTimeout(t); reject(e); });
+      });
+    } catch (e) { results.openaiError = e.message; }
+    // Optionally validate an external token
+    const extToken = req.query.token;
+    if (extToken) results.externalTokenValid = validateBridgeToken(extToken);
+    results.recentEvents = recentEvents.slice(-20);
+    res.json(results);
+  });
+
   const server = http.createServer(app);
   const wss = new WebSocketServer({ noServer: true });
 
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    if (url.pathname !== '/ws') { socket.destroy(); return; }
+    // Accept /ws/sales or /ws/support (path-based, survives all proxies)
+    const pathParts = url.pathname.split('/').filter(Boolean); // ['ws','sales']
+    const profile = pathParts[1] || url.searchParams.get('profile'); // fallback to query param
+    logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
+    if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
 
     if (activeCalls >= MAX_CONCURRENT) {
-      console.warn('[bridge] concurrent call limit reached');
+      logEvent('[upgrade] rejected: concurrent limit');
       socket.destroy();
       return;
     }
 
-    const profile = url.searchParams.get('profile');
-    if (profile !== 'sales' && profile !== 'support') { socket.destroy(); return; }
+    if (profile !== 'sales' && profile !== 'support') { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
+    logEvent(`[upgrade] accepted profile=${profile}, handling upgrade`);
     wss.handleUpgrade(req, socket, head, (ws) => {
       // Token validation happens on the 'start' event (when customParameters are sent)
       let validated = false;
@@ -469,21 +513,24 @@ function start() {
       let callSid = '';
 
       const origOn = ws.on.bind(ws);
+      ws.on('close', (code) => logEvent(`[ws] closed before start, code=${code}`));
       const firstMessage = (raw) => {
         let msg;
-        try { msg = JSON.parse(raw.toString()); } catch { ws.close(); return; }
+        try { msg = JSON.parse(raw.toString()); } catch { logEvent('[ws] bad JSON in first message'); ws.close(); return; }
 
+        logEvent(`[ws] first msg event=${msg.event}`);
         if (msg.event === 'connected') return; // wait for 'start'
-        if (msg.event !== 'start') { ws.close(); return; }
+        if (msg.event !== 'start') { logEvent(`[ws] unexpected event ${msg.event}, closing`); ws.close(); return; }
 
         const params = msg.start?.customParameters || {};
         const tokenStr = params.bridge_token || params.token;
         const tokenProfile = validateBridgeToken(tokenStr);
         if (!tokenProfile || tokenProfile !== profile) {
-          console.warn('[bridge] invalid or missing bridge_token');
+          logEvent(`[bridge] token rejected: tokenProfile=${tokenProfile} urlProfile=${profile}`);
           ws.close();
           return;
         }
+        logEvent(`[bridge] token accepted for ${profile}`);
 
         callerPhone = msg.start?.callStatus
           ? (msg.start.customParameters?.callerPhone || '')
