@@ -4,6 +4,7 @@ const http = require('http');
 const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
+const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -443,7 +444,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           } finally { leadSubmissionPending = false; }
         }
       } else if (name === 'submit_support_intake') {
-        output = await callSupportIntake({ callSid, ...args });
+        output = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
       } else if (name === 'end_call') {
         output = { success: true };
         setTimeout(() => { twilioUpdateCall(callSid, '<Response><Hangup/></Response>'); cleanup('END_CALL_TOOL'); }, 1500);
@@ -678,6 +679,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v1' : null,
     supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
     supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
