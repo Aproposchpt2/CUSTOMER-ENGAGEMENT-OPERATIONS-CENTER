@@ -452,8 +452,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       streamSid = msg.start?.streamSid || msg.streamSid;
       logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
-      // Both lines now use the support agent — no sales intake needed
-      const intakeP = Promise.resolve(null);
+      // Resolve sales context before exposing sales tools; support keeps its own intake.
+      const intakeP = profile === 'sales'
+        ? callSalesIntakeStart(callSid, callerPhone)
+        : Promise.resolve(null);
 
       openaiWs = claimPooled();
       const poolHit = !!openaiWs;
@@ -473,10 +475,20 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
         const intake = await intakeP;
 
-        // Both lines use the same support agent
-        const instructions = SUPPORT_SYSTEM_PROMPT
-          + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Technologies. To whom do I have the pleasure of speaking with today?"`;
-        const tools = supportTools;
+        let instructions;
+        let tools;
+        if (profile === 'sales') {
+          if (!intake || typeof intake.interactionId !== 'string' || !intake.interactionId.trim())
+            throw new Error('Sales intake did not return an interaction ID');
+          interactionId = intake.interactionId;
+          transferAllowed = intake.transferAllowed === 'yes' ? 'yes' : 'no';
+          instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
+          tools = salesTools(interactionId);
+        } else {
+          instructions = SUPPORT_SYSTEM_PROMPT
+            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Technologies. To whom do I have the pleasure of speaking with today?"`;
+          tools = supportTools;
+        }
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
