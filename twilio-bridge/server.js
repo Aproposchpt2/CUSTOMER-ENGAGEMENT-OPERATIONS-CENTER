@@ -15,6 +15,8 @@ const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const LIVE_MODEL = process.env.OPENAI_LIVE_MODEL || 'gpt-live-1';
 const REASONING_MODEL = process.env.OPENAI_REASONING_MODEL || 'gpt-5.6-terra';
+// Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
+const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
 const CSS_TENANT_ID = process.env.CSS_TENANT_ID || '5885a020-d363-4c27-910a-c035eda132f5';
 const TRANSFER_NUMBER = process.env.TRANSFER_NUMBER || '+17023087429';
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_CALLS || '10', 10);
@@ -25,35 +27,39 @@ let activeCalls = 0;
 const recentEvents = [];
 function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
-// ─── Live API session creation — same HTTP POST as staging, websocket transport ─
-async function createLiveSession(profile, instructions, tools) {
-  const body = {
-    session: {
-      model: LIVE_MODEL,
-      instructions: profile === 'sales'
-        ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
-        : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
-      audio: { format: { type: 'audio/pcmu' } },
-      delegation: {
-        type: 'responses',
-        responses: { model: REASONING_MODEL, instructions, tools, tool_choice: 'auto' },
-      },
-    },
-    transport: { type: 'websocket' },
-  };
-  const resp = await fetch('https://api.openai.com/v1/live/sessions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(15000),
+// ─── OpenAI connection pool — pre-warmed Live API WebSocket connections ────────
+// Same pattern as old Realtime pool: open WS, wait for 'open', serve on demand.
+// Session is configured per-call via session.start (sent once WS is open + intake done).
+const wsPool = [];
+const POOL_SIZE = 2;
+
+function openPoolWs() {
+  const ws = new WebSocket(LIVE_WS_URL, {
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
   });
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) throw new Error(`Live session ${resp.status}: ${JSON.stringify(data?.error || data)}`);
-  // URL may be under transport.url or transport.websocket.url depending on API version
-  const wsUrl = data.transport?.url || data.transport?.websocket?.url || data.transport?.ws_url;
-  logEvent(`[live] session id=${data.session?.id} transport=${JSON.stringify(data.transport)}`);
-  if (!wsUrl) throw new Error(`No WS URL in session response: ${JSON.stringify(data.transport)}`);
-  return { sessionId: data.session?.id, wsUrl };
+  ws._poolReady = false;
+  ws.once('open', () => { ws._poolReady = true; logEvent('[pool] Live WS ready'); });
+  ws.once('error', (e) => { logEvent(`[pool] ws error: ${e.message}`); ws.close(); });
+  ws.once('close', () => {
+    const i = wsPool.indexOf(ws);
+    if (i !== -1) wsPool.splice(i, 1);
+    setTimeout(fillPool, 5000);
+  });
+  wsPool.push(ws);
+}
+
+function fillPool() {
+  if (!OPENAI_API_KEY) return;
+  while (wsPool.length < POOL_SIZE) openPoolWs();
+}
+
+function claimPooled() {
+  const i = wsPool.findIndex(w => w._poolReady && w.readyState === WebSocket.OPEN);
+  if (i === -1) return null;
+  const [ws] = wsPool.splice(i, 1);
+  logEvent('[pool] claimed');
+  setTimeout(fillPool, 0);
+  return ws;
 }
 
 // ─── HMAC token validation ────────────────────────────────────────────────────
@@ -145,16 +151,16 @@ This is a phone call. Keep every turn short: one or two sentences, then one ques
 - Never name vendors or internals.
 - If asked whether you're a person, say honestly that you're the intelligent conversational agent that is part of the product.
 
-# Call setup (already handled — do not call start_intake)
+# Call setup (already handled)
 At the start of this call, the system already ran intake and will tell you: INTERACTION_ID, TRANSFER_ALLOWED (yes/no), KNOWN_CALLER_NAME, and CALLER_NUMBER. Use these in your responses. If KNOWN_CALLER_NAME is set, confirm it with the caller ("Am I speaking with [first name]?"). If empty, ask "And who do I have the pleasure of speaking with?"
 
 # Tools you have
-- submit_business_profile: Call once right before your closing goodbye (or just before transfer). Collect: caller's name, their callback phone (read back digit by digit from CALLER_NUMBER to confirm), their email (spell back letter by letter), business name, service interest, and the full discovery summary. Do not call it during the demonstration. Confirm phone and email out loud before calling.
+- submit_business_profile: Call once right before your closing goodbye (or just before transfer). Collect: caller name, callback phone (read back digit by digit from CALLER_NUMBER to confirm), email (spell back letter by letter), business name, service interest, and full discovery summary. Confirm phone and email out loud before calling.
 - end_call: Call after saying goodbye to hang up cleanly.
-- transfer_to_specialist: Call after submit_business_profile when TRANSFER_ALLOWED is "yes" and the caller wants to speak with a person. If TRANSFER_ALLOWED is "no", offer a callback instead of transferring.
+- transfer_to_specialist: Call after submit_business_profile when TRANSFER_ALLOWED is "yes" and the caller wants to speak with a person. If TRANSFER_ALLOWED is "no", offer a callback instead.
 
 # Conversation flow
-1. GREETING: Deliver the opening line. Start with: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?" Then proceed with discovery once you have their name.
+1. GREETING: Start with: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?" Then proceed with discovery.
 2. DISCOVERY: One question at a time: company/industry, role, how customers reach them, hours, common call reasons, missed calls, phone system, main problem, timing.
 3. PERSONALIZED DEMONSTRATION: Role-play a scenario from their business. "You don't have to imagine what this would be like. You're experiencing it right now."
 4. VALUE VALIDATION: Ask one short question so the caller names the value themselves.
@@ -169,12 +175,11 @@ At the start of this call, the system already ran intake and will tell you: INTE
 - Multiple callers at once; after-hours, no-answer, overflow coverage.
 
 # Scope limits
-- Never book appointments directly into calendars. Never promise integrations. Never state dollar amounts.
-- Transfers to specialist only when TRANSFER_ALLOWED is "yes".
-- Outside transfer hours: take a callback request instead.
+- Never book appointments directly. Never promise integrations. Never state dollar amounts.
+- Transfers only when TRANSFER_ALLOWED is "yes". Outside transfer hours: take a callback.
 
 # Never do these
-Never invent capabilities, prices, discounts, trials, pilots, timelines, integrations, certifications or future features. If you can't answer it, escalate or take a callback.`;
+Never invent capabilities, prices, discounts, trials, pilots, timelines, integrations, certifications or future features.`;
 
 const SUPPORT_SYSTEM_PROMPT = `You are the Stellar UC Customer Support representative. You answer inbound support calls.
 
@@ -193,23 +198,23 @@ Collect from the caller (in this order):
 
 After collecting and confirming all details out loud, call submit_support_intake exactly once. Wait for the tool result. Only say a case was created if the tool returns success with a caseId. Never invent a case number.
 
-After successful case creation, tell the caller: "A support case has been opened. Our team will follow up with you." Then call end_call.
+After successful case creation: "A support case has been opened. Our team will follow up with you." Then call end_call.
 
 If the tool fails, apologize and advise them to call back or email support@stellaruc.com.
 
-Never ask for passwords or payment information. Never promise specific fix timelines. For dangerous hardware or electrical issues, advise stopping use of the device immediately.`;
+Never ask for passwords or payment information. Never promise specific fix timelines.`;
 
-// transfer_to_specialist always present; bridge enforces transferAllowed flag at execution time
+// transfer_to_specialist always present; bridge enforces transferAllowed at execution time
 function salesTools(interactionId) {
   return [
     {
       type: 'function',
       name: 'submit_business_profile',
-      description: 'Submit the lead record right before saying goodbye or transferring. Only call after confirming phone and email.',
+      description: 'Submit the lead record right before saying goodbye or transferring.',
       parameters: {
         type: 'object',
         properties: {
-          interactionId: { type: 'string', description: `The interaction ID for this call. Use: ${interactionId}` },
+          interactionId: { type: 'string', description: `Use: ${interactionId}` },
           callerName: { type: 'string' },
           businessName: { type: 'string' },
           email: { type: 'string' },
@@ -224,12 +229,8 @@ function salesTools(interactionId) {
     {
       type: 'function',
       name: 'transfer_to_specialist',
-      description: 'Transfer to a human specialist. Only after submit_business_profile has been called.',
-      parameters: {
-        type: 'object',
-        properties: { reason: { type: 'string' } },
-        additionalProperties: false,
-      },
+      description: 'Transfer to a human specialist. Only after submit_business_profile.',
+      parameters: { type: 'object', properties: { reason: { type: 'string' } }, additionalProperties: false },
     },
     {
       type: 'function',
@@ -252,7 +253,7 @@ const supportTools = [
         email: { type: 'string' },
         phone: { type: 'string' },
         product: { type: 'string' },
-        purchaseDate: { type: 'string', description: 'YYYY-MM-DD or approximate' },
+        purchaseDate: { type: 'string' },
         issue: { type: 'string' },
         steps: { type: 'string' },
         impact: { type: 'string' },
@@ -270,62 +271,6 @@ const supportTools = [
   },
 ];
 
-// ─── Pre-warmed session pool (one per profile) ────────────────────────────────
-const sessionPool = { sales: [], support: [] };
-const POOL_PER_PROFILE = 1;
-const GENERIC_GREET = 'Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?';
-
-async function openPoolSession(profile) {
-  if (!OPENAI_API_KEY) return;
-  try {
-    const instructions = (profile === 'sales' ? SALES_SYSTEM_PROMPT : SUPPORT_SYSTEM_PROMPT)
-      + `\n\n# CALL CONTEXT\nINTERACTION_ID: PENDING\nTRANSFER_ALLOWED: no\nKNOWN_CALLER_NAME: \nCALLER_NUMBER: \n\nStart by saying exactly: "${GENERIC_GREET}"`;
-    const tools = profile === 'sales' ? salesTools('PENDING') : supportTools;
-    const { sessionId, wsUrl } = await createLiveSession(profile, instructions, tools);
-    const ws = new WebSocket(wsUrl, { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } });
-    ws._sessionId = sessionId;
-    ws._profile = profile;
-    ws._poolReady = false;
-    ws.once('open', () => { ws._poolReady = true; logEvent(`[pool] ${profile} ready sid=${sessionId}`); });
-    ws.once('error', (e) => { logEvent(`[pool] ${profile} ws error: ${e.message}`); ws.close(); });
-    ws.once('close', () => {
-      const i = sessionPool[profile].indexOf(ws);
-      if (i !== -1) sessionPool[profile].splice(i, 1);
-      logEvent(`[pool] ${profile} closed, refilling`);
-      setTimeout(() => fillPool(profile), 10000);
-    });
-    // Log pool-level session events; don't process them (no call attached yet)
-    ws.on('message', (raw) => {
-      try {
-        const m = JSON.parse(raw.toString());
-        if (m.type && !['session.started', 'session.created'].includes(m.type)) {
-          logEvent(`[pool:${profile}] unexpected event: ${m.type}`);
-        }
-      } catch { /* ignore */ }
-    });
-    sessionPool[profile].push(ws);
-  } catch (e) {
-    logEvent(`[pool] ${profile} session create failed: ${e.message}`);
-    setTimeout(() => fillPool(profile), 15000);
-  }
-}
-
-function fillPool(profile) {
-  if (!OPENAI_API_KEY) return;
-  while (sessionPool[profile].length < POOL_PER_PROFILE) openPoolSession(profile);
-}
-
-function claimPooled(profile) {
-  const pool = sessionPool[profile];
-  const i = pool.findIndex(w => w._poolReady && w.readyState === WebSocket.OPEN);
-  if (i === -1) return null;
-  const [ws] = pool.splice(i, 1);
-  ws.removeAllListeners('message'); // strip pool drain listener before call handlers attach
-  logEvent(`[pool] claimed ${profile} sid=${ws._sessionId}`);
-  setTimeout(() => fillPool(profile), 0);
-  return ws;
-}
-
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
   logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
@@ -336,11 +281,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let transferAllowed = 'no';
   let callEnded = false;
   let audioDeltaCount = 0;
+  let sessionStarted = false;
 
-  const deadline = setTimeout(() => {
-    logEvent(`[${callSid}] max duration reached`);
-    cleanup('MAX_DURATION');
-  }, MAX_CALL_MS);
+  const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
   function cleanup(reason) {
     if (callEnded) return;
@@ -364,7 +307,32 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     if (streamSid) sendToTwilio({ event: 'clear', streamSid });
   }
 
-  // ── Execute a tool call from the reasoning backend ─────────────────────────
+  // ── Send session.start to configure the Live API session ──────────────────
+  // Called once: after WS is open AND intake is complete
+  function startSession(instructions, tools) {
+    sendToOpenAI({
+      type: 'session.start',
+      session: {
+        model: LIVE_MODEL,
+        instructions: profile === 'sales'
+          ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
+          : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
+        audio: { format: { type: 'audio/pcmu' } },
+        delegation: {
+          type: 'responses',
+          responses: {
+            model: REASONING_MODEL,
+            instructions,
+            tools,
+            tool_choice: 'auto',
+          },
+        },
+      },
+    });
+    // response.create sent after session.started fires (see event handler below)
+  }
+
+  // ── Execute a tool call ────────────────────────────────────────────────────
   async function executeTool(callId, name, argsStr) {
     let args = {};
     try { args = JSON.parse(argsStr); } catch { /* use empty */ }
@@ -377,19 +345,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         output = await callSupportIntake({ callSid, ...args });
       } else if (name === 'end_call') {
         output = { success: true };
-        setTimeout(() => {
-          twilioUpdateCall(callSid, '<Response><Hangup/></Response>');
-          cleanup('END_CALL_TOOL');
-        }, 1500);
+        setTimeout(() => { twilioUpdateCall(callSid, '<Response><Hangup/></Response>'); cleanup('END_CALL_TOOL'); }, 1500);
       } else if (name === 'transfer_to_specialist') {
         if (transferAllowed !== 'yes') {
-          output = { error: 'Transfer not available for this call. Please offer to take a callback instead.' };
+          output = { error: 'Transfer not available for this call. Offer a callback instead.' };
         } else {
           output = { success: true };
-          setTimeout(() => {
-            twilioUpdateCall(callSid, `<Response><Dial>${TRANSFER_NUMBER}</Dial></Response>`);
-            cleanup('TRANSFER_TOOL');
-          }, 1000);
+          setTimeout(() => { twilioUpdateCall(callSid, `<Response><Dial>${TRANSFER_NUMBER}</Dial></Response>`); cleanup('TRANSFER_TOOL'); }, 1000);
         }
       } else {
         output = { error: 'unknown_tool' };
@@ -399,15 +361,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       output = { error: e.message };
     }
 
-    sendToOpenAI({ type: 'conversation.item.create', item: {
-      type: 'function_call_output',
-      call_id: callId,
-      output: JSON.stringify(output),
-    }});
+    sendToOpenAI({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(output) } });
     sendToOpenAI({ type: 'response.create' });
   }
 
-  // ── Attach OpenAI WebSocket handlers ───────────────────────────────────────
+  // ── OpenAI WebSocket event handlers ───────────────────────────────────────
   function attachOpenAIHandlers() {
     const toolCallBuffers = {};
 
@@ -416,27 +374,32 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       try { msg = JSON.parse(raw.toString()); } catch { return; }
       const t = msg.type;
 
-      // Session lifecycle
+      // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
+        if (t === 'session.started') {
+          sessionStarted = true;
+          // Trigger the opening greeting now that the session is configured
+          sendToOpenAI({ type: 'response.create' });
+        }
       } else if (t === 'response.created' || t === 'response.done') {
-        const out = msg.response?.output ? JSON.stringify(msg.response.output.map(i => i.type)) : 'none';
-        logEvent(`[${callSid}] ${t} status=${msg.response?.status} output=${out}`);
+        logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
         logEvent(`[${callSid}] speech_started`);
       } else if (t === 'error') {
         logEvent(`[${callSid}] OpenAI error: ${msg.error?.message || JSON.stringify(msg.error)}`);
-      } else if (!['session.output_audio.delta','response.output_audio.delta','response.output_audio_transcript.delta',
-        'response.function_call_arguments.delta','response.function_call_arguments.done',
-        'response.output_item.added','response.output_item.done','response.content_part.added',
-        'response.content_part.done','response.audio.done','response.audio_transcript.delta',
-        'response.audio_transcript.done','response.text.delta','response.text.done',
-        'input_audio_buffer.committed','input_audio_buffer.speech_stopped','session.speech_stopped',
-        'conversation.item.created','rate_limits.updated'].includes(t)) {
+      } else if (!['session.output_audio.delta','response.output_audio.delta',
+        'response.output_audio_transcript.delta','response.function_call_arguments.delta',
+        'response.function_call_arguments.done','response.output_item.added',
+        'response.output_item.done','response.content_part.added','response.content_part.done',
+        'response.audio.done','response.audio_transcript.delta','response.audio_transcript.done',
+        'response.text.delta','response.text.done','input_audio_buffer.committed',
+        'input_audio_buffer.speech_stopped','session.speech_stopped',
+        'conversation.item.created','conversation.item.done','rate_limits.updated'].includes(t)) {
         logEvent(`[${callSid}] oai: ${t} ${JSON.stringify(msg).slice(0, 120)}`);
       }
 
-      // Audio out → Twilio (Live API uses session.output_audio.delta; Realtime uses response.output_audio.delta)
+      // Audio out → Twilio (Live API: session.output_audio.delta; Realtime: response.output_audio.delta)
       if ((t === 'session.output_audio.delta' || t === 'response.output_audio.delta') && msg.delta) {
         if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta len=${msg.delta.length}`); }
         audioDeltaCount++;
@@ -469,66 +432,58 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       streamSid = msg.start?.streamSid || msg.streamSid;
       logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
-      // Start intake in parallel with session claim/creation
+      // Intake and WS claim run in parallel
       const intakeP = profile === 'sales'
         ? callSalesIntakeStart(callSid, callerPhone).catch(e => { logEvent(`[${callSid}] intake failed: ${e.message}`); return null; })
         : Promise.resolve(null);
 
-      // Try pooled session first
-      openaiWs = claimPooled(profile);
+      openaiWs = claimPooled();
       const poolHit = !!openaiWs;
-
       if (!poolHit) {
-        // Pool miss: create a fresh Live API session
-        logEvent(`[${callSid}] pool miss — creating fresh Live session`);
-        try {
-          const greet = GENERIC_GREET;
-          const baseInstructions = (profile === 'sales' ? SALES_SYSTEM_PROMPT : SUPPORT_SYSTEM_PROMPT)
-            + `\n\n# CALL CONTEXT\nINTERACTION_ID: PENDING\nTRANSFER_ALLOWED: no\nKNOWN_CALLER_NAME: \nCALLER_NUMBER: \n\nStart by saying exactly: "${greet}"`;
-          const tools = profile === 'sales' ? salesTools('PENDING') : supportTools;
-          const { wsUrl } = await createLiveSession(profile, baseInstructions, tools);
-          openaiWs = new WebSocket(wsUrl, { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } });
-        } catch (e) {
-          logEvent(`[${callSid}] session create failed: ${e.message}`);
-          cleanup('SESSION_CREATE_FAILED');
-          return;
-        }
+        logEvent(`[${callSid}] pool miss — opening fresh WS`);
+        openaiWs = new WebSocket(LIVE_WS_URL, { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } });
       }
 
-      // Attach handlers immediately (before any awaits) so no events are missed
+      // Attach handlers before any awaits so we miss no events
       attachOpenAIHandlers();
 
-      // For fresh WS: wait for open
-      if (!poolHit && openaiWs.readyState !== WebSocket.OPEN) {
-        try {
-          await new Promise((res, rej) => { openaiWs.once('open', res); openaiWs.once('error', rej); });
-        } catch (e) {
-          logEvent(`[${callSid}] WS open failed: ${e.message}`);
-          cleanup('WS_OPEN_ERROR');
-          return;
+      const wsReady = poolHit
+        ? Promise.resolve()
+        : new Promise((res, rej) => { openaiWs.once('open', res); openaiWs.once('error', rej); });
+
+      wsReady.then(async () => {
+        logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
+        const intake = await intakeP;
+
+        let instructions, tools;
+        if (profile === 'sales') {
+          if (intake) {
+            interactionId = intake.interactionId;
+            transferAllowed = intake.transferAllowed || 'no';
+          }
+          const knownName = intake?.knownCallerName || '';
+          const callerNum = intake?.callerNumber || callerPhone;
+          const greet = knownName
+            ? `Hello, you have reached Stellar Unified Communications. Am I speaking with ${knownName.split(/\s+/)[0]}?`
+            : `Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?`;
+          instructions = SALES_SYSTEM_PROMPT
+            + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${knownName}\nCALLER_NUMBER: ${callerNum}\n\nStart by saying exactly: "${greet}"`;
+          tools = salesTools(interactionId);
+        } else {
+          instructions = SUPPORT_SYSTEM_PROMPT
+            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?"`;
+          tools = supportTools;
         }
-      }
 
-      logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
+        startSession(instructions, tools);
+      }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
 
-      // Wait for intake to complete
-      const intake = await intakeP;
-      if (profile === 'sales' && intake) {
-        interactionId = intake.interactionId;
-        transferAllowed = intake.transferAllowed || 'no';
-        logEvent(`[${callSid}] intake ok interactionId=${interactionId} transfer=${transferAllowed}`);
-      }
-
-      // Trigger the agent's opening greeting
-      sendToOpenAI({ type: 'response.create' });
+      await new Promise(res => setTimeout(res, 0)); // yield so handlers are registered before any messages
 
     } else if (msg.event === 'media' && openaiWs) {
       if (openaiWs.readyState === WebSocket.OPEN) {
-        // Live API uses session.input_audio.append; Realtime used input_audio_buffer.append
-        openaiWs.send(JSON.stringify({
-          type: 'session.input_audio.append',
-          audio: msg.media?.payload,
-        }));
+        // Live API uses session.input_audio.append
+        openaiWs.send(JSON.stringify({ type: 'session.input_audio.append', audio: msg.media?.payload }));
       }
     } else if (msg.event === 'stop') {
       cleanup('TWILIO_STOP');
@@ -544,12 +499,10 @@ function start() {
   if (!OPENAI_API_KEY) { console.error('OPENAI_API_KEY not set'); process.exit(1); }
   if (!BRIDGE_HMAC_SECRET) { console.error('BRIDGE_HMAC_SECRET not set'); process.exit(1); }
 
-  // Pre-warm one session per profile
-  fillPool('sales');
-  fillPool('support');
+  fillPool();
 
   const app = express();
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: { sales: sessionPool.sales.length, support: sessionPool.support.length } }));
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length }));
 
   app.get('/debug', async (req, res) => {
     const results = {
@@ -557,12 +510,9 @@ function start() {
       openaiKeySet: !!OPENAI_API_KEY,
       liveModel: LIVE_MODEL,
       reasoningModel: REASONING_MODEL,
-      pool: {
-        sales: sessionPool.sales.map(w => ({ ready: w._poolReady, state: w.readyState, sid: w._sessionId })),
-        support: sessionPool.support.map(w => ({ ready: w._poolReady, state: w.readyState, sid: w._sessionId })),
-      },
+      poolSize: wsPool.length,
+      poolReady: wsPool.filter(w => w._poolReady).length,
     };
-    // Self-mint token check
     try {
       const ts = Math.floor(Date.now() / 1000);
       const nonce = crypto.randomBytes(8).toString('hex');
@@ -570,26 +520,6 @@ function start() {
       const sig = crypto.createHmac('sha256', BRIDGE_HMAC_SECRET).update(payload).digest('hex');
       results.selfMintValid = validateBridgeToken(`${payload}:${sig}`) === 'sales';
     } catch (e) { results.selfMintError = e.message; }
-    // Probe Live API (just creates a session, immediately notes the response)
-    try {
-      const testResp = await fetch('https://api.openai.com/v1/live/sessions', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session: { model: LIVE_MODEL }, transport: { type: 'websocket' } }),
-        signal: AbortSignal.timeout(10000),
-      });
-      const testData = await testResp.json().catch(() => ({}));
-      results.liveApiStatus = testResp.status;
-      results.liveApiSessionId = testData.session?.id;
-      results.liveApiWsUrl = !!(testData.transport?.url || testData.transport?.websocket?.url);
-      // Close the probe session if we got a WS URL (don't leave it dangling)
-      const probeUrl = testData.transport?.url || testData.transport?.websocket?.url;
-      if (probeUrl) {
-        const probe = new WebSocket(probeUrl, { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } });
-        probe.once('open', () => probe.close());
-        probe.once('error', () => {});
-      }
-    } catch (e) { results.liveApiError = e.message; }
     if (req.query.token) results.externalTokenValid = validateBridgeToken(req.query.token);
     results.recentEvents = recentEvents.slice(-20);
     res.json(results);
@@ -600,7 +530,7 @@ function start() {
 
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    const pathParts = url.pathname.split('/').filter(Boolean); // ['ws','sales']
+    const pathParts = url.pathname.split('/').filter(Boolean);
     const profile = pathParts[1] || url.searchParams.get('profile');
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
     if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
@@ -628,7 +558,6 @@ function start() {
           return;
         }
         logEvent(`[bridge] token accepted for ${profile}`);
-
         callerPhone = msg.start?.from || params.callerPhone || '';
         callSid = msg.start?.callSid || '';
 
