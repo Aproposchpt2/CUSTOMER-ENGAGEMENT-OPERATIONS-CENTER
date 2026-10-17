@@ -318,7 +318,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         instructions: profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
-        audio: { format: { type: 'g711_ulaw', rate: 8000 } },
+        audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         delegation: {
           type: 'responses',
           responses: {
