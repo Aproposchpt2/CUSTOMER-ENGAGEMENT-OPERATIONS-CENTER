@@ -475,7 +475,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           tools = salesTools(interactionId);
         } else {
           instructions = SUPPORT_SYSTEM_PROMPT
-            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?"`;
+            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Technologies. To whom do I have the pleasure of speaking with today?"`;
           tools = supportTools;
         }
 
