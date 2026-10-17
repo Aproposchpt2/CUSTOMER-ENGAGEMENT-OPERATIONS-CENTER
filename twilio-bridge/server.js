@@ -279,6 +279,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let streamSid = null;
   let interactionId = null;
   let transferAllowed = 'no';
+  let leadSaved = false;
+  let leadSubmissionPending = false;
   let callEnded = false;
   let audioDeltaCount = 0;
   let sessionStarted = false;
@@ -341,14 +343,27 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
     try {
       if (name === 'submit_business_profile') {
-        output = await callSalesIntakeSubmit({ interactionId: interactionId || args.interactionId, ...args });
+        if (leadSubmissionPending) throw new Error('Lead submission already pending');
+        if (leadSaved) { output = { success: true, alreadySaved: true }; }
+        else {
+          if (!interactionId) throw new Error('No verified interaction ID for this call');
+          leadSubmissionPending = true;
+          try {
+            const persisted = await callSalesIntakeSubmit({ ...args, interactionId });
+            if (!persisted || typeof persisted.lead?.id !== 'string' || !persisted.lead.id.trim()) throw new Error('Lead persistence not confirmed by intake API');
+            leadSaved = true;
+            output = { success: true, leadId: persisted.lead.id };
+          } finally { leadSubmissionPending = false; }
+        }
       } else if (name === 'submit_support_intake') {
         output = await callSupportIntake({ callSid, ...args });
       } else if (name === 'end_call') {
         output = { success: true };
         setTimeout(() => { twilioUpdateCall(callSid, '<Response><Hangup/></Response>'); cleanup('END_CALL_TOOL'); }, 1500);
       } else if (name === 'transfer_to_specialist') {
-        if (transferAllowed !== 'yes') {
+        if (!leadSaved) {
+          output = { error: 'Transfer blocked: lead has not been saved and verified.' };
+        } else if (transferAllowed !== 'yes') {
           output = { error: 'Transfer not available for this call. Offer a callback instead.' };
         } else {
           output = { success: true };
