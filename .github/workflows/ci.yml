@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, experiment/gpt-live-voice-poc]
 
 jobs:
   test:
