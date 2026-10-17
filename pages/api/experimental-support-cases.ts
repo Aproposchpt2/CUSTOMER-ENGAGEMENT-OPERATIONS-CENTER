@@ -22,9 +22,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const tenantId = clean(req.query.tenantId, 36);
   if (!/^[0-9a-f-]{36}$/i.test(tenantId)) return res.status(400).json({ error: 'Valid tenant required' });
 
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    return res.status(500).json({ error: 'Service role key not configured', detail: 'SUPABASE_SERVICE_ROLE_KEY missing from env' });
+  }
+
   const svc = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    serviceKey
   );
 
   const { data: contacts, error: cErr } = await svc
@@ -43,31 +48,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const contactIds = contacts.map(c => c.id);
   const byId = Object.fromEntries(contacts.map(c => [c.id, c]));
 
-  // Try contact_id first (ai4cc convention), fall back to customer_id
-  const fkCol = 'contact_id';
   const { data: cases, error: csErr } = await svc
     .from('stellar_support_cases')
     .select('*')
-    .in(fkCol, contactIds)
+    .in('contact_id', contactIds)
     .order('created_at', { ascending: false })
     .limit(200);
 
   if (csErr) {
-    // Try legacy column name if first attempt failed
-    const { data: cases2, error: csErr2 } = await svc
-      .from('stellar_support_cases')
-      .select('*')
-      .in('customer_id', contactIds)
-      .order('created_at', { ascending: false })
-      .limit(200);
-    if (csErr2) {
-      console.error('[css-dashboard] cases query failed both fk names', { msg: csErr.message, msg2: csErr2.message });
-      return res.status(500).json({ error: 'Could not load cases', detail: csErr.message + ' / ' + csErr2.message });
-    }
-    return finalizeCases(res, cases2 || [], byId, 'customer_id');
+    console.error('[css-dashboard] cases query failed', { code: csErr.code, msg: csErr.message });
+    return res.status(500).json({ error: 'Could not load cases', detail: csErr.message });
   }
 
-  return finalizeCases(res, cases || [], byId, fkCol);
+  return finalizeCases(res, cases || [], byId, 'contact_id');
 }
 
 function finalizeCases(
