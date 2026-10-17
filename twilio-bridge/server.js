@@ -301,6 +301,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let greetingPlayed = false;
   let streamStartedAt = null;
   let greetingDeadline = null;
+  let startupSilence = null;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -309,6 +310,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     callEnded = true;
     clearTimeout(deadline);
     clearTimeout(greetingDeadline);
+    clearInterval(startupSilence);
     audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
@@ -335,6 +337,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
+        // Live speech startup is seeded context, not a delegated response.create.
+        input: [{ role: 'developer', content: [{ type: 'input_text', text:
+          profile === 'support'
+            ? 'Greet the caller now in English. Introduce yourself as the support assistant and ask how you can help. Then pause and listen.'
+            : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
+        }] }],
         instructions: STAGING_ONLY && profile === 'support' ? APPROVED_SUPPORT_BRIEF : profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
@@ -350,7 +358,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         },
       },
     });
-    // response.create sent after session.started fires (see event handler below)
+    // GPT-Live needs continuous audio (including silence) to advance spoken output.
   }
 
   // ── Execute a tool call ────────────────────────────────────────────────────
@@ -421,9 +429,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
         if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
-          logEvent(`[${callSid}] greeting requested streamElapsedMs=${Date.now() - streamStartedAt}`);
-          // Request the greeting without waiting for, or replaying, caller speech.
-          sendToOpenAI({ type: 'response.create' });
+          logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
+          // Hold early caller speech, but keep Live's audio clock running with PCMU silence.
+          // response.create starts backend work; it does not trigger Live speech.
+          const silence = Buffer.alloc(160, 0xff).toString('base64');
+          startupSilence = setInterval(() => {
+            if (!callEnded && !greetingPlayed)
+              sendToOpenAI({ type: 'session.input_audio.append', audio: silence });
+          }, 20);
         }
       } else if (t === 'response.created' || t === 'response.done') {
         logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
@@ -551,6 +564,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       && msg.mark?.name === GREETING_MARK && greetingAudioSent && !greetingPlayed) {
       greetingPlayed = true;
       clearTimeout(greetingDeadline);
+      clearInterval(startupSilence);
       logEvent(`[${callSid}] greeting first chunk played streamElapsedMs=${Date.now() - streamStartedAt} queuedPackets=${audioBuffer.length}`);
       for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
       audioBuffer.length = 0;
