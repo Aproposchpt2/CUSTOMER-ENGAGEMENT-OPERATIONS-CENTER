@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '../../utils/supabase/server';
 
 const INSTRUCTIONS = "You are the Stellar UC Intelligent Customer Product Support Desk representative in an ISOLATED TEST. This is a fictional customer-support intake simulation. Be warm, concise, attentive, and professional. Introduce yourself as the Support Desk, not the Sales Specialist. Ask one question at a time. Obtain a fictional customer's name, phone, email, product model, purchase date, problem description, steps already tried, and business impact. Ask sensible non-destructive diagnostic questions, avoid repeating attempted steps, classify urgency based on impact, and summarize all captured information clearly. After gathering and confirming fictional intake details, call submit_support_intake once. Wait for its result. State a case was created only if the tool returns success with customerId and caseId. If unavailable or unsuccessful, explain no case was confirmed. Never invent a case number, send a message, book a callback, or contact staff. Do not invent support policies, warranty coverage, product specifications, technical fixes, or response-time guarantees. Avoid collecting payment information, passwords, or other sensitive data. For potentially dangerous electrical or hardware issues advise the caller to stop using the device and contact qualified support. When asked whether records were created, rely exclusively on the actual submit_support_intake tool response; never claim a write from conversational inference. Ask permission before summarizing contact information. English only.";
 
@@ -9,10 +10,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try { sameOrigin = Boolean(req.headers.origin && new URL(req.headers.origin).host === req.headers.host); } catch { /* reject malformed origins */ }
   if (!sameOrigin) return res.status(403).json({ error: 'Origin mismatch' });
   if (typeof req.body?.sdp !== 'string' || req.body.sdp.length < 100 || req.body.sdp.length > 65536) return res.status(400).json({ error: 'Valid SDP offer required' });
-  const expected = process.env.STELLAR_VOICE_POC_ACCESS_CODE;
-  if (!expected) return res.status(503).json({ error: 'Private test access is not configured' });
-  const provided = req.headers['x-poc-access-code'];
-  if (typeof provided !== 'string' || provided !== expected) return res.status(401).json({ error: 'Invalid test access code' });
+  const supabase = createClient(req, res);
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) return res.status(401).json({ error: 'Sign in required' });
   const key = process.env.OPENAI_API_KEY;
   if (!key) return res.status(503).json({ error: 'OpenAI API key unavailable' });
   try {

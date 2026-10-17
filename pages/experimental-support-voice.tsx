@@ -3,11 +3,10 @@ import Head from 'next/head';
 import { createBrowserClient } from '@supabase/ssr';
 
 export default function VoiceProofOfConcept() {
-  const [accessCode, setAccessCode] = useState('');
-  const [tenantId, setTenantId] = useState('5885a020-d363-4c27-910a-c035eda132f5');
+  const [tenantId, setTenantId] = useState(process.env.NEXT_PUBLIC_CSS_TENANT_ID || '5885a020-d363-4c27-910a-c035eda132f5');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [authMessage, setAuthMessage] = useState('Not signed in to staging');
+  const [authMessage, setAuthMessage] = useState('Not signed in');
   const intakeSessionId = useRef('');
   const submitted = useRef(false);
   const toolRegistered = useRef(false);
@@ -87,39 +86,38 @@ export default function VoiceProofOfConcept() {
     diagnosticEvents.current.push({at:new Date().toISOString(),code:safeDiagnosticCode(message)});
     setEvents(previous => [...previous.slice(-19), message]);
   };
-  function stagingClient() {
+  function supabaseClient() {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    if (!url?.includes('hvzauakkhlivzeqatfqm') || !key) throw new Error('Staging login not configured');
+    if (!url || !key) throw new Error('Supabase not configured');
     return createBrowserClient(url, key);
   }
   async function sendOtp() {
     setPreflightPassed(false);
     try {
-      const { error } = await stagingClient().auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+      const { error } = await supabaseClient().auth.signInWithOtp({email,options:{shouldCreateUser:false}});
       if (error) throw error;
-      setAuthMessage('Check your email for the staging sign-in code');
+      setAuthMessage('Check your email for the sign-in code');
     } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Sign-in failed');}
   }
   async function verifyOtp() {
     setPreflightPassed(false);
     try {
-      const { error } = await stagingClient().auth.verifyOtp({email,token:otp,type:'email'});
+      const { error } = await supabaseClient().auth.verifyOtp({email,token:otp,type:'email'});
       if (error) throw error;
-      setAuthMessage('Staging sign-in successful. The preflight will verify administrator authorization.');
+      setAuthMessage('Signed in. Preflight will verify administrator authorization.');
     } catch (e) {setAuthMessage(e instanceof Error ? e.message : 'Verification failed');}
   }
   async function verifyReadiness() {
     setPreflightPassed(false);
     setReadiness('Checking authenticated staging access...');
     try {
-      const response = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
+      const response = await fetch('/api/experimental-support-readiness', {method:'POST'});
       const result = await response.json();
       if (!response.ok || !result.ready || !result.tenantIds?.includes(tenantId)) {
         const explanations: Record<string,string> = {
           ORIGIN_MISMATCH:'Request origin did not match the private test site',
-          ACCESS_CODE_REJECTED:'Private test access code is incorrect or not configured',
-          STAGING_CONFIG_MISSING:'Staging database URL is not configured',
+          SESSION_NOT_FOUND:'Sign in required',
           STAGING_SESSION_NOT_FOUND:'Staging sign-in was not available to the server; sign in again',
           TENANT_MEMBERSHIP_LOOKUP_FAILED:'Staging tenant membership could not be verified',
           TEST_WRITES_DISABLED:'Private staging support test writes are disabled',
@@ -149,7 +147,7 @@ export default function VoiceProofOfConcept() {
     setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
-      const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
+      const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST'});
       const check = await readinessResponse.json();
       if (!readinessResponse.ok || !check.ready || !check.tenantIds?.includes(tenantId)) {
         setReadiness('Not ready: staging writes, authenticated admin membership, or tenant selection requires attention');
@@ -255,7 +253,7 @@ export default function VoiceProofOfConcept() {
       }
       const sessionResponse = await fetch('/api/experimental-support-voice-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-poc-access-code': accessCode },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sdp: connection.localDescription?.sdp })
       });
       const session = await sessionResponse.json();
@@ -316,12 +314,11 @@ export default function VoiceProofOfConcept() {
       <input id="otp" type="text" value={otp} onChange={e=>setOtp(e.target.value)} style={{display:'block',width:'100%',padding:12,margin:'8px 0 12px',background:'#171e2b',color:'white'}} />
       <button type="button" onClick={()=>void verifyOtp()} disabled={!otp || !email} style={{padding:10,marginBottom:12}}>Verify staging sign-in</button>
       <p role="status">{authMessage}</p>
-      <label htmlFor="tenant">Staging tenant ID (authorized administrator)</label><input id="tenant" value={tenantId} onChange={e=>{setTenantId(e.target.value);setPreflightPassed(false);}} placeholder="Tenant UUID" style={{display:"block",width:"100%",padding:12,margin:"8px 0 20px",background:"#171e2b",color:"white",border:"1px solid #c8a85a",borderRadius:6}}/><label htmlFor="access">Private test access code</label>
-      <input id="access" type="password" autoComplete="off" value={accessCode} onChange={e=>{setAccessCode(e.target.value);setPreflightPassed(false);}} style={{display:'block',width:'100%',padding:12,margin:'8px 0 20px',background:'#171e2b',color:'white',border:'1px solid #c8a85a',borderRadius:6}} />
+      <input id="tenant" value={tenantId} onChange={e=>{setTenantId(e.target.value);setPreflightPassed(false);}} placeholder="Tenant UUID" style={{display:"none"}} />
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-        <button disabled={busy || !accessCode || !!pc.current} onClick={()=>void verifyReadiness()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>Verify staging readiness</button>
-        <button type="button" disabled={busy || !!pc.current || !preflightPassed} onClick={()=>void verifyStagingIntakeIndependently()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8}}>Verify fictional staging case write (no voice)</button>
-        <button disabled={busy || !!pc.current || !accessCode || !preflightPassed} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
+        <button disabled={busy || !!pc.current} onClick={()=>void verifyReadiness()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>Verify readiness</button>
+        <button type="button" disabled={busy || !!pc.current || !preflightPassed} onClick={()=>void verifyStagingIntakeIndependently()} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8}}>Verify case write (no voice)</button>
+        <button disabled={busy || !!pc.current || !preflightPassed} onClick={start} style={{padding:'14px 22px',background:'#d7b968',color:'#151515',border:0,borderRadius:8,cursor:'pointer'}}>Start voice conversation</button>
         <button disabled={!pc.current} onClick={endConversation} style={{padding:'14px 22px',background:'#363b45',color:'white',border:0,borderRadius:8,cursor:'pointer'}}>End conversation</button>
       </div>
       <p role="status">Status: {busy ? 'Checking staging readiness and preparing session...' : status}</p><p role="status">Database readiness: {readiness}</p>
