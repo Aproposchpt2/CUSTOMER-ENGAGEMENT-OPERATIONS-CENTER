@@ -24,6 +24,39 @@ let activeCalls = 0;
 const recentEvents = []; // rolling 50-event log for /debug
 function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
+// ─── OpenAI connection pool (pre-warmed to eliminate 3-4s connect latency) ────
+const wsPool = [];
+const POOL_SIZE = 2;
+
+function openPoolWs() {
+  const ws = new WebSocket(`wss://api.openai.com/v1/realtime?model=${OPENAI_MODEL}`, {
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+  });
+  ws._poolReady = false;
+  ws.once('open', () => { ws._poolReady = true; logEvent('[pool] connection ready'); });
+  ws.once('error', (e) => { logEvent(`[pool] error: ${e.message}`); ws.close(); });
+  ws.once('close', () => {
+    const i = wsPool.indexOf(ws);
+    if (i !== -1) wsPool.splice(i, 1);
+    setTimeout(fillPool, 3000);
+  });
+  wsPool.push(ws);
+}
+
+function fillPool() {
+  if (!OPENAI_API_KEY) return;
+  while (wsPool.length < POOL_SIZE) openPoolWs();
+}
+
+function claimPooled() {
+  const i = wsPool.findIndex(w => w._poolReady && w.readyState === WebSocket.OPEN);
+  if (i === -1) return null;
+  const [ws] = wsPool.splice(i, 1);
+  logEvent('[pool] claimed');
+  setTimeout(fillPool, 0);
+  return ws;
+}
+
 // ─── HMAC token validation (minted by Netlify TwiML endpoint) ────────────────
 function validateBridgeToken(token) {
   if (typeof token !== 'string') return null;
@@ -322,49 +355,40 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     sendToOpenAI({ type: 'response.create' });
   }
 
-  // ── Set up OpenAI Realtime API WebSocket ───────────────────────────────────
-  async function initOpenAI(instructions, tools) {
-    openaiWs = new WebSocket(
-      `wss://api.openai.com/v1/realtime?model=${OPENAI_MODEL}`,
-      {
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-      }
-    );
-
-    openaiWs.on('open', () => {
-      logEvent(`[${callSid}] OpenAI ws open`);
-      sendToOpenAI({
-        type: 'session.update',
-        session: {
-          type: 'realtime',
-          output_modalities: ['audio'],
-          instructions,
-          audio: {
-            input: {
-              format: { type: 'audio/pcmu' },
-              turn_detection: {
-                type: 'server_vad',
-                threshold: 0.5,
-                prefix_padding_ms: 300,
-                silence_duration_ms: 600,
-                create_response: true,
-                interrupt_response: true,
-              },
-            },
-            output: {
-              format: { type: 'audio/pcmu' },
-              voice: profile === 'sales' ? 'alloy' : 'echo',
+  // ── Send session.update + trigger first response (called once WS is open) ───
+  function initSession(instructions, tools) {
+    sendToOpenAI({
+      type: 'session.update',
+      session: {
+        type: 'realtime',
+        output_modalities: ['audio'],
+        instructions,
+        audio: {
+          input: {
+            format: { type: 'audio/pcmu' },
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 600,
+              create_response: true,
+              interrupt_response: true,
             },
           },
-          tools,
-          tool_choice: 'auto',
+          output: {
+            format: { type: 'audio/pcmu' },
+            voice: profile === 'sales' ? 'ash' : 'echo',
+          },
         },
-      });
-      // response.create is sent after session.updated confirmation below
+        tools,
+        tool_choice: 'auto',
+      },
     });
+    // response.create triggered after session.updated fires (see message handler)
+  }
 
+  // ── Attach message/close/error handlers to openaiWs ───────────────────────
+  function attachOpenAIHandlers() {
     const toolCallBuffers = {};
 
     openaiWs.on('message', (raw) => {
@@ -374,8 +398,15 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
       // Lifecycle logging for diagnosis
       if (t === 'session.created' || t === 'session.updated') {
-        logEvent(`[${callSid}] ${t}`);
-        if (t === 'session.updated') sendToOpenAI({ type: 'response.create', response: { modalities: ['audio'] } });
+        const fmt = msg.session?.audio?.output?.format?.type || 'unknown';
+        logEvent(`[${callSid}] ${t} outFmt=${fmt}`);
+        if (t === 'session.updated') sendToOpenAI({
+          type: 'response.create',
+          response: {
+            output_modalities: ['audio'],
+            audio: { output: { format: { type: 'audio/pcmu' } } },
+          },
+        });
       } else if (t === 'response.created' || t === 'response.done') {
         const out = msg.response?.output ? JSON.stringify(msg.response.output.map(i => i.type)) : 'none';
         logEvent(`[${callSid}] ${t} status=${msg.response?.status} output=${out}`);
@@ -388,7 +419,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       }
 
       if (t === 'response.output_audio.delta' && msg.delta) {
-        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta`); }
+        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta len=${msg.delta.length}`); }
         audioDeltaCount++;
         sendToTwilio({ event: 'media', streamSid, media: { payload: msg.delta } });
       } else if (t === 'input_audio_buffer.speech_started') {
@@ -419,19 +450,39 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
     if (msg.event === 'start') {
       streamSid = msg.start?.streamSid || msg.streamSid;
-      const params = msg.start?.customParameters || {};
-      logEvent(`[${callSid}] stream started, streamSid: ${streamSid}`);
+      logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
-      let instructions = '';
-      let tools = [];
+      // Run intake HTTP call and OpenAI WS connect in parallel to minimise delay
+      const intakeP = profile === 'sales'
+        ? callSalesIntakeStart(callSid, callerPhone).catch(e => { logEvent(`[${callSid}] intake failed: ${e.message}`); return null; })
+        : Promise.resolve(null);
 
-      try {
+      // Grab pre-warmed connection or open fresh
+      openaiWs = claimPooled();
+      const poolHit = !!openaiWs;
+      if (!poolHit) {
+        logEvent(`[${callSid}] pool miss — opening fresh WS`);
+        openaiWs = new WebSocket(`wss://api.openai.com/v1/realtime?model=${OPENAI_MODEL}`, {
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+        });
+      }
+
+      // Wait for WS open (instant on pool hit) then await intake and configure
+      const wsReady = poolHit
+        ? Promise.resolve()
+        : new Promise((res, rej) => { openaiWs.once('open', res); openaiWs.once('error', rej); });
+
+      wsReady.then(async () => {
+        logEvent(`[${callSid}] OpenAI ws open (pool=${poolHit})`);
+        const intake = await intakeP;
+        let instructions, tools;
         if (profile === 'sales') {
-          const intake = await callSalesIntakeStart(callSid, callerPhone);
-          interactionId = intake.interactionId;
-          transferAllowed = intake.transferAllowed || 'no';
-          const knownName = intake.knownCallerName || '';
-          const callerNum = intake.callerNumber || callerPhone;
+          if (intake) {
+            interactionId = intake.interactionId;
+            transferAllowed = intake.transferAllowed || 'no';
+          }
+          const knownName = intake?.knownCallerName || '';
+          const callerNum = intake?.callerNumber || callerPhone;
           const openingGreeting = knownName
             ? `Hello, you have reached Stellar Unified Communications. Am I speaking with ${knownName.split(/\s+/)[0]}?`
             : `Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?`;
@@ -441,13 +492,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = SUPPORT_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?"`;
           tools = supportTools;
         }
-      } catch (e) {
-        logEvent(`[${callSid}] intake call failed: ${e.message}`);
-        instructions = profile === 'sales' ? SALES_SYSTEM_PROMPT : SUPPORT_SYSTEM_PROMPT;
-        tools = profile === 'sales' ? salesTools(null, 'no') : supportTools;
-      }
+        initSession(instructions, tools);
+      }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
 
-      await initOpenAI(instructions, tools);
+      attachOpenAIHandlers();
+      await new Promise(res => setTimeout(res, 0)); // yield to let handlers register
 
     } else if (msg.event === 'media' && openaiWs) {
       if (openaiWs.readyState === WebSocket.OPEN) {
@@ -469,6 +518,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 function start() {
   if (!OPENAI_API_KEY) { console.error('OPENAI_API_KEY not set'); process.exit(1); }
   if (!BRIDGE_HMAC_SECRET) { console.error('BRIDGE_HMAC_SECRET not set'); process.exit(1); }
+  fillPool(); // pre-warm OpenAI connections
 
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls }));
