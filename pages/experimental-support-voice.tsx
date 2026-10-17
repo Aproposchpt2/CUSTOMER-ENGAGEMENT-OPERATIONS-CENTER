@@ -285,6 +285,8 @@ export default function VoiceProofOfConcept() {
       const payload = await response.json();
       if (!response.ok || !payload.customerId || !payload.caseId) throw new Error('Staging persistence not confirmed (HTTP '+response.status+')');
       log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
+      if (payload.notificationSent === true) log('Notification sent: case alert delivered to tenant admin');
+      else log('Notification not sent: '+(payload.notificationError||'unknown reason'));
       setReadiness('Staging test write VERIFIED. Case ID: '+payload.caseId);
     } catch (err) {
       log('Support intake not saved: '+(err instanceof Error ? err.message : 'unknown'));
