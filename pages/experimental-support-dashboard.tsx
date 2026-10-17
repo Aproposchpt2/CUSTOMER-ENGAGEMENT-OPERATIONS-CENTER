@@ -89,7 +89,7 @@ export default function SupportDashboard() {
     try {
       const r = await fetch('/api/experimental-support-cases?tenantId=' + encodeURIComponent(tenantId));
       const result = await r.json();
-      if (!r.ok) { setLoadError(result.error || 'Failed to load cases'); return; }
+      if (!r.ok) { setLoadError((result.error || 'Failed to load cases') + (result.detail ? ' — ' + result.detail : '')); return; }
       setCases(result.cases || []);
       setUsage(result.usage || null);
       setLastRefresh(new Date().toLocaleTimeString());

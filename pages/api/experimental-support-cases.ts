@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: cases, error: csErr } = await svc
     .from('stellar_support_cases')
-    .select('id, case_id, created_at, priority, product, issue, customer_id, session_id')
+    .select('*')
     .in('customer_id', contactIds)
     .order('created_at', { ascending: false })
     .limit(200);
