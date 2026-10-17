@@ -377,7 +377,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       output = { error: e.message };
     }
 
-    sendToOpenAI({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(output) } });
+    // GPT-Live Responses delegation requires response.item.create, not legacy conversation.item.create.
+    sendToOpenAI({ type: 'response.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(output) } });
     sendToOpenAI({ type: 'response.create' });
   }
 
