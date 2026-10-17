@@ -5,8 +5,8 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(import.meta.url);
-const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall;');
-async function session(profile, failSave = false) {
+const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
+async function session(profile, failSave = false, warm = false) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -21,6 +21,7 @@ async function session(profile, failSave = false) {
   }};
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
+  if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
   await context.handleCall(phone,profile,'+12025550199','TEST_CALL');
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
@@ -65,10 +66,12 @@ const oai=(s:any,event:any)=>s.ws.emit('message',Buffer.from(JSON.stringify(even
 const phoneEvent=(s:any,event:any)=>s.phone.emit('message',Buffer.from(JSON.stringify(event)));
 const acknowledgeGreeting=(s:any)=>phoneEvent(s,{event:'mark',streamSid:'TEST_STREAM',mark:{name:'stellar-greeting-start'}});
 test('silent caller gets exactly one greeting request without sending input',async()=>{
- const s=await session('support');
+ for(const warm of [false,true]){
+ const s=await session('support',false,warm);
  oai(s,{type:'session.started'});oai(s,{type:'session.started'});
  assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1);
  assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+ }
 });
 test('early caller speech cannot cancel greeting before playback; queued input survives',async()=>{
  const s=await session('support');
@@ -106,4 +109,13 @@ test('startup audio overflow fails explicitly instead of silently dropping speec
  const s=await session('support');
  phoneEvent(s,{event:'media',media:{payload:Buffer.alloc(80001).toString('base64')}});
  assert.equal(s.phone.readyState,3);assert.equal(s.ws.readyState,3);
+});
+
+test('caller disconnect before session ready prevents a late greeting',async()=>{
+ const s=await session('support');
+ phoneEvent(s,{event:'stop'});
+ const count=s.outbound.length;
+ oai(s,{type:'session.started'});
+ oai(s,{type:'session.output_audio.delta',delta:'AQID'});
+ assert.equal(s.outbound.length,count);assert.equal(s.phoneOutbound.length,0);
 });
