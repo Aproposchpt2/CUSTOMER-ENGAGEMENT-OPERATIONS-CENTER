@@ -15,7 +15,7 @@ async function session(profile, failSave = false, warm = false, staging = false)
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
@@ -65,12 +65,19 @@ test('delegated envelope executes once and rejects non-object arguments',async()
 const oai=(s:any,event:any)=>s.ws.emit('message',Buffer.from(JSON.stringify(event)));
 const phoneEvent=(s:any,event:any)=>s.phone.emit('message',Buffer.from(JSON.stringify(event)));
 const acknowledgeGreeting=(s:any)=>phoneEvent(s,{event:'mark',streamSid:'TEST_STREAM',mark:{name:'stellar-greeting-start'}});
-test('silent caller gets exactly one greeting request without sending input',async()=>{
+test('silent caller gets seeded greeting context without starting backend work',async()=>{
  for(const warm of [false,true]){
  const s=await session('support',false,warm);
  oai(s,{type:'session.started'});oai(s,{type:'session.started'});
- assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1);
- assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,0);
+ const start=s.outbound.find(x=>x.type==='session.start');
+ assert.equal(start.session.input[0].role,'developer');
+ assert.match(start.session.input[0].content[0].text,/Greet the caller now/);
+ assert.equal(s.timers.filter(x=>x.interval).length,1);
+ s.timers.find(x=>x.interval).fn();
+ const input=s.outbound.filter(x=>x.type==='session.input_audio.append');
+ assert.equal(input.length,1);
+ assert.deepEqual(Buffer.from(input[0].audio,'base64'),Buffer.alloc(160,255));
  }
 });
 test('early caller speech cannot cancel greeting before playback; queued input survives',async()=>{
@@ -89,6 +96,7 @@ test('early caller speech cannot cancel greeting before playback; queued input s
  assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
  acknowledgeGreeting(s);acknowledgeGreeting(s);
  assert.deepEqual(s.outbound.filter(x=>x.type==='session.input_audio.append').map(x=>x.audio),['AQID','BAUG']);
+ assert.equal(s.timers.find(x=>x.interval).cleared,true);
  oai(s,{type:'session.speech_started'});
  assert.equal(s.outbound.filter(x=>x.type==='response.cancel').length,1);
  assert.equal(s.phoneOutbound.at(-1).event,'clear');
@@ -101,6 +109,7 @@ test('missing greeting or playback acknowledgement terminates startup',async()=>
   if(audio)oai(s,{type:'session.output_audio.delta',delta:'AQID'});
   s.timers.find(x=>x.ms===10000).fn();
   assert.equal(s.phone.readyState,3);assert.equal(s.ws.readyState,3);
+  assert.equal(s.timers.find(x=>x.interval).cleared,true);
   const count=s.outbound.length;oai(s,{type:'session.started'});
   assert.equal(s.outbound.length,count);
  }
