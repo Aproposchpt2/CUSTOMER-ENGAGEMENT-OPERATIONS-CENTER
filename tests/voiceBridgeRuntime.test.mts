@@ -151,8 +151,10 @@ test('staging Support adds the fixed opening while preserving the approved model
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
  const greeting = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
  const prefix = `At the start of this telephone call, say exactly: "${greeting}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
- assert.equal(start.instructions,prefix+approved.brief);
- assert.equal(start.delegation.responses.instructions,prefix+approved.instructions);
+ // Frozen original persona remains intact; owner-approved workflow is a separate suffix.
+ assert.ok(start.instructions.startsWith(prefix+approved.brief));
+ assert.ok(start.delegation.responses.instructions.startsWith(prefix+approved.instructions));
+ assert.equal(start.instructions.slice((prefix+approved.brief).length),start.delegation.responses.instructions.slice((prefix+approved.instructions).length));
  assert.equal(start.turn_detection,undefined);
  assert.equal(start.audio.output?.voice,undefined);
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
