@@ -43,32 +43,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const contactIds = contacts.map(c => c.id);
   const byId = Object.fromEntries(contacts.map(c => [c.id, c]));
 
+  // Try contact_id first (ai4cc convention), fall back to customer_id
+  const fkCol = 'contact_id';
   const { data: cases, error: csErr } = await svc
     .from('stellar_support_cases')
     .select('*')
-    .in('customer_id', contactIds)
+    .in(fkCol, contactIds)
     .order('created_at', { ascending: false })
     .limit(200);
 
   if (csErr) {
-    console.error('[css-dashboard] cases query failed', { code: csErr.code, msg: csErr.message });
-    return res.status(500).json({ error: 'Could not load cases', detail: csErr.message });
+    // Try legacy column name if first attempt failed
+    const { data: cases2, error: csErr2 } = await svc
+      .from('stellar_support_cases')
+      .select('*')
+      .in('customer_id', contactIds)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (csErr2) {
+      console.error('[css-dashboard] cases query failed both fk names', { msg: csErr.message, msg2: csErr2.message });
+      return res.status(500).json({ error: 'Could not load cases', detail: csErr.message + ' / ' + csErr2.message });
+    }
+    return finalizeCases(res, cases2 || [], byId, 'customer_id');
   }
 
+  return finalizeCases(res, cases || [], byId, fkCol);
+}
+
+function finalizeCases(
+  res: import('next').NextApiResponse,
+  cases: Record<string, unknown>[],
+  byId: Record<string, { display_name: string; email: string; phone: string }>,
+  fkCol: string,
+) {
   const today = new Date().toISOString().slice(0, 10);
   const byPriority: Record<string, number> = {};
   let todayCount = 0;
 
-  const enriched = (cases || []).map(c => {
-    const cid = c.case_id ?? c.id;
-    const contact = byId[c.customer_id] ?? null;
-    byPriority[c.priority] = (byPriority[c.priority] || 0) + 1;
-    if ((c.created_at ?? '').startsWith(today)) todayCount++;
+  const enriched = cases.map(c => {
+    const cid = (c.case_id ?? c.id) as string;
+    const contactId = c[fkCol] as string;
+    const contact = byId[contactId] ?? null;
+    const priority = (c.priority as string) ?? 'NORMAL';
+    byPriority[priority] = (byPriority[priority] || 0) + 1;
+    if (((c.created_at as string) ?? '').startsWith(today)) todayCount++;
     return {
       caseId: cid,
-      customerId: c.customer_id,
+      customerId: contactId,
       createdAt: c.created_at,
-      priority: c.priority,
+      priority,
       product: c.product,
       issue: c.issue,
       sessionId: c.session_id,
