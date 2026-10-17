@@ -79,7 +79,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="${bridgeWsUrl}?profile=${encodeURIComponent(profile)}">
+    <Stream url="${bridgeWsUrl}/${profile}">
       <Parameter name="bridge_token" value="${token}"/>
     </Stream>
   </Connect>
