@@ -7,7 +7,7 @@ import { EventEmitter } from 'node:events';
 const require = createRequire(import.meta.url);
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall;');
 async function session(profile, failSave = false) {
-  const outbound:any[] = [], requests:any[] = [], sockets:any[] = [];
+  const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
     constructor(..._args:any[]) { super(); sockets.push(this); queueMicrotask(()=>this.emit('open')); }
@@ -20,13 +20,13 @@ async function session(profile, failSave = false) {
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
   vm.runInNewContext(source,context);
-  const phone:any=new EventEmitter(); phone.readyState=1;phone.send=()=>{};phone.close=()=>{phone.readyState=3;};
+  const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   await context.handleCall(phone,profile,'+12025550199','TEST_CALL');
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
   const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event={type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
-  return {outbound,requests,phone,ws,tool,timers};
+  return {outbound,requests,phone,ws,tool,timers,phoneOutbound};
 }
 test('sales transport registers sales tools and initializes the interaction',async()=>{
  const s=await session('sales'); const start=s.outbound.find(x=>x.type==='session.start');
@@ -59,4 +59,51 @@ test('delegated envelope executes once and rejects non-object arguments',async()
  await s.tool('invalid','end_call',null,true);
  assert.match(s.outbound.find(x=>x.item?.call_id==='invalid').item.output,/Invalid tool arguments/);
  assert.equal(s.timers.filter(x=>x.ms===1500).length,0);
+});
+
+const oai=(s:any,event:any)=>s.ws.emit('message',Buffer.from(JSON.stringify(event)));
+const phoneEvent=(s:any,event:any)=>s.phone.emit('message',Buffer.from(JSON.stringify(event)));
+const acknowledgeGreeting=(s:any)=>phoneEvent(s,{event:'mark',streamSid:'TEST_STREAM',mark:{name:'stellar-greeting-start'}});
+test('silent caller gets exactly one greeting request without sending input',async()=>{
+ const s=await session('support');
+ oai(s,{type:'session.started'});oai(s,{type:'session.started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1);
+ assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+});
+test('early caller speech cannot cancel greeting before playback; queued input survives',async()=>{
+ const s=await session('support');
+ phoneEvent(s,{event:'media',media:{payload:'AQID'}});
+ oai(s,{type:'session.started'});
+ phoneEvent(s,{event:'media',media:{payload:'BAUG'}});
+ oai(s,{type:'session.speech_started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.cancel').length,0);
+ assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+ acknowledgeGreeting(s); // unsolicited mark cannot release input
+ assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+ oai(s,{type:'session.output_audio.delta',delta:'BwgJ'});
+ assert.deepEqual(s.phoneOutbound.map(x=>x.event),['media','mark']);
+ phoneEvent(s,{event:'mark',streamSid:'OTHER_STREAM',mark:{name:'stellar-greeting-start'}});
+ assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
+ acknowledgeGreeting(s);acknowledgeGreeting(s);
+ assert.deepEqual(s.outbound.filter(x=>x.type==='session.input_audio.append').map(x=>x.audio),['AQID','BAUG']);
+ oai(s,{type:'session.speech_started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.cancel').length,1);
+ assert.equal(s.phoneOutbound.at(-1).event,'clear');
+ phoneEvent(s,{event:'media',media:{payload:'CgsM'}});
+ assert.equal(s.outbound.at(-1).audio,'CgsM');
+});
+test('missing greeting or playback acknowledgement terminates startup',async()=>{
+ for(const audio of [false,true]){
+  const s=await session('support');oai(s,{type:'session.started'});
+  if(audio)oai(s,{type:'session.output_audio.delta',delta:'AQID'});
+  s.timers.find(x=>x.ms===10000).fn();
+  assert.equal(s.phone.readyState,3);assert.equal(s.ws.readyState,3);
+  const count=s.outbound.length;oai(s,{type:'session.started'});
+  assert.equal(s.outbound.length,count);
+ }
+});
+test('startup audio overflow fails explicitly instead of silently dropping speech',async()=>{
+ const s=await session('support');
+ phoneEvent(s,{event:'media',media:{payload:Buffer.alloc(80001).toString('base64')}});
+ assert.equal(s.phone.readyState,3);assert.equal(s.ws.readyState,3);
 });
