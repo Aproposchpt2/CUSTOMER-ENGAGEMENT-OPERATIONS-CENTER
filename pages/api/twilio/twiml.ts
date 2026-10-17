@@ -15,13 +15,30 @@ function mintToken(profile: string, secret: string): string {
   return `${payload}:${sig}`;
 }
 
+function parseBody(raw: unknown): Record<string, string> {
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw as Record<string, string>;
+  }
+  if (typeof raw === 'string') {
+    const out: Record<string, string> = {};
+    for (const pair of raw.split('&')) {
+      const idx = pair.indexOf('=');
+      if (idx === -1) continue;
+      out[decodeURIComponent(pair.slice(0, idx).replace(/\+/g, ' '))] =
+        decodeURIComponent(pair.slice(idx + 1).replace(/\+/g, ' '));
+    }
+    return out;
+  }
+  return {};
+}
+
 function validateTwilioSignature(req: NextApiRequest, authToken: string): boolean {
   const signature = req.headers['x-twilio-signature'];
   if (!signature || typeof signature !== 'string') return false;
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
   const host = (req.headers['x-forwarded-host'] as string) || (req.headers['host'] as string) || '';
   const fullUrl = `${proto}://${host}${req.url ?? ''}`;
-  const params = (req.body || {}) as Record<string, string>;
+  const params = parseBody(req.body);
   const sortedStr = Object.keys(params).sort().reduce((acc, k) => acc + k + (params[k] ?? ''), '');
   const expected = createHmac('sha1', authToken).update(fullUrl + sortedStr).digest();
   try {
@@ -40,7 +57,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   if (authToken && !validateTwilioSignature(req, authToken)) {
-    return res.status(403).send(makeSay('We could not verify your call. Please try again.'));
+    return res.status(200).send(makeSay('We could not verify your call. Please try again.'));
   }
 
   const profile = String(req.query.profile || '');
