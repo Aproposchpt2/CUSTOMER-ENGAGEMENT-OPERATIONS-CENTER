@@ -254,6 +254,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let interactionId = null;
   let transferAllowed = 'no';
   let callEnded = false;
+  let audioDeltaCount = 0;
 
   const deadline = setTimeout(() => {
     console.log(`[${callSid}] max duration reached`);
@@ -333,7 +334,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     );
 
     openaiWs.on('open', () => {
-      logEvent(`[${callSid}] OpenAI connected`);
+      logEvent(`[${callSid}] OpenAI ws open`);
       sendToOpenAI({
         type: 'session.update',
         session: {
@@ -361,8 +362,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           tool_choice: 'auto',
         },
       });
-      // Trigger first utterance
-      sendToOpenAI({ type: 'response.create' });
+      // response.create is sent after session.updated confirmation below
     });
 
     const toolCallBuffers = {};
@@ -372,7 +372,24 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       try { msg = JSON.parse(raw.toString()); } catch { return; }
       const t = msg.type;
 
-      if (t === 'response.audio.delta' && msg.delta) {
+      // Lifecycle logging for diagnosis
+      if (t === 'session.created' || t === 'session.updated') {
+        logEvent(`[${callSid}] ${t}`);
+        if (t === 'session.updated') sendToOpenAI({ type: 'response.create', response: { modalities: ['audio'] } });
+      } else if (t === 'response.created' || t === 'response.done') {
+        const out = msg.response?.output ? JSON.stringify(msg.response.output.map(i => i.type)) : 'none';
+        logEvent(`[${callSid}] ${t} status=${msg.response?.status} output=${out}`);
+      } else if (t === 'response.audio.done') {
+        logEvent(`[${callSid}] response.audio.done`);
+      } else if (t === 'input_audio_buffer.speech_started') {
+        logEvent(`[${callSid}] speech_started`);
+      } else if (!['response.output_audio.delta','response.output_audio_transcript.delta','response.function_call_arguments.delta','response.function_call_arguments.done','response.output_item.added','response.output_item.done','response.content_part.added','response.content_part.done','response.audio_transcript.delta','response.audio_transcript.done','response.text.delta','response.text.done','input_audio_buffer.committed','input_audio_buffer.speech_stopped','conversation.item.created','rate_limits.updated'].includes(t)) {
+        logEvent(`[${callSid}] oai: ${t}`);
+      }
+
+      if (t === 'response.output_audio.delta' && msg.delta) {
+        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta`); }
+        audioDeltaCount++;
         sendToTwilio({ event: 'media', streamSid, media: { payload: msg.delta } });
       } else if (t === 'input_audio_buffer.speech_started') {
         clearTwilioAudio();
