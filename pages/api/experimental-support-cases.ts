@@ -95,5 +95,6 @@ function finalizeCases(
   return res.status(200).json({
     cases: enriched,
     usage: { total: enriched.length, today: todayCount, byPriority },
+    _debugColumns: cases[0] ? Object.keys(cases[0]) : [],
   });
 }
