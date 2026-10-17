@@ -23,6 +23,13 @@ const APPROVED_SUPPORT_BRIEF = "You are the Stellar UC Intelligent Customer Prod
 // Opening wording is separate from the frozen owner-approved conversational persona.
 const SUPPORT_GREETING = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
 const SUPPORT_GREETING_INSTRUCTION = `At the start of this telephone call, say exactly: "${SUPPORT_GREETING}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+// Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
+const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
+After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
+Only after the tool confirms success with both customerId and caseId, say "Your support ticket has been created. Are you ready to take down the ticket number?" Pause and wait for the caller's answer. Do not read the number before the caller is ready. If they are not ready, acknowledge and wait; if they decline the number, move on without forcing it. When ready, read the exact returned caseId slowly in manageable groups, then offer to repeat it. Never invent, shorten, or replace the identifier.
+After giving the ticket number or the caller declining it, ask "Is there anything further I can help you with?" Wait for the answer. If yes, continue the conversation naturally and help with the additional concern without resubmitting the same ticket. If no, and an authorized technician follow-up is explicitly confirmed by a trusted tool result, say "Great, a technician will contact you soon. Have a great day." This owner-approved wording does not imply a specific response-time guarantee. If no follow-up is confirmed, close warmly with "Thank you for calling. Have a great day" without promising technician contact. In this isolated staging test no real outreach is enabled; never claim otherwise.
+If saving fails, is unavailable, or is blocked, explain "I could not confirm that your support ticket was created." Do not announce success, offer a fabricated ticket number, or promise technician contact. Offer further help and explain the limitation honestly. No repeated automatic save attempts or duplicate tickets. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
+
 
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
@@ -389,7 +396,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF : profile === 'sales'
+        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
@@ -405,7 +412,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions : instructions,
+            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -671,6 +678,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v1' : null,
     supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
     supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
     supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
