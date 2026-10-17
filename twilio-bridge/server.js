@@ -337,11 +337,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
   // ── Execute a tool call ────────────────────────────────────────────────────
   async function executeTool(callId, name, argsStr) {
-    let args = {};
-    try { args = JSON.parse(argsStr); } catch { /* use empty */ }
     let output = {};
 
     try {
+      if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
+      const args = JSON.parse(argsStr);
+      if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
       if (name === 'submit_business_profile') {
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
@@ -385,10 +386,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   // ── OpenAI WebSocket event handlers ───────────────────────────────────────
   function attachOpenAIHandlers() {
     const toolCallBuffers = {};
+    const completedToolCalls = new Set();
 
     openaiWs.on('message', (raw) => {
       let msg;
       try { msg = JSON.parse(raw.toString()); } catch { return; }
+      // Delegated Responses events may arrive inside Live response.event envelopes.
+      if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
 
       // Lifecycle
@@ -433,6 +437,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         toolCallBuffers[id].args += (msg.delta || '');
       } else if (t === 'response.function_call_arguments.done') {
         const id = msg.call_id;
+        if (typeof id !== 'string' || !id.trim() || completedToolCalls.has(id)) return;
+        completedToolCalls.add(id);
         const buf = toolCallBuffers[id] || { name: msg.name || '', args: msg.arguments || '' };
         delete toolCallBuffers[id];
         executeTool(id, buf.name || msg.name, buf.args || msg.arguments || '{}');
