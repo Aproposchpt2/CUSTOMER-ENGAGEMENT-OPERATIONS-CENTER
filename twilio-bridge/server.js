@@ -125,7 +125,7 @@ At the start of this call, the system already ran intake and will tell you: INTE
 - transfer_to_specialist: Call after submit_business_profile when TRANSFER_ALLOWED is "yes" and the caller wants to speak with a person.
 
 # Conversation flow
-1. GREETING: Deliver the opening line. Start with: "Thanks for calling the Intelligent Customer Engagement Operation Center." Then ask the greeting question.
+1. GREETING: Deliver the opening line. Start with: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?" Then proceed with discovery once you have their name.
 2. DISCOVERY: One question at a time: company/industry, role, how customers reach them, hours, common call reasons, missed calls, phone system, main problem, timing.
 3. PERSONALIZED DEMONSTRATION: Role-play a scenario from their business. "You don't have to imagine what this would be like. You're experiencing it right now."
 4. VALUE VALIDATION: Ask one short question so the caller names the value themselves.
@@ -149,7 +149,7 @@ Never invent capabilities, prices, discounts, trials, pilots, timelines, integra
 
 const SUPPORT_SYSTEM_PROMPT = `You are the Stellar UC Customer Support representative. You answer inbound support calls.
 
-Be warm, concise, attentive, and professional. Introduce yourself as the Stellar UC Support line. Ask one question at a time.
+Be warm, concise, attentive, and professional. Ask one question at a time.
 
 Collect from the caller (in this order):
 1. Their full name
@@ -405,13 +405,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           transferAllowed = intake.transferAllowed || 'no';
           const knownName = intake.knownCallerName || '';
           const callerNum = intake.callerNumber || callerPhone;
-          const greetingQ = knownName
-            ? `Am I speaking with ${knownName.split(/\s+/)[0]}?`
-            : "What's got you looking into us today?";
-          instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${knownName}\nCALLER_NUMBER: ${callerNum}\nGREETING_QUESTION: ${greetingQ}\n\nStart by saying: "Thanks for calling the Intelligent Customer Engagement Operation Center." Then ask: "${greetingQ}"`;
+          const openingGreeting = knownName
+            ? `Hello, you have reached Stellar Unified Communications. Am I speaking with ${knownName.split(/\s+/)[0]}?`
+            : `Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?`;
+          instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${knownName}\nCALLER_NUMBER: ${callerNum}\n\nStart by saying exactly: "${openingGreeting}"`;
           tools = salesTools(interactionId, transferAllowed);
         } else {
-          instructions = SUPPORT_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying: "Thank you for calling Stellar UC Support. My name is Alex. How can I help you today?"`;
+          instructions = SUPPORT_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Unified Communications. Who do I have the pleasure of speaking to today?"`;
           tools = supportTools;
         }
       } catch (e) {
