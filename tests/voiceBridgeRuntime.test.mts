@@ -72,7 +72,7 @@ test('silent caller gets seeded greeting context without starting backend work',
  assert.equal(s.outbound.filter(x=>x.type==='response.create').length,0);
  const start=s.outbound.find(x=>x.type==='session.start');
  assert.equal(start.session.input[0].role,'developer');
- assert.match(start.session.input[0].content[0].text,/Greet the caller now/);
+ assert.match(start.session.input[0].content[0].text,/immediately/);
  assert.equal(s.timers.filter(x=>x.interval).length,1);
  s.timers.find(x=>x.interval).fn();
  const input=s.outbound.filter(x=>x.type==='session.input_audio.append');
@@ -146,11 +146,22 @@ test('Railway staging blocks intake writes, notifications and external transfers
 test('staging Support keeps the owner-approved model pair and exact conversational instructions',async()=>{
  const s=await session('support',false,false,true);
  const start=s.outbound.find(x=>x.type==='session.start').session;
- const approved=readFileSync(new URL('../pages/api/experimental-support-voice-session.ts',import.meta.url),'utf8');
- const full=JSON.parse(approved.match(/const INSTRUCTIONS = ("[^\n]+")/)[1]);
- const brief=approved.match(/instructions: '([^\n]+)',/)[1];
+ const approved=JSON.parse(readFileSync(new URL('./fixtures/approved-support-persona.json',import.meta.url),'utf8'));
  assert.equal(start.model,'gpt-live-1');
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
- assert.equal(start.instructions,brief);
- assert.equal(start.delegation.responses.instructions,full);
+ assert.equal(start.instructions,approved.brief);
+ assert.equal(start.delegation.responses.instructions,approved.instructions);
+ assert.equal(start.turn_detection,undefined);
+ assert.equal(start.audio.output?.voice,undefined);
+ const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
+ assert.equal(intake.parameters.required.length,9);
+});
+
+test('restoring the persona retains the current staging telephone greeting transport',async()=>{
+ const s=await session('support',false,false,true);
+ const start=s.outbound.find(x=>x.type==='session.start').session;
+ assert.equal(start.input,undefined);
+ oai(s,{type:'session.started'});oai(s,{type:'session.started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1);
+ assert.equal(s.timers.filter(x=>x.interval).length,1);
 });
