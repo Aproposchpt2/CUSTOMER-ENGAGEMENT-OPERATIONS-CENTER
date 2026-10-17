@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, repair/voice-transaction-reliability-20261017]
   pull_request:
     branches: [main, experiment/gpt-live-voice-poc]
 
