@@ -25,7 +25,7 @@ async function session(profile, failSave = false) {
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
-  const tool=async(id:string,name:string,args:any={})=>{ws.emit('message',Buffer.from(JSON.stringify({type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)})));await flush();};
+  const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event={type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
   return {outbound,requests,phone,ws,tool,timers};
 }
 test('sales transport registers sales tools and initializes the interaction',async()=>{
@@ -51,4 +51,12 @@ test('support transport retains its support tools and disconnect cleanup',async(
  const s=await session('support');assert.equal(s.requests.length,0);
  assert.ok(s.outbound.find(x=>x.type==='session.start').session.delegation.responses.tools.some((x:any)=>x.name==='submit_support_intake'));
  s.phone.emit('message',Buffer.from(JSON.stringify({event:'stop'})));assert.equal(s.ws.readyState,3);
+});
+
+test('delegated envelope executes once and rejects non-object arguments',async()=>{
+ const s=await session('sales');await s.tool('envelope','submit_business_profile',{description:'Fictional inquiry'},true);await s.tool('envelope','submit_business_profile',{},true);
+ assert.equal(s.requests.filter(x=>x.action==='submit').length,1);
+ await s.tool('invalid','end_call',null,true);
+ assert.match(s.outbound.find(x=>x.item?.call_id==='invalid').item.output,/Invalid tool arguments/);
+ assert.equal(s.timers.filter(x=>x.ms===1500).length,0);
 });
