@@ -143,14 +143,16 @@ test('Railway staging blocks intake writes, notifications and external transfers
   assert.match(s.outbound.find(x=>x.item?.call_id==='transfer').item.output,/STAGING_TRANSFERS_DISABLED/);
  }
 });
-test('staging Support keeps the owner-approved model pair and exact conversational instructions',async()=>{
+test('staging Support adds the fixed opening while preserving the approved models and persona',async()=>{
  const s=await session('support',false,false,true);
  const start=s.outbound.find(x=>x.type==='session.start').session;
  const approved=JSON.parse(readFileSync(new URL('./fixtures/approved-support-persona.json',import.meta.url),'utf8'));
  assert.equal(start.model,'gpt-live-1');
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
- assert.equal(start.instructions,approved.brief);
- assert.equal(start.delegation.responses.instructions,approved.instructions);
+ const greeting = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
+ const prefix = `At the start of this telephone call, say exactly: "${greeting}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+ assert.equal(start.instructions,prefix+approved.brief);
+ assert.equal(start.delegation.responses.instructions,prefix+approved.instructions);
  assert.equal(start.turn_detection,undefined);
  assert.equal(start.audio.output?.voice,undefined);
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
