@@ -29,20 +29,33 @@ Draft PR #75, repair/support-greeting-startup-20261017, is stacked on PR #74's i
 Twilio mark semantics: https://www.twilio.com/docs/voice/media-streams/websocket-messages
 A mark normally acknowledges preceding audio playback; clear also returns pending marks. This implementation does not send clear before the opening mark is acknowledged.
 
-Model constants, prompts, tool schemas, voice selection, authentication and routing are unchanged by this startup patch. Restoring the approved browser persona to the telephone path remains a separate integration/acceptance task; this patch alone does not claim equivalence.
+Production-mode model defaults, prompts and routing are unchanged. Railway staging now selects the exact approved browser Support brief and delegated instructions, with the same configured model pair. No explicit voice selection was introduced. Audio transport remains different and audible equivalence still requires owner acceptance. Tool schemas retain the telephone interface; staging persistence is deliberately disabled until a protected staging adapter is verified.
 
 ## Verification
-- All 96 local regression tests PASS.
-- Nine mocked bridge runtime tests PASS, covering silent caller on warm/cold sockets, early speech, ordered replay, interruption after playback starts, invalid/duplicate marks, missing audio/acknowledgement, bounded-buffer overflow and disconnect before session readiness.
+- All 98 local regression tests PASS.
+- Eleven mocked bridge runtime tests PASS, covering silent caller on warm/cold sockets, early speech, ordered replay, interruption after playback starts, invalid/duplicate marks, missing audio/acknowledgement, bounded-buffer overflow and disconnect before session readiness.
 - TypeScript compilation PASS.
 - Bridge JavaScript syntax and diff whitespace checks PASS.
 - Next.js optimized build PASS locally. GitHub did not return a pull-request workflow run for this stacked branch at the time checked; do not imply remote CI has passed.
 - No live telephone test, production write, production routing change, or paid infrastructure provisioning performed for this patch.
 
-## Remaining acceptance and hosting blocker
-Only the production Fly app stellar-twilio-bridge was identified in the inspected account. Netlify cannot run this persistent telephone WebSocket bridge as a normal function. Use an existing owner-authorized isolated WebSocket staging host, or obtain explicit owner approval for infrastructure that may incur charges. Never replace the production bridge to bypass this blocker.
+## Railway staging preparation and remaining gates
+Owner selected Railway as the production bridge destination and authorized up to $5 for initial staging hosting. No production migration is authorized.
 
-On the isolated host, use staging-only database/API targets and nonproduction credentials; disable real transfers/outreach/notifications. Verify deployed SHA and sanitized runtime configuration. Execute silent-caller and immediate-speech tests on cold and warm sockets; measure connect/session/first-audio/playback times, interruption and disconnect behavior. Then confirm real tool results and exactly-once linked staging persistence. Test failures and tenant isolation before production recommendation.
+- Connected account: aproposchpt2.
+- Private project: stellaruc-voice-bridge (1d66a7cf-3cb9-4032-958b-c897137fcece).
+- Environment: staging (95040de1-e96f-43d5-b5fa-39e8c0911e9e).
+- Pending service: stellaruc-voice-bridge-staging (6bda5718-49a2-4524-8b4d-af906c3be2f0).
+- Bridge code revision: 346f337c4ea3aab022d0330deecf466849d47268; root /twilio-bridge, Dockerfile, node server.js, health /health.
+- Source/configuration/variables are staged, not deployed. No public domain exists yet.
+- Staging mode follows STELLAR_BRIDGE_STAGING=true or Railway environment name staging. It blocks database/API intake writes, customer notifications, external Twilio hangup/transfer calls, and protects /debug with bearer authentication. The side-effect blockers apply even if production URLs or credentials are accidentally supplied.
+- One concurrent test session, maximum two minutes. No production Twilio credentials are required or configured.
+- A separate bridge authentication secret was generated and staged without disclosure.
+- OPENAI_API_KEY is missing on Railway at the last presence-only inspection. The existing private Netlify key is masked and cannot be transferred through the connector. Owner will enter the existing authorized key directly in Railway Variables.
+- Resource limits could not be staged before a service instance exists (connector returned Service Instance not found); no running instance exists. Set and verify per-service limits once possible, and monitor usage within the approved $5 budget. No billing cap has been configured or claimed.
+- No new Railway database, storage volume, customer number or subscription upgrade was created.
+
+Next: securely configure the existing OpenAI key, verify pending changes, deploy staging and observe terminal SUCCESS, verify exact deployed SHA and protected endpoints, then run brief greeting/transport tests. A real telephone test still needs authorized test routing that does not alter live customer numbers. Staging writes must remain blocked until a staging-only authenticated persistence adapter and notification controls are verified. Real voice-to-case acceptance remains pending.
 
 Rollback: before any authorized staging deployment, record that staging host's current image/release and environment-name inventory (no values). Restore that prior staging image/release if checks fail. Existing production remains untouched.
 
