@@ -284,7 +284,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let callEnded = false;
   let audioDeltaCount = 0;
   let sessionStarted = false;
-  const audioBuffer = []; // holds media payloads received before session.started
+  const audioBuffer = []; // caller input waits until the first greeting chunk has played
+  const GREETING_MARK = 'stellar-greeting-start';
+  const MAX_STARTUP_AUDIO_BYTES = 80000; // ten seconds of PCMU at 8 kHz
+  let startupAudioBytes = 0;
+  let greetingAudioSent = false;
+  let greetingPlayed = false;
+  let streamStartedAt = null;
+  let greetingDeadline = null;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -292,9 +299,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     if (callEnded) return;
     callEnded = true;
     clearTimeout(deadline);
+    clearTimeout(greetingDeadline);
+    audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
-    if (openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.close();
+    if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
 
@@ -303,7 +312,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   }
 
   function sendToOpenAI(obj) {
-    if (openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.send(JSON.stringify(obj));
+    if (!callEnded && openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.send(JSON.stringify(obj));
   }
 
   function clearTwilioAudio() {
@@ -389,6 +398,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     const completedToolCalls = new Set();
 
     openaiWs.on('message', (raw) => {
+      if (callEnded) return;
       let msg;
       try { msg = JSON.parse(raw.toString()); } catch { return; }
       // Delegated Responses events may arrive inside Live response.event envelopes.
@@ -398,12 +408,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
-        if (t === 'session.started') {
+        if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
-          // Flush audio buffered while session was initializing
-          for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
-          audioBuffer.length = 0;
-          // Trigger the opening greeting
+          logEvent(`[${callSid}] greeting requested streamElapsedMs=${Date.now() - streamStartedAt}`);
+          // Request the greeting without waiting for, or replaying, caller speech.
           sendToOpenAI({ type: 'response.create' });
         }
       } else if (t === 'response.created' || t === 'response.done') {
@@ -425,12 +433,20 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
       // Audio out → Twilio (Live API: session.output_audio.delta; Realtime: response.output_audio.delta)
       if ((t === 'session.output_audio.delta' || t === 'response.output_audio.delta') && msg.delta) {
-        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta len=${msg.delta.length}`); }
+        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta streamElapsedMs=${Date.now() - streamStartedAt}`); }
         audioDeltaCount++;
         sendToTwilio({ event: 'media', streamSid, media: { payload: msg.delta } });
+        if (!greetingAudioSent) {
+          greetingAudioSent = true;
+          // Twilio echoes this mark when the preceding first audio chunk has played.
+          sendToTwilio({ event: 'mark', streamSid, mark: { name: GREETING_MARK } });
+        }
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
-        clearTwilioAudio();
-        sendToOpenAI({ type: 'response.cancel' });
+        // Startup speech must not erase the greeting before any audio has played.
+        if (greetingPlayed) {
+          clearTwilioAudio();
+          sendToOpenAI({ type: 'response.cancel' });
+        }
       } else if (t === 'response.function_call_arguments.delta') {
         const id = msg.call_id;
         if (!toolCallBuffers[id]) toolCallBuffers[id] = { name: msg.name || '', args: '' };
@@ -451,10 +467,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
   // ── Twilio Media Streams handler ───────────────────────────────────────────
   twilioWs.on('message', async (raw) => {
+    if (callEnded) return;
     let msg;
     try { msg = JSON.parse(raw.toString()); } catch { return; }
 
     if (msg.event === 'start') {
+      if (streamSid) return;
+      streamStartedAt = Date.now();
+      greetingDeadline = setTimeout(() => cleanup('GREETING_START_TIMEOUT'), 10000);
       streamSid = msg.start?.streamSid || msg.streamSid;
       logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
@@ -480,6 +500,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       wsReady.then(async () => {
         logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
         const intake = await intakeP;
+        if (callEnded) return;
 
         let instructions;
         let tools;
@@ -504,12 +525,25 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     } else if (msg.event === 'media' && openaiWs) {
       const payload = msg.media?.payload;
       if (payload) {
-        if (!sessionStarted) {
-          if (audioBuffer.length < 200) audioBuffer.push(payload); // buffer until session.started
+        if (!greetingPlayed) {
+          startupAudioBytes += Buffer.byteLength(payload, 'base64');
+          if (startupAudioBytes > MAX_STARTUP_AUDIO_BYTES || audioBuffer.length >= 500) {
+            cleanup('STARTUP_AUDIO_OVERFLOW');
+            return;
+          }
+          audioBuffer.push(payload);
         } else if (openaiWs.readyState === WebSocket.OPEN) {
           openaiWs.send(JSON.stringify({ type: 'session.input_audio.append', audio: payload }));
         }
       }
+    } else if (msg.event === 'mark' && msg.streamSid === streamSid
+      && msg.mark?.name === GREETING_MARK && greetingAudioSent && !greetingPlayed) {
+      greetingPlayed = true;
+      clearTimeout(greetingDeadline);
+      logEvent(`[${callSid}] greeting first chunk played streamElapsedMs=${Date.now() - streamStartedAt} queuedPackets=${audioBuffer.length}`);
+      for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
+      audioBuffer.length = 0;
+      startupAudioBytes = 0;
     } else if (msg.event === 'stop') {
       cleanup('TWILIO_STOP');
     }
