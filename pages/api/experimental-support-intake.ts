@@ -7,10 +7,14 @@ async function sendCaseNotification(params: {
   caseId: string; customerId: string; name: string; email: string; phone: string;
   product: string; purchaseDate: string | null; issue: string; priority: string;
 }): Promise<{ sent: boolean; error: string | null }> {
+  if (process.env.STELLAR_SUPPORT_TEST_NOTIFICATIONS_ENABLED !== 'true')
+    return { sent: false, error: 'TEST_NOTIFICATIONS_DISABLED' };
+  const approvedRecipient = process.env.STELLAR_SUPPORT_TEST_NOTIFICATION_RECIPIENT?.trim();
+  if (!approvedRecipient) return { sent: false, error: 'TEST_RECIPIENT_NOT_CONFIGURED' };
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: false, error: 'RESEND_API_KEY not configured' };
   const from = process.env.RESEND_FROM_EMAIL || process.env.RESEND_EMAIL_FROM || 'Stellar UC Support <onboarding@resend.dev>';
-  const to = process.env.RESEND_TO_EMAIL || 'jmitchell@aproposgroupllc.com';
+  const to = approvedRecipient;
   const subject = `[CSS Staging] New support case — ${params.priority} · ${params.product}`;
   const body = [
     `Support case created via voice intake (staging/test only).`,
@@ -83,12 +87,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const row = data?.[0];
   if (!row?.customer_id || !row?.case_id) return res.status(500).json({ error: 'Support intake not confirmed' });
-  const notification = await sendCaseNotification({
+  const notification = row.created_new ? await sendCaseNotification({
     caseId: row.case_id, customerId: row.customer_id,
     name, email, phone, product,
     purchaseDate: body.purchaseDate || null,
     issue, priority,
-  });
+  }) : { sent: false, error: 'DUPLICATE_INTAKE_NOTIFICATION_SKIPPED' };
   if (!notification.sent) {
     console.warn('[css-intake] Case created but notification failed', { caseId: row.case_id, error: notification.error });
   }

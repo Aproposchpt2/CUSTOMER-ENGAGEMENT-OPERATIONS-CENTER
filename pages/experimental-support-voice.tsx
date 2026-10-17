@@ -10,6 +10,7 @@ export default function VoiceProofOfConcept() {
   const [authMessage, setAuthMessage] = useState('Not signed in to staging');
   const intakeSessionId = useRef('');
   const submitted = useRef(false);
+  const submissionInFlight = useRef(false);
   const toolRegistered = useRef(false);
   const processedCalls = useRef<Set<string>>(new Set());
   const [status, setStatus] = useState('Disconnected');
@@ -146,7 +147,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; submissionInFlight.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
@@ -178,9 +179,8 @@ export default function VoiceProofOfConcept() {
           eventTypeHistogram.current[safeType] = (eventTypeHistogram.current[safeType] || 0) + 1;
         }
         if (v.type === 'session.started' || v.type === 'session.created') {
-          // Tools declared server-side at session creation; active from first session event.
-          toolRegistered.current = true;
-          setStatus('Connected — support intake ready');
+          // Session start alone does not verify delegated tool availability.
+          setStatus('Connected — support intake not yet verified');
           log('Voice session established');
         }
         if (v.type === 'session.updated') log('Protocol event: session.updated');
@@ -213,28 +213,32 @@ export default function VoiceProofOfConcept() {
               && typeof inner.item?.call_id === 'string'
               && !processedCalls.current.has(inner.item.call_id as string)) {
             processedCalls.current.add(inner.item.call_id as string);
+             // Actual receipt of an expected tool call verifies tool availability.
+             toolRegistered.current = true;
             const callId = inner.item.call_id as string;
             const callArgs = inner.item.arguments as string;
             void (async () => {
               let result: Record<string, unknown> = {success:false,error:'Unable to save intake'};
               try {
                 if (!toolRegistered.current) throw new Error('Support intake not active this session');
-                if (submitted.current) throw new Error('Intake already submitted this session');
+                if (submitted.current || submissionInFlight.current) throw new Error('Intake already submitted or pending this session');
                 if (!/^[0-9a-f-]{36}$/i.test(tenantId)) throw new Error('Valid staging tenant ID required');
                 const args = JSON.parse(callArgs || '{}');
                 if (!window.confirm('Submit this fictional customer and support case to the staging database?')) throw new Error('Test operator declined record creation');
-                submitted.current = true;
-                const response = await fetch('/api/experimental-support-intake', {
+                submissionInFlight.current = true;
+                 const response = await fetch('/api/experimental-support-intake', {
                   method:'POST', headers:{'Content-Type':'application/json'},
                   body:JSON.stringify({...args, tenantId, sessionId:intakeSessionId.current})
                 });
                 const payload = await response.json();
                 if (!response.ok || !payload.customerId || !payload.caseId) throw new Error(payload.error || 'Save not confirmed');
-                result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
+                submitted.current = true;
+                 result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
                 log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
                 if (payload.notificationSent === true) log('Notification sent: case alert delivered to tenant admin');
                 else log('Notification not sent: '+(payload.notificationError||'unknown reason'));
               } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
+               finally { submissionInFlight.current = false; }
               if (dc.readyState === 'open') {
                 dc.send(JSON.stringify({type:'response.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));
                 dc.send(JSON.stringify({type:'response.create'}));
