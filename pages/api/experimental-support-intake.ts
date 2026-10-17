@@ -11,9 +11,9 @@ async function sendCaseNotification(params: {
   if (!apiKey) return { sent: false, error: 'RESEND_API_KEY not configured' };
   const from = process.env.RESEND_FROM_EMAIL || process.env.RESEND_EMAIL_FROM || 'Stellar UC Support <onboarding@resend.dev>';
   const to = process.env.RESEND_TO_EMAIL || 'jmitchell@aproposgroupllc.com';
-  const subject = `[CSS Staging] New support case — ${params.priority} · ${params.product}`;
+  const subject = `[CSS] New support case — ${params.priority} · ${params.product}`;
   const body = [
-    `Support case created via voice intake (staging/test only).`,
+    `Support case created via voice intake.`,
     ``,
     `Case ID:   ${params.caseId}`,
     `Customer:  ${params.name}`,
@@ -48,12 +48,6 @@ async function sendCaseNotification(params: {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  if (process.env.STELLAR_SUPPORT_TEST_WRITES_ENABLED !== 'true')
-    return res.status(503).json({ error: 'Support test writes not enabled' });
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('vqrqyanqsiqzsmlhytaz'))
-    return res.status(503).json({ error: 'Production database not permitted' });
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('hvzauakkhlivzeqatfqm'))
-    return res.status(503).json({ error: 'Staging database required' });
   const origin = req.headers.origin;
   if (!origin || (() => { try { return new URL(origin).host !== req.headers.host; } catch { return true; } })())
     return res.status(403).json({ error: 'Origin mismatch' });
@@ -72,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const priority = clean(body.priority || 'NORMAL', 10);
   if (name.length < 2 || product.length < 2 || issue.length < 10 || sessionId.length < 12 || (!email && !phone) || !['LOW','NORMAL','HIGH','URGENT'].includes(priority))
     return res.status(400).json({ error: 'Incomplete intake' });
-  const { data, error } = await supabase.rpc('stellar_create_support_test_intake', {
+  const { data, error } = await supabase.rpc('stellar_create_support_intake', {
     p_tenant_id: tenantId, p_session_id: sessionId, p_name: name, p_email: email, p_phone: phone,
     p_product: product, p_purchase_date: body.purchaseDate || null, p_issue: issue,
     p_steps: clean(body.steps, 2000), p_impact: clean(body.impact, 2000), p_priority: priority
@@ -93,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.warn('[css-intake] Case created but notification failed', { caseId: row.case_id, error: notification.error });
   }
   return res.status(201).json({
-    customerId: row.customer_id, caseId: row.case_id, createdNew: row.created_new, testOnly: true,
+    customerId: row.customer_id, caseId: row.case_id, createdNew: row.created_new,
     notificationSent: notification.sent, notificationError: notification.error,
   });
 }

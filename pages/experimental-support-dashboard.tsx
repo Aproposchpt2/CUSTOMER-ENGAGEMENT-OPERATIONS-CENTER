@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/router';
 
 interface CaseRow {
   caseId: string;
@@ -32,21 +33,22 @@ const CHECKLIST = [
   { id: 'notify', label: 'Email notification working (Gate 2)', done: true },
   { id: 'security', label: 'Security gates passed (Gate 3)', done: true },
   { id: 'dashboard', label: 'Tenant dashboard live (Gate 4)', done: true },
-  { id: 'prod', label: 'Production migration (Gate 5)', done: false },
+  { id: 'prod', label: 'Production migration (Gate 5)', done: true },
 ];
 
-function stagingClient() {
+function supabaseClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url?.includes('hvzauakkhlivzeqatfqm') || !key) throw new Error('Staging not configured');
+  if (!url || !key) throw new Error('Supabase not configured');
   return createBrowserClient(url, key);
 }
 
 export default function SupportDashboard() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [tenantId] = useState('5885a020-d363-4c27-910a-c035eda132f5');
-  const [authMessage, setAuthMessage] = useState('Not signed in to staging');
+  const tenantId = (router.query.tenantId as string) || process.env.NEXT_PUBLIC_CSS_TENANT_ID || '';
+  const [authMessage, setAuthMessage] = useState('Not signed in');
   const [authOk, setAuthOk] = useState(false);
   const [cases, setCases] = useState<CaseRow[]>([]);
   const [usage, setUsage] = useState<Usage | null>(null);
@@ -56,9 +58,9 @@ export default function SupportDashboard() {
 
   // Auto-detect existing Supabase session on mount
   useEffect(() => {
-    stagingClient().auth.getSession().then(({ data }) => {
+    supabaseClient().auth.getSession().then(({ data }) => {
       if (data.session?.user) {
-        setAuthMessage('Signed in to staging ✓ (' + data.session.user.email + ')');
+        setAuthMessage('Signed in ✓ (' + data.session.user.email + ')');
         setAuthOk(true);
       }
     }).catch(() => {});
@@ -67,18 +69,18 @@ export default function SupportDashboard() {
   async function sendOtp() {
     setAuthOk(false);
     try {
-      const { error } = await stagingClient().auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+      const { error } = await supabaseClient().auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
       if (error) throw error;
-      setAuthMessage('Check your email for the staging sign-in code');
+      setAuthMessage('Check your email for the sign-in code');
     } catch (e) { setAuthMessage(e instanceof Error ? e.message : 'Sign-in failed'); }
   }
 
   async function verifyOtp() {
     setAuthOk(false);
     try {
-      const { error } = await stagingClient().auth.verifyOtp({ email, token: otp, type: 'email' });
+      const { error } = await supabaseClient().auth.verifyOtp({ email, token: otp, type: 'email' });
       if (error) throw error;
-      setAuthMessage('Signed in to staging ✓');
+      setAuthMessage('Signed in ✓');
       setAuthOk(true);
     } catch (e) { setAuthMessage(e instanceof Error ? e.message : 'Verification failed'); }
   }
@@ -115,7 +117,7 @@ export default function SupportDashboard() {
 
   return (
     <>
-      <Head><title>Stellar UC — Support Dashboard (Staging)</title></Head>
+      <Head><title>Stellar UC — Support Dashboard</title></Head>
       <style>{`
         :root {
           --bg: #0f1117;
@@ -176,14 +178,14 @@ export default function SupportDashboard() {
         <div className="header">
           <div className="logo">S</div>
           <div className="header-text">
-            <h1>Stellar UC — Customer Support System<span className="badge">Staging</span></h1>
-            <p>Tenant dashboard · Gate 4 POC · Tenant {tenantId.slice(0, 8)}…</p>
+            <h1>Stellar UC — Customer Support System</h1>
+            <p>Tenant dashboard · {tenantId ? `Tenant ${tenantId.slice(0, 8)}…` : 'No tenant configured'}</p>
           </div>
         </div>
 
         {/* Auth card */}
         <div className="card">
-          <h2>Staging Sign-In</h2>
+          <h2>Sign-In</h2>
           <div className="auth-row">
             <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email address" type="email" />
             <button className="btn" onClick={sendOtp}>Send Code</button>

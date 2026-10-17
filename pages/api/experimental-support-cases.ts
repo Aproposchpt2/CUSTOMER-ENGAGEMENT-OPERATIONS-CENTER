@@ -7,10 +7,6 @@ const clean = (v: unknown, max: number) => typeof v === 'string' ? v.trim().slic
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('vqrqyanqsiqzsmlhytaz'))
-    return res.status(503).json({ error: 'Production database not permitted' });
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('hvzauakkhlivzeqatfqm'))
-    return res.status(503).json({ error: 'Staging database required' });
   const origin = req.headers.origin;
   if (origin) {
     try { if (new URL(origin).host !== req.headers.host) return res.status(403).json({ error: 'Origin mismatch' }); }
@@ -95,6 +91,5 @@ function finalizeCases(
   return res.status(200).json({
     cases: enriched,
     usage: { total: enriched.length, today: todayCount, byPriority },
-    _debugColumns: cases[0] ? Object.keys(cases[0]) : [],
   });
 }
