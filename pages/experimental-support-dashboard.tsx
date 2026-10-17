@@ -54,6 +54,16 @@ export default function SupportDashboard() {
   const [loadError, setLoadError] = useState('');
   const [lastRefresh, setLastRefresh] = useState<string>('');
 
+  // Auto-detect existing Supabase session on mount
+  useEffect(() => {
+    stagingClient().auth.getSession().then(({ data }) => {
+      if (data.session?.user) {
+        setAuthMessage('Signed in to staging ✓ (' + data.session.user.email + ')');
+        setAuthOk(true);
+      }
+    }).catch(() => {});
+  }, []);
+
   async function sendOtp() {
     setAuthOk(false);
     try {
