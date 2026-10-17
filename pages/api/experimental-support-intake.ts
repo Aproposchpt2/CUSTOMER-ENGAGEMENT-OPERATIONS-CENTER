@@ -9,7 +9,7 @@ async function sendCaseNotification(params: {
 }): Promise<{ sent: boolean; error: string | null }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: false, error: 'RESEND_API_KEY not configured' };
-  const from = process.env.RESEND_FROM_EMAIL || 'Stellar UC Support <jmitchell@aproposgroupllc.com>';
+  const from = process.env.RESEND_FROM_EMAIL || process.env.RESEND_EMAIL_FROM || 'Stellar UC Support <onboarding@resend.dev>';
   const to = process.env.RESEND_TO_EMAIL || 'jmitchell@aproposgroupllc.com';
   const subject = `[CSS Staging] New support case — ${params.priority} · ${params.product}`;
   const body = [
