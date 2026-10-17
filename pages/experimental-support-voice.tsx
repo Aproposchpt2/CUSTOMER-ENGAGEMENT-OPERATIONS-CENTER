@@ -54,6 +54,8 @@ export default function VoiceProofOfConcept() {
     if (message.startsWith('Voice channel opened')) return 'CHANNEL_OPEN';
     if (message.startsWith('Confirmed staging customer and support case IDs:')) return 'INTAKE_PERSISTED';
     if (message.startsWith('Support intake not saved:')) return 'INTAKE_FAILED';
+    if (message.startsWith('Notification sent:')) return 'NOTIFICATION_DELIVERED';
+    if (message.startsWith('Notification not sent:')) return 'NOTIFICATION_FAILED';
     if (message.startsWith('Agent error:')) return 'VOICE_AGENT_ERROR';
     if (message.startsWith('Voice session established')) return 'VOICE_SESSION_ESTABLISHED';
     if (message.startsWith('Session finalized')) return 'VOICE_SESSION_FINALIZED';
@@ -230,6 +232,8 @@ export default function VoiceProofOfConcept() {
                 if (!response.ok || !payload.customerId || !payload.caseId) throw new Error(payload.error || 'Save not confirmed');
                 result = {success:true,customerId:payload.customerId,caseId:payload.caseId,testOnly:true};
                 log('Confirmed staging customer and support case IDs: '+payload.customerId+' / '+payload.caseId);
+                if (payload.notificationSent === true) log('Notification sent: case alert delivered to tenant admin');
+                else log('Notification not sent: '+(payload.notificationError||'unknown reason'));
               } catch (err) { result = {success:false,error:err instanceof Error ? err.message : 'Save failed'}; log('Support intake not saved: '+result.error); }
               if (dc.readyState === 'open') {
                 dc.send(JSON.stringify({type:'response.item.create',item:{type:'function_call_output',call_id:callId,output:JSON.stringify(result)}}));

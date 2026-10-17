@@ -2,6 +2,49 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '../../utils/supabase/server';
 
 const clean = (value: unknown, max: number) => typeof value === 'string' ? value.trim().slice(0, max) : '';
+
+async function sendCaseNotification(params: {
+  caseId: string; customerId: string; name: string; email: string; phone: string;
+  product: string; purchaseDate: string | null; issue: string; priority: string;
+}): Promise<{ sent: boolean; error: string | null }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { sent: false, error: 'RESEND_API_KEY not configured' };
+  const from = process.env.RESEND_FROM_EMAIL || 'Stellar UC Support <jmitchell@aproposgroupllc.com>';
+  const to = process.env.RESEND_TO_EMAIL || 'jmitchell@aproposgroupllc.com';
+  const subject = `[CSS Staging] New support case — ${params.priority} · ${params.product}`;
+  const body = [
+    `Support case created via voice intake (staging/test only).`,
+    ``,
+    `Case ID:   ${params.caseId}`,
+    `Customer:  ${params.name}`,
+    `Email:     ${params.email || '(none)'}`,
+    `Phone:     ${params.phone || '(none)'}`,
+    `Product:   ${params.product}`,
+    `Purchased: ${params.purchaseDate || 'unknown'}`,
+    `Priority:  ${params.priority}`,
+    ``,
+    `Issue:`,
+    params.issue,
+  ].join('\n');
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ from, to: [to], subject, text: body }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) {
+      const detail = await r.text().catch(() => '');
+      console.error('[css-intake] Resend rejected notification', { status: r.status, detail: detail.slice(0, 200) });
+      return { sent: false, error: `resend_${r.status}` };
+    }
+    return { sent: true, error: null };
+  } catch (e) {
+    console.error('[css-intake] Resend notification failed', e instanceof Error ? e.message : String(e));
+    return { sent: false, error: 'resend_network_error' };
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -40,5 +83,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const row = data?.[0];
   if (!row?.customer_id || !row?.case_id) return res.status(500).json({ error: 'Support intake not confirmed' });
-  return res.status(201).json({ customerId: row.customer_id, caseId: row.case_id, createdNew: row.created_new, testOnly: true });
+  const notification = await sendCaseNotification({
+    caseId: row.case_id, customerId: row.customer_id,
+    name, email, phone, product,
+    purchaseDate: body.purchaseDate || null,
+    issue, priority,
+  });
+  if (!notification.sent) {
+    console.warn('[css-intake] Case created but notification failed', { caseId: row.case_id, error: notification.error });
+  }
+  return res.status(201).json({
+    customerId: row.customer_id, caseId: row.case_id, createdNew: row.created_new, testOnly: true,
+    notificationSent: notification.sent, notificationError: notification.error,
+  });
 }
