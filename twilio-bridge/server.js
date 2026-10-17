@@ -33,6 +33,7 @@ const MAX_CALL_MS = parseInt(process.env.MAX_CALL_DURATION_MS || '2700000', 10);
 const TOKEN_TTL_SECS = 120;
 
 let activeCalls = 0;
+let lastStagingSupportSession = null;
 const recentEvents = [];
 function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
@@ -479,6 +480,16 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
+        if (STAGING_ONLY && profile === 'support' && msg.session) {
+          // Keep only non-sensitive provider-resolved settings; never retain the full session.
+          const safeId = value => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : null;
+          lastStagingSupportSession = {
+            model: safeId(msg.session.model),
+            voice: safeId(msg.session.audio?.output?.voice),
+            audioFormat: safeId(msg.session.audio?.format?.type),
+            reasoningModel: safeId(msg.session.delegation?.responses?.model),
+          };
+        }
         if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
           logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
@@ -525,10 +536,23 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         }
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
         // Startup speech must not erase the greeting before any audio has played.
-        if (greetingPlayed) {
+        // GPT-Live manages full-duplex speech itself, as in the approved browser.
+        // Speech detection alone is not a request to cancel delegated support work.
+        if (greetingPlayed && !(STAGING_ONLY && profile === 'support')) {
           clearTwilioAudio();
           sendToOpenAI({ type: 'response.cancel' });
         }
+      } else if (STAGING_ONLY && profile === 'support' && t === 'response.output_item.done'
+        && msg.item?.type === 'function_call') {
+        const { call_id: id, name, arguments: args } = msg.item;
+        if (typeof id !== 'string' || !id.trim() || completedToolCalls.has(id)) return;
+        completedToolCalls.add(id);
+        delete toolCallBuffers[id];
+        executeTool(id, name, args || '{}');
+      } else if (STAGING_ONLY && profile === 'support'
+        && (t === 'response.function_call_arguments.delta' || t === 'response.function_call_arguments.done')) {
+        // Arguments fragments may lack name/call correlation. Wait for the finished item.
+        return;
       } else if (t === 'response.function_call_arguments.delta') {
         const id = msg.call_id;
         if (!toolCallBuffers[id]) toolCallBuffers[id] = { name: msg.name || '', args: '' };
@@ -647,6 +671,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
     supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
     supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
   }));
