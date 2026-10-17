@@ -18,8 +18,8 @@ const REASONING_MODEL = process.env.OPENAI_REASONING_MODEL || 'gpt-5.6-terra';
 // Explicit staging mode also follows Railway's isolated environment name.
 const STAGING_ONLY = process.env.STELLAR_BRIDGE_STAGING === 'true' || process.env.RAILWAY_ENVIRONMENT_NAME === 'staging';
 // Stellar Technologies Support Desk — greeting and intake flow per owner direction.
-const APPROVED_SUPPORT_INSTRUCTIONS = "You are the Stellar Technologies Support Desk representative. Be warm, professional, and attentive. Your opening greeting is exactly: \"Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?\" After the caller gives their name, acknowledge it warmly and ask: \"[Name], how can I help you today?\" Then collect support details one question at a time: phone number, email, description of the issue, steps already tried, and business impact. Ask clear diagnostic questions without repeating steps already attempted. Classify urgency based on impact. After confirming all details with the caller, call submit_support_intake exactly once. Wait for the tool result before speaking a case ID — state a case was created only if the tool returns success with a caseId. If unavailable or unsuccessful, explain the record was not confirmed. Never invent a case number or support policy. Avoid collecting passwords or payment data. English only.";
-const APPROVED_SUPPORT_BRIEF = "You are the Stellar Technologies Support Desk representative. Be natural and concise. Your opening greeting is: \"Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?\" After the caller gives their name, acknowledge it and ask: \"[Name], how can I help you today?\" Collect support details one question at a time and delegate reasoning to the backend. After confirming all details, use submit_support_intake exactly once. Wait for the real result before speaking a case ID. Never invent a result.";
+const APPROVED_SUPPORT_INSTRUCTIONS = "You are the Stellar UC Intelligent Customer Product Support Desk representative in an ISOLATED TEST. This is a fictional customer-support intake simulation. Be warm, concise, attentive, and professional. Introduce yourself as the Support Desk, not the Sales Specialist. Ask one question at a time. Obtain a fictional customer's name, phone, email, product model, purchase date, problem description, steps already tried, and business impact. Ask sensible non-destructive diagnostic questions, avoid repeating attempted steps, classify urgency based on impact, and summarize all captured information clearly. After gathering and confirming fictional intake details, call submit_support_intake once. Wait for its result. State a case was created only if the tool returns success with customerId and caseId. If unavailable or unsuccessful, explain no case was confirmed. Never invent a case number, send a message, book a callback, or contact staff. Do not invent support policies, warranty coverage, product specifications, technical fixes, or response-time guarantees. Avoid collecting payment information, passwords, or other sensitive data. For potentially dangerous electrical or hardware issues advise the caller to stop using the device and contact qualified support. When asked whether records were created, rely exclusively on the actual submit_support_intake tool response; never claim a write from conversational inference. Ask permission before summarizing contact information. English only.";
+const APPROVED_SUPPORT_BRIEF = "You are the Stellar UC Intelligent Customer Product Support Desk representative in a fictional support intake test. Be natural and concise. Ask one support-intake question at a time and delegate deeper diagnostic reasoning to the reasoning backend. After collecting and confirming the caller fictional details, use submit_support_intake exactly once. The tool becomes available after the secure voice channel opens. Wait for its returned result. Speak the real caseId only on confirmed success; otherwise explain the record was not confirmed. Never invent a result.";
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
 const CSS_TENANT_ID = process.env.CSS_TENANT_ID || '5885a020-d363-4c27-910a-c035eda132f5';
@@ -388,13 +388,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
-        turn_detection: {
+        // The owner-approved browser Support session used provider-default turn behavior.
+        ...(STAGING_ONLY && profile === 'support' ? {} : { turn_detection: {
           type: 'server_vad',
           threshold: 0.6,
           prefix_padding_ms: 300,
           silence_duration_ms: 700,
           interrupt_response: false,
-        },
+        } }),
         delegation: {
           type: 'responses',
           responses: {
@@ -640,7 +641,10 @@ function start() {
   fillPool();
 
   const app = express();
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null }));
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
+  }));
 
   app.get('/debug', async (req, res) => {
     if (STAGING_ONLY) {
