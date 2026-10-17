@@ -283,6 +283,39 @@ const supportTools = [
   },
 ];
 
+// Staging tool definition matches the approved browser baseline (b8ce29ad) exactly,
+// with end_call added for telephone. All 9 fields required; description preserves
+// fictional-test framing the owner approved.
+const stagingSupportTools = [
+  {
+    type: 'function',
+    name: 'submit_support_intake',
+    description: 'Submit a fictional customer support intake to staging only after confirming all details with the caller. Call exactly once, then wait for the real database result before speaking a case ID.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        product: { type: 'string' },
+        purchaseDate: { type: 'string', description: 'YYYY-MM-DD' },
+        issue: { type: 'string' },
+        steps: { type: 'string' },
+        impact: { type: 'string' },
+        priority: { type: 'string', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] },
+      },
+      required: ['name', 'email', 'phone', 'product', 'purchaseDate', 'issue', 'steps', 'impact', 'priority'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'end_call',
+    description: 'Hang up the call after closing the conversation.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+];
+
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
   logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
@@ -342,9 +375,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         model: LIVE_MODEL,
         // Live speech startup is seeded context, not a delegated response.create.
         input: [{ role: 'developer', content: [{ type: 'input_text', text:
-          profile === 'support'
-            ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
-            : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
+          STAGING_ONLY && profile === 'support'
+            // Staging: let the approved agent greet naturally (matches browser POC baseline b8ce29ad)
+            ? 'Greet the caller now. Introduce yourself as the Stellar UC Support Desk representative. Be natural and warm.'
+            : profile === 'support'
+              // Production: exact two-part greeting script per owner direction
+              ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
+              : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
         }] }],
         instructions: STAGING_ONLY && profile === 'support' ? APPROVED_SUPPORT_BRIEF : profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
@@ -541,7 +578,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         } else {
           instructions = STAGING_ONLY ? APPROVED_SUPPORT_INSTRUCTIONS : SUPPORT_SYSTEM_PROMPT
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
-          tools = supportTools;
+          // Staging uses the approved-baseline tool schema; production uses the production schema.
+          tools = STAGING_ONLY ? stagingSupportTools : supportTools;
         }
 
         startSession(instructions, tools);
