@@ -147,7 +147,7 @@ export default function VoiceProofOfConcept() {
   }
   async function start() {
     if (busy || pc.current || !preflightPassed) return;
-    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
+    setBusy(true); setError(''); setEvents([]); diagnosticEvents.current=[]; protocolError.current=null; transcript.current=[]; eventTypeHistogram.current={}; toolRegistered.current = false; submitted.current = false; submissionInFlight.current = false; processedCalls.current.clear(); intakeSessionId.current = crypto.randomUUID();
     try {
       if (!window.isSecureContext) throw new Error('Microphone requires HTTPS.');
       const readinessResponse = await fetch('/api/experimental-support-readiness', {method:'POST',headers:{'x-poc-access-code':accessCode}});
