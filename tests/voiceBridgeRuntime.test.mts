@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(import.meta.url);
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false) {
+async function session(profile, failSave = false, warm = false, staging = false) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -15,7 +15,7 @@ async function session(profile, failSave = false, warm = false) {
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
@@ -118,4 +118,30 @@ test('caller disconnect before session ready prevents a late greeting',async()=>
  oai(s,{type:'session.started'});
  oai(s,{type:'session.output_audio.delta',delta:'AQID'});
  assert.equal(s.outbound.length,count);assert.equal(s.phoneOutbound.length,0);
+});
+
+test('Railway staging blocks intake writes, notifications and external transfers',async()=>{
+ for(const profile of ['support','sales']){
+  const s=await session(profile,false,false,true);
+  await s.tool('support-write','submit_support_intake',{name:'Fictional'});
+  await s.tool('sales-write','submit_business_profile',{});
+  await s.tool('transfer','transfer_to_specialist',{});
+  await s.tool('end','end_call',{});
+  for(const timer of s.timers.filter(x=>x.ms===1500||x.ms===1000))timer.fn();
+  await Promise.resolve();
+  assert.equal(s.requests.length,0);
+  assert.match(s.outbound.find(x=>x.item?.call_id==='support-write').item.output,/STAGING_WRITES_DISABLED/);
+  assert.match(s.outbound.find(x=>x.item?.call_id==='transfer').item.output,/STAGING_TRANSFERS_DISABLED/);
+ }
+});
+test('staging Support keeps the owner-approved model pair and exact conversational instructions',async()=>{
+ const s=await session('support',false,false,true);
+ const start=s.outbound.find(x=>x.type==='session.start').session;
+ const approved=readFileSync(new URL('../pages/api/experimental-support-voice-session.ts',import.meta.url),'utf8');
+ const full=JSON.parse(approved.match(/const INSTRUCTIONS = ("[^\n]+")/)[1]);
+ const brief=approved.match(/instructions: '([^\n]+)',/)[1];
+ assert.equal(start.model,'gpt-live-1');
+ assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
+ assert.equal(start.instructions,brief);
+ assert.equal(start.delegation.responses.instructions,full);
 });
