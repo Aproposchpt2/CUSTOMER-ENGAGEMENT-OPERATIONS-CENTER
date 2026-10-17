@@ -26,7 +26,7 @@ async function session(profile, failSave = false, warm = false, staging = false)
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
-  const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event={type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
+  const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event=staging && profile==='support'?{type:'response.output_item.done',item:{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}}:{type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
   return {outbound,requests,phone,ws,tool,timers,phoneOutbound};
 }
 test('sales transport registers sales tools and initializes the interaction',async()=>{
@@ -166,4 +166,32 @@ test('restoring the persona retains the current staging telephone greeting trans
  oai(s,{type:'session.started'});oai(s,{type:'session.started'});
  assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1);
  assert.equal(s.timers.filter(x=>x.interval).length,1);
+});
+
+
+test('staging Support preserves full-duplex acknowledgments without cancelling backend work',async()=>{
+ const s=await session('support',false,false,true);
+ oai(s,{type:'session.started'});
+ oai(s,{type:'session.output_audio.delta',delta:'AQID'});acknowledgeGreeting(s);
+ oai(s,{type:'session.speech_started'});
+ oai(s,{type:'input_audio_buffer.speech_started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.cancel').length,0);
+ assert.equal(s.phoneOutbound.filter(x=>x.event==='clear').length,0);
+ phoneEvent(s,{event:'media',media:{payload:'BAUG'}});
+ assert.equal(s.outbound.at(-1).audio,'BAUG');
+ oai(s,{type:'session.output_audio.delta',delta:'BwgJ'});
+ assert.equal(s.phoneOutbound.at(-1).media.payload,'BwgJ');
+});
+
+test('staging Support waits for complete delegated tool items and returns one correlated result',async()=>{
+ const s=await session('support',false,false,true);
+ oai(s,{type:'response.event',event:{type:'response.function_call_arguments.done',item_id:'partial',arguments:'{}'}});
+ assert.equal(s.outbound.filter(x=>x.type==='response.item.create').length,0);
+ await s.tool('confirmed-call','submit_support_intake',{name:'Fictional'},true);
+ await s.tool('confirmed-call','submit_support_intake',{name:'Fictional'},true);
+ const results=s.outbound.filter(x=>x.type==='response.item.create');
+ assert.equal(results.length,1);
+ assert.equal(results[0].item.call_id,'confirmed-call');
+ assert.match(results[0].item.output,/STAGING_WRITES_DISABLED/);
+ assert.equal(s.requests.length,0);
 });
