@@ -36,7 +36,7 @@ Model constants, prompts, tool schemas, voice selection, authentication and rout
 - Nine mocked bridge runtime tests PASS, covering silent caller on warm/cold sockets, early speech, ordered replay, interruption after playback starts, invalid/duplicate marks, missing audio/acknowledgement, bounded-buffer overflow and disconnect before session readiness.
 - TypeScript compilation PASS.
 - Bridge JavaScript syntax and diff whitespace checks PASS.
-- Next.js build is being checked separately; consult PR checks for final result.
+- Next.js optimized build PASS locally. GitHub did not return a pull-request workflow run for this stacked branch at the time checked; do not imply remote CI has passed.
 - No live telephone test, production write, production routing change, or paid infrastructure provisioning performed for this patch.
 
 ## Remaining acceptance and hosting blocker
