@@ -282,6 +282,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let callEnded = false;
   let audioDeltaCount = 0;
   let sessionStarted = false;
+  const audioBuffer = []; // holds media payloads received before session.started
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -379,7 +380,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
         if (t === 'session.started') {
           sessionStarted = true;
-          // Trigger the opening greeting now that the session is configured
+          // Flush audio buffered while session was initializing
+          for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
+          audioBuffer.length = 0;
+          // Trigger the opening greeting
           sendToOpenAI({ type: 'response.create' });
         }
       } else if (t === 'response.created' || t === 'response.done') {
@@ -481,9 +485,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       await new Promise(res => setTimeout(res, 0)); // yield so handlers are registered before any messages
 
     } else if (msg.event === 'media' && openaiWs) {
-      if (openaiWs.readyState === WebSocket.OPEN) {
-        // Live API uses session.input_audio.append
-        openaiWs.send(JSON.stringify({ type: 'session.input_audio.append', audio: msg.media?.payload }));
+      const payload = msg.media?.payload;
+      if (payload) {
+        if (!sessionStarted) {
+          if (audioBuffer.length < 200) audioBuffer.push(payload); // buffer until session.started
+        } else if (openaiWs.readyState === WebSocket.OPEN) {
+          openaiWs.send(JSON.stringify({ type: 'session.input_audio.append', audio: payload }));
+        }
       }
     } else if (msg.event === 'stop') {
       cleanup('TWILIO_STOP');
