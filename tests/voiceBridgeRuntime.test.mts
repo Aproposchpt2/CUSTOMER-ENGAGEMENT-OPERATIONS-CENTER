@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(import.meta.url);
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -15,7 +15,7 @@ async function session(profile, failSave = false, warm = false, staging = false)
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
@@ -196,4 +196,40 @@ test('staging Support waits for complete delegated tool items and returns one co
  assert.equal(results[0].item.call_id,'confirmed-call');
  assert.match(results[0].item.output,/STAGING_WRITES_DISABLED/);
  assert.equal(s.requests.length,0);
+});
+
+
+test('pending support save receives progress but no success until persistence resolves',async()=>{
+ let resolveSave:any;
+ const saved=new Promise(resolve=>{resolveSave=resolve;});
+ const s=await session('support',false,false,true,()=>saved);
+ await s.tool('pending-save','submit_support_intake',{},true);
+ const progress=s.timers.find(x=>x.ms===4000);assert.ok(progress);
+ progress.fn();
+ assert.ok(s.outbound.some(x=>x.type==='session.commentary.append' && /still waiting/.test(x.content)));
+ assert.equal(s.outbound.filter(x=>x.type==='session.thinking.append').length,0);
+ const caseId='11111111-1111-4111-8111-111111111111';
+ resolveSave({success:true,caseId,customerId:'22222222-2222-4222-8222-222222222222'});
+ for(let i=0;i<12;i++)await Promise.resolve();
+ const factual=s.outbound.findIndex(x=>x.type==='session.thinking.append');
+ const result=s.outbound.findIndex(x=>x.item?.call_id==='pending-save');
+ assert.ok(factual>=0 && factual<result);
+ assert.match(s.outbound[factual].content,new RegExp(caseId));
+ assert.ok(s.outbound.some(x=>x.type==='session.instructions.append' && /Wait for readiness/.test(x.content)));
+ const count=s.outbound.length;progress.fn();assert.equal(s.outbound.length,count);
+});
+test('failed and disconnected support saves cannot emit stale success or pending reminders',async()=>{
+ const failed=await session('support',false,false,true,()=>Promise.reject(Error('SAVE_NOT_CONFIRMED')));
+ await failed.tool('failed-save','submit_support_intake',{},true);
+ assert.equal(failed.outbound.filter(x=>x.type==='session.thinking.append').length,0);
+ assert.ok(failed.outbound.some(x=>x.type==='session.instructions.append' && /no ticket was confirmed/.test(x.content)));
+ const count=failed.outbound.length;failed.timers.find(x=>x.ms===4000).fn();assert.equal(failed.outbound.length,count);
+ let resolveSave:any;const saved=new Promise(resolve=>{resolveSave=resolve;});
+ const gone=await session('support',false,false,true,()=>saved);
+ await gone.tool('disconnected-save','submit_support_intake',{},true);
+ phoneEvent(gone,{event:'stop'});
+ const before=gone.outbound.length;gone.timers.find(x=>x.ms===4000).fn();
+ resolveSave({success:true,caseId:'11111111-1111-4111-8111-111111111111'});
+ for(let i=0;i<12;i++)await Promise.resolve();
+ assert.equal(gone.outbound.length,before);
 });
