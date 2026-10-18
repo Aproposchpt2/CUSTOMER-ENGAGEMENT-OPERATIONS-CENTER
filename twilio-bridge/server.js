@@ -29,7 +29,8 @@ const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
 After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
 Only after the tool confirms success with both customerId and caseId, say "Your support ticket has been created. Are you ready to take down the ticket number?" Pause and wait for the caller's answer. Do not read the number before the caller is ready. If they are not ready, acknowledge and wait; if they decline the number, move on without forcing it. When ready, read the exact returned caseId slowly in manageable groups, then offer to repeat it. Never invent, shorten, or replace the identifier.
 After giving the ticket number or the caller declining it, ask "Is there anything further I can help you with?" Wait for the answer. If yes, continue the conversation naturally and help with the additional concern without resubmitting the same ticket. If no, and an authorized technician follow-up is explicitly confirmed by a trusted tool result, say "Great, a technician will contact you soon. Have a great day." This owner-approved wording does not imply a specific response-time guarantee. If no follow-up is confirmed, close warmly with "Thank you for calling. Have a great day" without promising technician contact. In this isolated staging test no real outreach is enabled; never claim otherwise.
-If saving fails, is unavailable, or is blocked, explain "I could not confirm that your support ticket was created." Do not announce success, offer a fabricated ticket number, or promise technician contact. Offer further help and explain the limitation honestly. No repeated automatic save attempts or duplicate tickets. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
+If saving fails, is unavailable, or is blocked, explain "I could not confirm that your support ticket was created." Do not announce success, offer a fabricated ticket number, or promise technician contact. Offer further help and explain the limitation honestly. No repeated automatic save attempts or duplicate tickets.
+Move promptly from the caller's final confirmation to the save tool. Do not say you are waiting for ticket creation before the application has actually started saving. If required details or permission are missing, ask the next necessary question promptly instead of waiting silently. Application ticket-status updates are authoritative: distinguish pending, confirmed and failed saves. After a confirmed result, promptly tell the caller the ticket is created and ask readiness. Read only the exact application-supplied ticket identifier; never improvise an identifier while waiting for the backend. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
 
 
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
@@ -42,6 +43,7 @@ const TOKEN_TTL_SECS = 120;
 
 let activeCalls = 0;
 let lastStagingSupportSession = null;
+let lastStagingSupportSave = null;
 const recentEvents = [];
 function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
@@ -351,6 +353,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let streamStartedAt = null;
   let greetingDeadline = null;
   let startupSilence = null;
+  const supportProgressTimers = new Set();
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -360,6 +363,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     clearTimeout(deadline);
     clearTimeout(greetingDeadline);
     clearInterval(startupSilence);
+    for (const timer of supportProgressTimers) clearTimeout(timer);
+    supportProgressTimers.clear();
     audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
@@ -444,7 +449,39 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           } finally { leadSubmissionPending = false; }
         }
       } else if (name === 'submit_support_intake') {
-        output = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+        if (!STAGING_ONLY) output = await callSupportIntake({ ...args, callSid });
+        else {
+          const started = Date.now();
+          let pending = true;
+          logEvent(`[${callSid}] support save started`);
+          sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+            content:'The application is now submitting the support ticket. Please give me a moment while I create your support ticket. Creation is not confirmed yet.'});
+          const timer = setTimeout(() => {
+            supportProgressTimers.delete(timer);
+            if (pending && !callEnded) sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+              content:'The application is still waiting for the ticket save result. Thank you for your patience; I am still here. Do not announce success yet.'});
+          }, 4000);
+          supportProgressTimers.add(timer);
+          try {
+            output = await submitStagingSupport(args, callSid);
+            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'confirmed'};
+            // Give the speaking Live model verified facts directly, before backend continuation.
+            sendToOpenAI({type:'session.thinking.append',delegation_id:null,
+              content:`Verified database save: support ticket created. The exact caseId is ${output.caseId}. Use only this identifier, never an invented substitute. Notifications and technician follow-up are disabled.`});
+            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+              content:`The database has confirmed ticket ${output.caseId}. Promptly tell the caller their support ticket is created and ask whether they are ready to take down the number. Wait for readiness. When ready, read exactly ${output.caseId} in character groups; never invent or shorten it.`});
+          } catch (error) {
+            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'not_confirmed'};
+            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+              content:'The application could not confirm ticket creation. Tell the caller no ticket was confirmed. Do not provide a ticket number or promise technician contact. Offer further help.'});
+            throw error;
+          } finally {
+            pending = false;
+            clearTimeout(timer);
+            supportProgressTimers.delete(timer);
+            logEvent(`[${callSid}] support save ${lastStagingSupportSave.status} elapsedMs=${lastStagingSupportSave.elapsedMs}`);
+          }
+        }
       } else if (name === 'end_call') {
         output = { success: true };
         setTimeout(() => { twilioUpdateCall(callSid, '<Response><Hangup/></Response>'); cleanup('END_CALL_TOOL'); }, 1500);
@@ -679,6 +716,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v1' : null,
     supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
