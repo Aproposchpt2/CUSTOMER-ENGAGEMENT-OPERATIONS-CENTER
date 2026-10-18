@@ -30,6 +30,7 @@ After gathering and confirming the intake details, tell the caller: "Please give
 Only after the tool confirms success with both customerId and caseId, say "Your support ticket has been created. Are you ready to take down the ticket number?" Pause and wait for the caller's answer. Do not read the number before the caller is ready. If they are not ready, acknowledge and wait; if they decline the number, move on without forcing it. When ready, read the exact returned caseId slowly in manageable groups, then offer to repeat it. Never invent, shorten, or replace the identifier.
 After giving the ticket number or the caller declining it, ask "Is there anything further I can help you with?" Wait for the answer. If yes, continue the conversation naturally and help with the additional concern without resubmitting the same ticket. If no, and an authorized technician follow-up is explicitly confirmed by a trusted tool result, say "Great, a technician will contact you soon. Have a great day." This owner-approved wording does not imply a specific response-time guarantee. If no follow-up is confirmed, close warmly with "Thank you for calling. Have a great day" without promising technician contact. In this isolated staging test no real outreach is enabled; never claim otherwise.
 If saving fails, is unavailable, or is blocked, explain "I could not confirm that your support ticket was created." Do not announce success, offer a fabricated ticket number, or promise technician contact. Offer further help and explain the limitation honestly. No repeated automatic save attempts or duplicate tickets.
+Delegate to the backend when the caller asks to create or submit a support ticket, confirms the final intake summary, asks for submission status, corrects captured details, or reports that they are waiting. The Live speaking model cannot execute the database tool itself: request backend work rather than merely saying the save is pending. The backend must extract the nine required fields from the existing conversation, ask for any missing information or confirmation, and invoke submit_support_intake only when complete and confirmed. A backend review request does not mean that a save has started. If an application fallback asks for a backend review, use the current conversation without making the caller repeat it.
 Move promptly from the caller's final confirmation to the save tool. Do not say you are waiting for ticket creation before the application has actually started saving. If required details or permission are missing, ask the next necessary question promptly instead of waiting silently. Application ticket-status updates are authoritative: distinguish pending, confirmed and failed saves. After a confirmed result, promptly tell the caller the ticket is created and ask readiness. Read only the exact application-supplied ticket identifier; never improvise an identifier while waiting for the backend. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
 
 
@@ -354,6 +355,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let greetingDeadline = null;
   let startupSilence = null;
   const supportProgressTimers = new Set();
+  let supportReviewTimer = null;
+  let supportInputVersion = 0;
+  let supportReviewedVersion = 0;
+  let supportBackendActive = false;
+  let supportSavePending = false;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -362,6 +368,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     callEnded = true;
     clearTimeout(deadline);
     clearTimeout(greetingDeadline);
+    clearTimeout(supportReviewTimer);
     clearInterval(startupSilence);
     for (const timer of supportProgressTimers) clearTimeout(timer);
     supportProgressTimers.clear();
@@ -378,6 +385,20 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
   function sendToOpenAI(obj) {
     if (!callEnded && openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.send(JSON.stringify(obj));
+  }
+
+  // Recover missed Live -> Responses delegation without interpreting caller words in regexes.
+  // The existing backend decides whether intake is complete and consent is confirmed.
+  function scheduleSupportReview(delay = 15000) {
+    clearTimeout(supportReviewTimer);
+    supportReviewTimer = setTimeout(() => {
+      if (callEnded || !sessionStarted || !greetingPlayed || supportReviewedVersion >= supportInputVersion) return;
+      if (supportBackendActive || supportSavePending) { scheduleSupportReview(5000); return; }
+      supportReviewedVersion = supportInputVersion;
+      supportBackendActive = true;
+      logEvent(`[${callSid}] support backend review requested after caller inactivity`);
+      sendToOpenAI({type:'response.create'});
+    }, delay);
   }
 
   function clearTwilioAudio() {
@@ -452,6 +473,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         if (!STAGING_ONLY) output = await callSupportIntake({ ...args, callSid });
         else {
           const started = Date.now();
+          supportSavePending = true;
           let pending = true;
           logEvent(`[${callSid}] support save started`);
           sendToOpenAI({type:'session.commentary.append',delegation_id:null,
@@ -477,6 +499,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
             throw error;
           } finally {
             pending = false;
+            supportSavePending = false;
             clearTimeout(timer);
             supportProgressTimers.delete(timer);
             logEvent(`[${callSid}] support save ${lastStagingSupportSave.status} elapsedMs=${lastStagingSupportSave.elapsedMs}`);
@@ -521,6 +544,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+      if (STAGING_ONLY && profile === 'support') {
+        if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+          supportInputVersion++;
+          scheduleSupportReview();
+        }
+        if (t === 'response.created') {
+          supportBackendActive = true;
+          supportReviewedVersion = supportInputVersion;
+        }
+        if (['response.completed','response.done','response.failed','response.cancelled'].includes(t))
+          supportBackendActive = false;
+      }
 
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
@@ -718,7 +753,7 @@ function start() {
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
-    supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v1' : null,
+    supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
     supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
     supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
     supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
