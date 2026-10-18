@@ -1,0 +1,19 @@
+name: Staging Orchestrator Gateway Contract Tests
+on:
+  pull_request:
+    paths:
+      - 'twilio-bridge/orchestrator-gateway.staging.cjs'
+      - 'twilio-bridge/tests/orchestrator-gateway.staging.test.cjs'
+      - '.github/workflows/staging-orchestrator-gateway.yml'
+  workflow_dispatch:
+jobs:
+  gateway-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test twilio-bridge/tests/orchestrator-gateway.staging.test.cjs
