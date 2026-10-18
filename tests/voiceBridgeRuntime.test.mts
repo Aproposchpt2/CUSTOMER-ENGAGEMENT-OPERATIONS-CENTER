@@ -233,3 +233,34 @@ test('failed and disconnected support saves cannot emit stale success or pending
  for(let i=0;i<12;i++)await Promise.resolve();
  assert.equal(gone.outbound.length,before);
 });
+
+
+test('missed Support delegation gets one backend review after caller inactivity',async()=>{
+ const s=await session('support',false,false,true);
+ oai(s,{type:'session.started'});
+ oai(s,{type:'session.output_audio.delta',delta:'AQID'});acknowledgeGreeting(s);
+ oai(s,{type:'response.completed'});
+ oai(s,{type:'session.input_transcript.delta',delta:'Fictional caller confirmation'});
+ const review=s.timers.filter(x=>x.ms===15000).at(-1);
+ const count=s.outbound.filter(x=>x.type==='response.create').length;
+ review.fn();review.fn();
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,count+1);
+ assert.equal(s.outbound.filter(x=>x.type==='response.item.create').length,0);
+ assert.equal(s.requests.length,0);
+});
+test('Support review does not duplicate active backend work or run after disconnect',async()=>{
+ const s=await session('support',false,false,true);
+ oai(s,{type:'session.started'});oai(s,{type:'session.output_audio.delta',delta:'AQID'});acknowledgeGreeting(s);
+ oai(s,{type:'response.created'});
+ oai(s,{type:'session.input_transcript.delta',delta:'Additional fictional detail'});
+ const count=s.outbound.filter(x=>x.type==='response.create').length;
+ s.timers.filter(x=>x.ms===15000).at(-1).fn();
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,count);
+ oai(s,{type:'response.completed'});
+ s.timers.filter(x=>x.ms===5000).at(-1).fn();
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,count+1);
+ oai(s,{type:'session.input_transcript.delta',delta:'Goodbye'});
+ phoneEvent(s,{event:'stop'});
+ const after=s.outbound.length;s.timers.filter(x=>x.ms===15000).at(-1).fn();
+ assert.equal(s.outbound.length,after);
+});
