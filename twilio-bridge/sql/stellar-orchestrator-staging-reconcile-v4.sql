@@ -15,7 +15,7 @@ begin
  if w.state not in ('RUNNING','UNKNOWN') then
   return query select w.state,null::uuid; return;
  end if;
- select count(*),min(c.id) into v_count,v_case
+ select count(*),(array_agg(c.id))[1] into v_count,v_case
  from public.stellar_support_cases c
  where c.tenant_id=w.tenant_id and c.intake_session_id=w.session_id
  and c.test_only=true;
