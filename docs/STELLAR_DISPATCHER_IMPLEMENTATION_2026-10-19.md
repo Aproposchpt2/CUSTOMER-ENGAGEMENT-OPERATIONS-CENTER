@@ -1,4 +1,7 @@
 # STELLAR UC — STAGING DISPATCHER IMPLEMENTATION VERIFICATION
+
+> Acceptance update (October 19): protected run #6 completed D01–D11 with successful cleanup independently verified. See [acceptance report and coverage limits](./STELLAR_DISPATCHER_ACCEPTANCE_2026-10-19.md). Simultaneous SQL claim contention remains untested; production remains NO-GO. Earlier status text below is retained as historical implementation/design evidence.
+
 Date: October 19, 2026. **Implementation verified; durable dispatcher acceptance remains PENDING. Production NO-GO.**
 
 ## Authorized changes completed
