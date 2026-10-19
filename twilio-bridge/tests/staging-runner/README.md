@@ -63,3 +63,30 @@ The access runner is not the C1/R1 acceptance controller. Retain the original ac
 No automatic fixture creation, migration, CI secret provisioning, infrastructure creation, deployment, merge, or live call is included. Any access or infrastructure change outside current authorization needs owner approval.
 
 References used for the driver configuration: https://node-postgres.com/features/connecting and https://node-postgres.com/features/ssl . TLS settings are supplied programmatically so URI parameters cannot replace the verified configuration.
+
+## Windows desktop (owner-run)
+
+This chat session cannot execute commands on the owner's Windows desktop. Windows verification and ACCESS_READY remain unexecuted until the owner runs the launcher locally. The launcher has been prepared/reviewed; it has not been executed or PowerShell-parser-validated in this session because no PowerShell runtime is available here.
+
+Use an isolated checkout of feature/staging-orchestrator-trigger-gateway. Do not switch or modify a working production checkout. If you need a new checkout, Git can create a separate folder:
+
+```powershell
+git clone --single-branch --branch feature/staging-orchestrator-trigger-gateway https://github.com/Aproposchpt2/ai4-contact-center.git ai4-contact-center-staging-runner
+if ($LASTEXITCODE -ne 0) { throw 'Clone failed; stop here.' }
+Set-Location .\ai4-contact-center-staging-runner
+.\twilio-bridge\tests\staging-runner\setup-windows.ps1 -RepositoryPath (Get-Location).Path
+```
+
+From an existing clean checkout on the correct branch, run just the final launcher command. Do not use execution-policy bypass flags or change execution policy; if script execution is blocked, stop and report that blocker.
+
+The launcher:
+- Requires Windows, PowerShell 5.1+, Node 20+, npm, Git, expected origin, correct branch, and a clean runner directory.
+- Runs npm ci --ignore-scripts --no-fund and npm test before asking for secrets.
+- Uses masked local Read-Host -AsSecureString prompts for missing credentials. A blank credential stops with CREDENTIALS_NOT_CONFIGURED.
+- Supplies staging flags only for the check and restores the original process environment afterward. It never writes credentials to an environment file, Git, a report, or command-line arguments.
+- Runs the existing access checker directly through Node and records its controlled JSON result.
+- Writes windows-access-evidence.json (gitignored) once the runner directory is located. Share only that generated redacted file/result, never the entered values.
+
+If either credential is unavailable, stop; do not copy/export Railway secrets automatically. If a CA certificate is needed, use the existing STAGING_DATABASE_CA_PEM option with the correct public staging CA; never disable certificate verification.
+
+A Windows result must supply actual OS/PowerShell/Node/npm/Git verification, dependency/test statuses, access-check status, two distinct OS process IDs and PostgreSQL backend IDs, and overlap metadata before ACCESS_READY can be claimed. No fixtures, C1/R1 acceptance, deployment, or production activity are performed by this launcher.
