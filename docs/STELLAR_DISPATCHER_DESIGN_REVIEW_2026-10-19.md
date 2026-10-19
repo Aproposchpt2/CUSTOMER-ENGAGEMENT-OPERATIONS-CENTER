@@ -1,5 +1,7 @@
 # STELLAR UC — DURABLE EVENT DISPATCHER DESIGN REVIEW
 
+> Subsequent verification: protected run #7 passed C01–C04 with distinct overlapping database transactions, active-lease fencing and lock-crash recovery. The earlier SQL contention coverage gaps below are now closed. See [run #7 report](./STELLAR_DISPATCHER_COLLISION_ACCEPTANCE_2026-10-19.md). Production remains NO-GO.
+
 > Acceptance update (October 19): protected run #6 completed D01–D11 with successful cleanup independently verified. See [acceptance report and coverage limits](./STELLAR_DISPATCHER_ACCEPTANCE_2026-10-19.md). Simultaneous SQL claim contention remains untested; production remains NO-GO. Earlier status text below is retained as historical implementation/design evidence.
 
 
