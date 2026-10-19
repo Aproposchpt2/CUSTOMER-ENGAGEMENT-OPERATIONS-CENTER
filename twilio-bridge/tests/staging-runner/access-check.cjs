@@ -24,11 +24,22 @@ function config(env=process.env){
   connectionTimeoutMillis:8000,query_timeout:10000,statement_timeout:8000,application_name:'stellar-staging-access-check'}};
 }
 function safeFailure(e){return {status:'BLOCKED',code:e?.safeCode||'ACCESS_PROBE_FAILED',...(e?.missing?{missing:e.missing}:{}),acceptanceExecuted:false};}
+function databaseErrorCode(e){
+ if(e?.safeCode)return e.safeCode;
+ const allowed=new Set(['28P01','28000','42501','3D000','53300','57P03','57014','08001','08006',
+  'ENOTFOUND','EAI_AGAIN','ETIMEDOUT','ECONNREFUSED','ENETUNREACH','EHOSTUNREACH','ECONNRESET',
+  'DEPTH_ZERO_SELF_SIGNED_CERT','SELF_SIGNED_CERT_IN_CHAIN','UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+  'UNABLE_TO_GET_ISSUER_CERT_LOCALLY','CERT_HAS_EXPIRED','ERR_TLS_CERT_ALTNAME_INVALID']);
+ if(allowed.has(e?.code))return 'DATABASE_'+e.code;
+ if(e?.message==='Connection terminated due to connection timeout')return 'DATABASE_CONNECTION_TIMEOUT';
+ if(e?.message==='Query read timeout')return 'DATABASE_QUERY_TIMEOUT';
+ return 'DATABASE_PROBE_FAILED';
+}
 async function child(){
  let client;
  try{
   const {db}=config();const {Client}=require('pg');client=new Client(db);
-  client.on('error',()=>{process.send?.({type:'failure',code:'DATABASE_CONNECTION_FAILED'});});
+  client.on('error',e=>{process.send?.({type:'failure',code:databaseErrorCode(e)});});
   await client.connect();await client.query('BEGIN READ ONLY');
   await client.query('SET LOCAL ROLE service_role');
   const {rows}=await client.query("SELECT pg_backend_pid() AS backend_pid, clock_timestamp() AS ready_at, current_user AS effective_role, has_function_privilege(current_user,'public.stellar_orch_reconcile_case_staging(uuid)','EXECUTE') AS reconcile_allowed");
@@ -42,7 +53,7 @@ async function child(){
   process.send({type:'finished',pid:process.pid,backend_pid:rows[0].backend_pid,started_at:start.rows[0].started_at,finished_at:end.rows[0].finished_at},()=>process.disconnect());
  }catch(e){
   if(client)await client.end().catch(()=>{});
-  process.send?.({type:'failure',code:e.safeCode||'DATABASE_PROBE_FAILED'},()=>process.disconnect());process.exitCode=2;
+  process.send?.({type:'failure',code:databaseErrorCode(e)},()=>process.disconnect());process.exitCode=2;
  }
 }
 async function restProbe(c,request=fetch){
@@ -91,14 +102,15 @@ async function databasePair(env=process.env){
  });}finally{for(const w of workers)if(w.exitCode===null&&!w.killed)w.kill('SIGTERM');}
 }
 async function main(){
+ let rest;
  try{
   const c=config();try{require.resolve('pg');}catch{throw blocked('POSTGRES_DRIVER_NOT_INSTALLED');}
-  const rest=await restProbe(c);const database=await databasePair();
+  rest=await restProbe(c);const database=await databasePair();
   return {status:'ACCESS_READY',project:PROJECT,...rest,...database,acceptanceExecuted:false,
    note:'Read-only connectivity preparation only; C1 and R1 still require fixture and restart acceptance.'};
- }catch(e){return safeFailure(e);}
+ }catch(e){return {...safeFailure(e),...(rest?{authenticatedRejectionVerified:true}: {})};}
 }
-module.exports={config,safeFailure,restProbe,PROJECT,TENANT,ENDPOINT};
+module.exports={config,safeFailure,databaseErrorCode,restProbe,PROJECT,TENANT,ENDPOINT};
 if(require.main===module){
  if(process.argv[2]==='--connection-probe')child();
  else main().then(r=>{process.stdout.write(JSON.stringify(r,null,2)+'\n');process.exitCode=r.status==='ACCESS_READY'?0:2;});
