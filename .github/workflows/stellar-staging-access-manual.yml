@@ -68,25 +68,27 @@ jobs:
                       env = {k: os.environ[k] for k in ("PATH", "LANG") if k in os.environ}
                       env.update(PGHOST=u.hostname, PGPORT="5432", PGDATABASE="postgres",
                                  PGUSER=unquote(u.username), PGPASSWORD=unquote(u.password),
-                                 PGSSLMODE="verify-full", PGSSLROOTCERT=str(root),
+                                 PGSSLMODE="verify-full", PGSSLROOTCERT=str(root), PGGSSENCMODE="disable",
                                  PGCONNECT_TIMEOUT="8", PGAPPNAME="stellar-readonly-independent-client",
                                  PGOPTIONS="-c default_transaction_read_only=on -c statement_timeout=8000")
                       sql = """BEGIN READ ONLY;
                       SELECT json_build_object('status','DATABASE_CLIENT_CONNECTED',
                         'backendPid',pg_backend_pid(),'readOnly',current_setting('transaction_read_only'),
-                        'tls',(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()));
+                        'databaseBackendTls',(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()));
                       ROLLBACK;"""
                       result = subprocess.run(["psql", "-X", "-w", "-A", "-t", "-q",
-                                   "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-c", sql],
+                                   "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-c", "\\conninfo", "-c", sql],
                                   env=env, capture_output=True, text=True, timeout=15)
                       if result.returncode:
                           auth = "28P01" in result.stderr or "password authentication failed" in result.stderr.lower()
                           return {"status": "BLOCKED", "code": "PSQL_AUTHENTICATION_REJECTED" if auth else "PSQL_CONNECTION_REJECTED"}
-                      evidence = json.loads(result.stdout.strip())
+                      lines = result.stdout.strip().splitlines()
+                      evidence = json.loads(lines[-1])
+                      client_tls = any("SSL connection" in line for line in lines)
                       if (evidence.get("status") != "DATABASE_CLIENT_CONNECTED"
-                          or evidence.get("readOnly") != "on" or evidence.get("tls") is not True):
+                          or evidence.get("readOnly") != "on" or not client_tls):
                           return {"status": "BLOCKED", "code": "PSQL_READONLY_TLS_NOT_VERIFIED"}
-                      return {**evidence, "acceptanceExecuted": False}
+                      return {**evidence, "clientTlsVerified": True, "clientTlsMode": "verify-full", "acceptanceExecuted": False}
               except subprocess.TimeoutExpired:
                   return {"status": "BLOCKED", "code": "PSQL_TIMEOUT"}
               except Exception:
