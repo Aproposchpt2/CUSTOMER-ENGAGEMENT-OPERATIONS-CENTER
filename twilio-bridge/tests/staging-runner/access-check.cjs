@@ -49,7 +49,8 @@ async function restProbe(c,request=fetch){
  const res=await request(ENDPOINT+'/rest/v1/rpc/stellar_orch_reconcile_case_staging',{
   method:'POST',redirect:'error',signal:AbortSignal.timeout(10000),
   headers:{'content-type':'application/json',apikey:c.token,authorization:'Bearer '+c.token},
-  body:JSON.stringify({p_workflow_id:'00000000-0000-0000-0000-000000000000'})});
+  // NULL cannot match any workflow primary key, including deliberately chosen UUIDs.
+  body:JSON.stringify({p_workflow_id:null})});
  let body;try{body=await res.json();}catch{throw blocked('RPC_RESPONSE_INVALID');}
  if(res.ok||body?.message!=='STAGING_WORKFLOW_REJECTED'||body?.code!=='P0001')throw blocked('RPC_ACCESS_NOT_VERIFIED');
  return {authenticatedRejectionVerified:true,httpStatus:res.status};
