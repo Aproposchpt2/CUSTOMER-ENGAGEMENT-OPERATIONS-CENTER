@@ -15,6 +15,12 @@ on:
         required: true
         default: false
 
+      collision:
+        description: 'Execute authorized C01-C04 SQL collision, active-lease fencing and lock-crash tests'
+        type: boolean
+        required: true
+        default: false
+
 permissions:
   contents: read
 
@@ -37,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Reviewed staging test revision; do not execute arbitrary branch contents with secrets.
-          ref: 1ffa50c0adb7d198576054c7c3fb0ad6098fcbe0
+          ref: d57953597c8cb220e0a338e238968542b23a245e
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -49,7 +55,7 @@ jobs:
       - name: Validate acceptance evidence guards without secrets
         run: node --test c1-r1-acceptance.test.cjs
       - name: Validate dispatcher and acceptance safety guards without secrets
-        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs
+        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs dispatcher-collision-acceptance.test.cjs
       - name: Independent PostgreSQL client check (read only)
         env:
           STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
@@ -150,6 +156,17 @@ jobs:
           STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
         run: node dispatcher-acceptance.cjs
+      - name: C01-C04 simultaneous SQL collision acceptance
+        if: inputs.collision == true
+        env:
+          STAGING_DISPATCH_COLLISION_AUTHORIZED: C01_C04
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-collision-acceptance.cjs
       - name: Retain only redacted access evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -160,5 +177,6 @@ jobs:
             twilio-bridge/tests/staging-runner/psql-evidence.json
             twilio-bridge/tests/staging-runner/c1-r1-evidence.json
             twilio-bridge/tests/staging-runner/dispatcher-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-collision-evidence.json
           if-no-files-found: ignore
           retention-days: 7
