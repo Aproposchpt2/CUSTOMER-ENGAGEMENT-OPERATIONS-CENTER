@@ -1,0 +1,81 @@
+{
+  "query": "SELECT jsonb_build_object(\n'observedAt',clock_timestamp(),\n'cases',(SELECT jsonb_build_object('count',count(*),'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),''))) FROM public.stellar_support_cases t),\n'contacts',(SELECT jsonb_build_object('count',count(*),'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),''))) FROM public.ai4cc_contacts t),\n'workflows',(SELECT count(*) FROM public.stellar_orchestrator_workflows_staging),\n'events',(SELECT count(*) FROM public.stellar_orchestrator_events_staging),\n'receipts',(SELECT count(*) FROM public.stellar_dispatch_receipts_staging),\n'effects',(SELECT count(*) FROM public.stellar_dispatch_effects_staging),\n'rls',(SELECT jsonb_agg(jsonb_build_object('table',relname,'enabled',relrowsecurity)) FROM pg_class WHERE oid=ANY(ARRAY['public.stellar_support_cases'::regclass,'public.ai4cc_contacts'::regclass,'public.stellar_orchestrator_workflows_staging'::regclass,'public.stellar_orchestrator_events_staging'::regclass,'public.stellar_dispatch_receipts_staging'::regclass,'public.stellar_dispatch_effects_staging'::regclass])),\n'functions',(SELECT jsonb_agg(jsonb_build_object('name',proname,'bodyHash',md5(prosrc),'serviceExecute',has_function_privilege('service_role',oid,'EXECUTE'),'anonExecute',has_function_privilege('anon',oid,'EXECUTE'),'authenticatedExecute',has_function_privilege('authenticated',oid,'EXECUTE'))) FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname=ANY(ARRAY['stellar_dispatch_claim_staging','stellar_dispatch_verify_staging','stellar_dispatch_receive_staging','stellar_dispatch_ack_staging','stellar_dispatch_fail_staging']))\n) AS evidence;",
+  "response": {
+    "rls": [
+      {
+        "table": "ai4cc_contacts",
+        "enabled": true
+      },
+      {
+        "table": "stellar_support_cases",
+        "enabled": true
+      },
+      {
+        "table": "stellar_orchestrator_workflows_staging",
+        "enabled": true
+      },
+      {
+        "table": "stellar_orchestrator_events_staging",
+        "enabled": true
+      },
+      {
+        "table": "stellar_dispatch_receipts_staging",
+        "enabled": true
+      },
+      {
+        "table": "stellar_dispatch_effects_staging",
+        "enabled": true
+      }
+    ],
+    "cases": {
+      "count": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    "events": 0,
+    "effects": 0,
+    "contacts": {
+      "count": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    "receipts": 0,
+    "functions": [
+      {
+        "name": "stellar_dispatch_ack_staging",
+        "bodyHash": "eb1f229125dd1d28b0c1d61a7bab330c",
+        "anonExecute": false,
+        "serviceExecute": true,
+        "authenticatedExecute": false
+      },
+      {
+        "name": "stellar_dispatch_claim_staging",
+        "bodyHash": "05aef8c84a393fadfe6eaee4c31de872",
+        "anonExecute": false,
+        "serviceExecute": true,
+        "authenticatedExecute": false
+      },
+      {
+        "name": "stellar_dispatch_fail_staging",
+        "bodyHash": "84739cd391b2f7fc225ea0c4c8cb3a52",
+        "anonExecute": false,
+        "serviceExecute": true,
+        "authenticatedExecute": false
+      },
+      {
+        "name": "stellar_dispatch_receive_staging",
+        "bodyHash": "900cdd600e0c47dade8870254f8acb7c",
+        "anonExecute": false,
+        "serviceExecute": true,
+        "authenticatedExecute": false
+      },
+      {
+        "name": "stellar_dispatch_verify_staging",
+        "bodyHash": "7488901498cd8abbbf9934fdb787db32",
+        "anonExecute": false,
+        "serviceExecute": true,
+        "authenticatedExecute": false
+      }
+    ],
+    "workflows": 0,
+    "observedAt": "2026-10-19T23:27:15.315585+00:00"
+  }
+}
