@@ -34,6 +34,68 @@ jobs:
         run: npm ci --ignore-scripts --no-fund
       - name: Run guard tests without secrets
         run: npm test
+      - name: Independent PostgreSQL client check (read only)
+        env:
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee psql-evidence.json
+          import json, os, re, shutil, subprocess, sys, tempfile
+          from urllib.parse import urlsplit, unquote
+          from pathlib import Path
+          
+          def check():
+              if not shutil.which("psql"):
+                  return {"status": "BLOCKED", "code": "PSQL_CLIENT_UNAVAILABLE"}
+              try:
+                  u = urlsplit(os.environ["STAGING_DATABASE_URL"])
+                  valid = (u.scheme in ("postgres", "postgresql")
+                           and u.hostname == "aws-0-us-west-1.pooler.supabase.com"
+                           and u.port == 5432 and u.path == "/postgres"
+                           and not u.query and not u.fragment
+                           and unquote(u.username or "") == "postgres.hvzauakkhlivzeqatfqm"
+                           and bool(u.password))
+                  if not valid:
+                      return {"status": "BLOCKED", "code": "PSQL_TARGET_REJECTED"}
+                  ca = os.environ.get("STAGING_DATABASE_CA_PEM", "")
+                  if "-----BEGIN CERTIFICATE-----" not in ca:
+                      return {"status": "BLOCKED", "code": "PSQL_CA_REQUIRED"}
+                  with tempfile.TemporaryDirectory() as directory:
+                      root = Path(directory) / "root.crt"
+                      root.write_text(ca)
+                      root.chmod(0o600)
+                      env = {k: os.environ[k] for k in ("PATH", "LANG") if k in os.environ}
+                      env.update(PGHOST=u.hostname, PGPORT="5432", PGDATABASE="postgres",
+                                 PGUSER=unquote(u.username), PGPASSWORD=unquote(u.password),
+                                 PGSSLMODE="verify-full", PGSSLROOTCERT=str(root),
+                                 PGCONNECT_TIMEOUT="8", PGAPPNAME="stellar-readonly-independent-client",
+                                 PGOPTIONS="-c default_transaction_read_only=on -c statement_timeout=8000")
+                      sql = """BEGIN READ ONLY;
+                      SELECT json_build_object('status','DATABASE_CLIENT_CONNECTED',
+                        'backendPid',pg_backend_pid(),'readOnly',current_setting('transaction_read_only'),
+                        'tls',(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()));
+                      ROLLBACK;"""
+                      result = subprocess.run(["psql", "-X", "-w", "-A", "-t", "-q",
+                                   "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-c", sql],
+                                  env=env, capture_output=True, text=True, timeout=15)
+                      if result.returncode:
+                          auth = "28P01" in result.stderr or "password authentication failed" in result.stderr.lower()
+                          return {"status": "BLOCKED", "code": "PSQL_AUTHENTICATION_REJECTED" if auth else "PSQL_CONNECTION_REJECTED"}
+                      evidence = json.loads(result.stdout.strip())
+                      if (evidence.get("status") != "DATABASE_CLIENT_CONNECTED"
+                          or evidence.get("readOnly") != "on" or evidence.get("tls") is not True):
+                          return {"status": "BLOCKED", "code": "PSQL_READONLY_TLS_NOT_VERIFIED"}
+                      return {**evidence, "acceptanceExecuted": False}
+              except subprocess.TimeoutExpired:
+                  return {"status": "BLOCKED", "code": "PSQL_TIMEOUT"}
+              except Exception:
+                  return {"status": "BLOCKED", "code": "PSQL_CONFIGURATION_REJECTED"}
+          
+          evidence = check()
+          print(json.dumps(evidence))
+          sys.exit(0 if evidence["status"] == "DATABASE_CLIENT_CONNECTED" else 2)
+          PY
       - name: Check staging access (no fixtures)
         env:
           STELLAR_BRIDGE_STAGING: 'true'
@@ -53,6 +115,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: stellar-staging-access-evidence
-          path: twilio-bridge/tests/staging-runner/access-evidence.json
+          path: |
+            twilio-bridge/tests/staging-runner/access-evidence.json
+            twilio-bridge/tests/staging-runner/psql-evidence.json
           if-no-files-found: ignore
           retention-days: 7
