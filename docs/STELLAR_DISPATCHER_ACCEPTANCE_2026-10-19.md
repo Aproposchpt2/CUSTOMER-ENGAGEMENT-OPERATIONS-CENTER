@@ -1,5 +1,7 @@
 # STELLAR UC — DURABLE DISPATCHER STAGING ACCEPTANCE REPORT
 
+> Subsequent verification: protected run #7 passed C01–C04 with distinct overlapping database transactions, active-lease fencing and lock-crash recovery. The earlier SQL contention coverage gaps below are now closed. See [run #7 report](./STELLAR_DISPATCHER_COLLISION_ACCEPTANCE_2026-10-19.md). Production remains NO-GO.
+
 Date: October 19, 2026. Overall result: **PASS for the executed D01–D11 scenarios, with the concurrency boundary below. Production: NO-GO.**
 
 ## Execution and evidence
