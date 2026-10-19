@@ -43,7 +43,7 @@ Keep the secret values in environment variables only. Errors are deliberately re
 
 ## What a successful access check demonstrates
 
-1. The pinned staging REST reconciliation endpoint accepts the existing backend credential and rejects the reserved nonexistent workflow with STAGING_WORKFLOW_REJECTED / P0001. No ticket-creation RPC is invoked.
+1. The pinned staging REST reconciliation endpoint accepts the existing backend credential and rejects a NULL workflow argument with STAGING_WORKFLOW_REJECTED / P0001. NULL cannot match a workflow primary key, so the probe cannot reconcile an actual workflow. No ticket-creation RPC is invoked.
 2. Two distinct Node child processes each open a fresh PostgreSQL connection, enter BEGIN READ ONLY, and assume the existing service_role.
 3. Both children report ready with distinct OS PIDs and backend PIDs before the parent releases an IPC barrier.
 4. Their read-only probe intervals must overlap. Each transaction is rolled back and each connection closed.
