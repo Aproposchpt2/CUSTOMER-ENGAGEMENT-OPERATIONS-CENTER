@@ -8,6 +8,7 @@ on:
       - 'twilio-bridge/tests/staging-reconcile-worker.cjs'
       - 'twilio-bridge/tests/staging-reconcile-worker.test.cjs'
       - 'twilio-bridge/tests/orchestrator-gateway.staging.test.cjs'
+      - 'twilio-bridge/tests/staging-runner/**'
       - '.github/workflows/staging-orchestrator-gateway.yml'
   workflow_dispatch:
 jobs:
@@ -20,4 +21,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node --test twilio-bridge/tests/orchestrator-gateway.staging.test.cjs twilio-bridge/tests/orchestrator-durable.staging.test.cjs twilio-bridge/tests/staging-reconcile-worker.test.cjs
+      - run: node --test twilio-bridge/tests/orchestrator-gateway.staging.test.cjs twilio-bridge/tests/orchestrator-durable.staging.test.cjs twilio-bridge/tests/staging-reconcile-worker.test.cjs twilio-bridge/tests/staging-runner/access-check.test.cjs
