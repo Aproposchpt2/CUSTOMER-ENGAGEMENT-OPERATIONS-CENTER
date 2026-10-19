@@ -38,11 +38,15 @@ jobs:
         env:
           STELLAR_BRIDGE_STAGING: 'true'
           CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
-          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
           STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
-        run: node access-check.cjs | tee access-evidence.json
+        # Keep the reviewed runner's staging-only validation and pinned code unchanged.
+        run: |
+          STAGING_SUPABASE_URL="$SUPABASE_URL" \
+          STAGING_SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          node access-check.cjs | tee access-evidence.json
       - name: Retain only redacted access evidence
         if: always()
         uses: actions/upload-artifact@v4
