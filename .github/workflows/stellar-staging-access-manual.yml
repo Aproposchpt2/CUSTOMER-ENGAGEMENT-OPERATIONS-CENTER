@@ -1,0 +1,53 @@
+name: Stellar staging access (manual only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stellar-staging-access
+  cancel-in-progress: false
+
+jobs:
+  read-only-access:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Owner must configure this protected environment before any credentialed run.
+    # No repository-wide credentials, fixture writes, or deployment steps.
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Reviewed read-only runner; do not execute arbitrary branch contents with secrets.
+          ref: 9a5899d6bd0cd580e31f6ed7634a72403a1d209f
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install pinned test dependencies without secrets
+        run: npm ci --ignore-scripts --no-fund
+      - name: Run guard tests without secrets
+        run: npm test
+      - name: Check staging access (no fixtures)
+        env:
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node access-check.cjs | tee access-evidence.json
+      - name: Retain only redacted access evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-staging-access-evidence
+          path: twilio-bridge/tests/staging-runner/access-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7
