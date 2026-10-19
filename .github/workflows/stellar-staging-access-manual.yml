@@ -44,6 +44,7 @@ jobs:
           STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
         # Keep the reviewed runner's staging-only validation and pinned code unchanged.
         run: |
+          set -euo pipefail
           STAGING_SUPABASE_URL="$SUPABASE_URL" \
           STAGING_SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
           node access-check.cjs | tee access-evidence.json
