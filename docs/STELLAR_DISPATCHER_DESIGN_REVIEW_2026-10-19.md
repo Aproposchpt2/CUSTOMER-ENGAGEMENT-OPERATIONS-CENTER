@@ -1,6 +1,10 @@
 # STELLAR UC — DURABLE EVENT DISPATCHER DESIGN REVIEW
 
-Date: October 19, 2026. Status: PROTOTYPE REVIEW COMPLETE; DATABASE ACCEPTANCE NOT EXECUTED.
+Date: October 19, 2026. Status: IMPLEMENTED IN STAGING; COMMITTED DISPATCHER ACCEPTANCE PENDING.
+
+> Implementation update: the owner authorized proceeding, and staging migration 20261019220006 is now applied. The database adapter and local test receiver are implemented; 17 local tests and rollback-only SQL regression checks passed. D01–D11 committed database/process acceptance remains PENDING. See [implementation verification](./STELLAR_DISPATCHER_IMPLEMENTATION_2026-10-19.md). The sections below preserve the original design proposal and its pre-implementation status for review history.
+
+
 
 ## Scope and verified baseline
 
