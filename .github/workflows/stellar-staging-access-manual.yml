@@ -9,6 +9,12 @@ on:
         required: true
         default: false
 
+      dispatcher:
+        description: 'Execute authorized D01-D11 committed dispatcher acceptance and cleanup'
+        type: boolean
+        required: true
+        default: false
+
 permissions:
   contents: read
 
@@ -31,7 +37,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Reviewed staging test revision; do not execute arbitrary branch contents with secrets.
-          ref: 385c2986325fd58258b4be655c4580fd2b1086b2
+          ref: 1ffa50c0adb7d198576054c7c3fb0ad6098fcbe0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -42,6 +48,8 @@ jobs:
         run: npm test
       - name: Validate acceptance evidence guards without secrets
         run: node --test c1-r1-acceptance.test.cjs
+      - name: Validate dispatcher and acceptance safety guards without secrets
+        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs
       - name: Independent PostgreSQL client check (read only)
         env:
           STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
@@ -131,6 +139,17 @@ jobs:
           STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
         run: node c1-r1-acceptance.cjs
+      - name: D01-D11 committed dispatcher acceptance
+        if: inputs.dispatcher == true
+        env:
+          STAGING_DISPATCH_ACCEPTANCE_AUTHORIZED: D01_D11
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-acceptance.cjs
       - name: Retain only redacted access evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -140,5 +159,6 @@ jobs:
             twilio-bridge/tests/staging-runner/access-evidence.json
             twilio-bridge/tests/staging-runner/psql-evidence.json
             twilio-bridge/tests/staging-runner/c1-r1-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-evidence.json
           if-no-files-found: ignore
           retention-days: 7
