@@ -2,6 +2,12 @@ name: Stellar staging access (manual only)
 
 on:
   workflow_dispatch:
+    inputs:
+      acceptance:
+        description: 'Execute authorized C1/R1 synthetic fixtures, restart tests, and cleanup'
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -16,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Owner must configure this protected environment before any credentialed run.
-    # No repository-wide credentials, fixture writes, or deployment steps.
+    # No repository-wide credentials or deployment steps. Fixtures require explicit acceptance input.
     environment: stellar-staging-access
     defaults:
       run:
@@ -24,8 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Reviewed read-only runner; do not execute arbitrary branch contents with secrets.
-          ref: 9a5899d6bd0cd580e31f6ed7634a72403a1d209f
+          # Reviewed staging test revision; do not execute arbitrary branch contents with secrets.
+          ref: 385c2986325fd58258b4be655c4580fd2b1086b2
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -34,6 +40,8 @@ jobs:
         run: npm ci --ignore-scripts --no-fund
       - name: Run guard tests without secrets
         run: npm test
+      - name: Validate acceptance evidence guards without secrets
+        run: node --test c1-r1-acceptance.test.cjs
       - name: Independent PostgreSQL client check (read only)
         env:
           STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
@@ -112,6 +120,17 @@ jobs:
           STAGING_SUPABASE_URL="$SUPABASE_URL" \
           STAGING_SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
           node access-check.cjs | tee access-evidence.json
+      - name: C1 concurrency and R1 committed worker restart
+        if: inputs.acceptance == true
+        env:
+          STAGING_ACCEPTANCE_AUTHORIZED: C1_R1
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node c1-r1-acceptance.cjs
       - name: Retain only redacted access evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -120,5 +139,6 @@ jobs:
           path: |
             twilio-bridge/tests/staging-runner/access-evidence.json
             twilio-bridge/tests/staging-runner/psql-evidence.json
+            twilio-bridge/tests/staging-runner/c1-r1-evidence.json
           if-no-files-found: ignore
           retention-days: 7
