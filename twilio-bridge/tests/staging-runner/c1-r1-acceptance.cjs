@@ -175,5 +175,5 @@ async function main(){
   report.finishedAt=now();save();console.log(JSON.stringify({status:report.status,failureCode:report.failureCode,tests:Object.fromEntries(Object.entries(report.tests).map(([k,v])=>[k,v.status||'INCOMPLETE'])),cleanupVerified:report.cleanupVerified,securityUnchanged:report.securityUnchanged}));
  }process.exitCode=report.status==='PASS'?0:2;
 }
-module.exports={assertState,verifyV5};
+module.exports={assertState,verifyV5,fixture,snapshot,security,state,cleanup};
 if(require.main===module){if(process.argv[2]==='--worker')worker();else main();}
