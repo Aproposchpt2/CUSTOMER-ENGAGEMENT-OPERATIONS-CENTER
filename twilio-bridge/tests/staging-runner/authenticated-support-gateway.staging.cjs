@@ -5,6 +5,7 @@ const {createSupportIntegration,intake:validateIntake}=require('./support-orches
 const URL='https://hvzauakkhlivzeqatfqm.supabase.co';
 const TENANT='5885a020-d363-4c27-910a-c035eda132f5';
 const ORIGIN='https://stellaruc-private-voice-poc.netlify.app';
+const PREVIEW_ORIGIN='https://deploy-preview-77--stellaruc-private-voice-poc.netlify.app';
 const PREFIX='/api/staging-orchestration/';
 const AUD='stellar-staging-support-gateway:v1';
 const TTL=900,MAX_BODY=16384;
@@ -29,6 +30,9 @@ function bounded(promise,signal){
 function createStagingGateway({env=process.env,request=fetch,now=()=>Date.now(),deadlineMs=5000}={}){
   // Snapshot target/credentials; kill switches are checked per request.
   if(env.SUPABASE_URL!==URL||env.CSS_TENANT_ID!==TENANT)fail(503,'STAGING_TARGET_REJECTED');
+  const origin=env.STAGING_ORCHESTRATION_ORIGIN||ORIGIN;
+  if(![ORIGIN,PREVIEW_ORIGIN].includes(origin))fail(503,'STAGING_ORIGIN_REJECTED');
+  const audience=AUD+':'+origin;
   if(env.NODE_TLS_REJECT_UNAUTHORIZED==='0'||process.env.NODE_TLS_REJECT_UNAUTHORIZED==='0')fail(503,'TLS_VERIFICATION_REQUIRED');
   const key=env.SUPABASE_SERVICE_ROLE_KEY,publicKey=env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if(typeof key!=='string'||key.length<32||typeof publicKey!=='string'||!publicKey)fail(503,'CREDENTIALS_NOT_CONFIGURED');
@@ -45,7 +49,7 @@ function createStagingGateway({env=process.env,request=fetch,now=()=>Date.now(),
     const supplied=Buffer.from(sig,'base64url');if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected))fail(403,'OPERATION_NOT_AUTHORIZED');
     let c;try{c=JSON.parse(Buffer.from(payload,'base64url').toString('utf8'));}catch{fail(403,'OPERATION_NOT_AUTHORIZED');}
     const t=Math.floor(now()/1000);
-    if(!exact(c,['v','aud','sub','tenantId','operationId','callId','sessionId','intakeHash','iat','exp'])||c.v!==1||c.aud!==AUD||c.sub!==userId||c.tenantId!==TENANT||!/^gateway:[0-9a-f-]{36}$/.test(c.operationId)||!UUID.test(c.operationId.slice(8))||!/^CA[0-9a-f]{32}$/.test(c.callId)||c.sessionId!=='phone-staging:'+c.callId||!/^[0-9a-f]{64}$/.test(c.intakeHash)||!Number.isInteger(c.iat)||!Number.isInteger(c.exp)||c.exp-c.iat!==TTL||c.iat>t||c.exp<=t)fail(403,'OPERATION_NOT_AUTHORIZED');
+    if(!exact(c,['v','aud','sub','tenantId','operationId','callId','sessionId','intakeHash','iat','exp'])||c.v!==1||c.aud!==audience||c.sub!==userId||c.tenantId!==TENANT||!/^gateway:[0-9a-f-]{36}$/.test(c.operationId)||!UUID.test(c.operationId.slice(8))||!/^CA[0-9a-f]{32}$/.test(c.callId)||c.sessionId!=='phone-staging:'+c.callId||!/^[0-9a-f]{64}$/.test(c.intakeHash)||!Number.isInteger(c.iat)||!Number.isInteger(c.exp)||c.exp-c.iat!==TTL||c.iat>t||c.exp<=t)fail(403,'OPERATION_NOT_AUTHORIZED');
     return c;
   }
   async function json(path,init,signal){
@@ -82,7 +86,7 @@ function createStagingGateway({env=process.env,request=fetch,now=()=>Date.now(),
       const url=new globalThis.URL(req.url),action=url.pathname.startsWith(PREFIX)?url.pathname.slice(PREFIX.length):'';
       if(!['begin','submit','status'].includes(action)||url.search)fail(404,'NOT_FOUND');
       if(req.method!=='POST')fail(405,'POST_REQUIRED');
-      if(url.origin!==ORIGIN||req.headers.get('origin')!==ORIGIN)fail(403,'ORIGIN_REJECTED');
+      if(url.origin!==origin||req.headers.get('origin')!==origin)fail(403,'ORIGIN_REJECTED');
       const controller=new AbortController();timer=setTimeout(()=>controller.abort(),deadlineMs);
       const signal=AbortSignal.any([controller.signal,req.signal]),body=await readBody(req,signal),userId=await authenticate(req,signal);
       if(action==='begin'){
@@ -90,7 +94,7 @@ function createStagingGateway({env=process.env,request=fetch,now=()=>Date.now(),
         if(body.confirmed!==true)fail(400,'CONFIRMATION_REQUIRED');
         const clean=validateIntake(body.intake);
         const t=Math.floor(now()/1000),callId='CA'+randomUUID().replaceAll('-','');
-        const claims={v:1,aud:AUD,sub:userId,tenantId:TENANT,operationId:'gateway:'+randomUUID(),callId,sessionId:'phone-staging:'+callId,intakeHash:intakeHash(clean),iat:t,exp:t+TTL};
+        const claims={v:1,aud:audience,sub:userId,tenantId:TENANT,operationId:'gateway:'+randomUUID(),callId,sessionId:'phone-staging:'+callId,intakeHash:intakeHash(clean),iat:t,exp:t+TTL};
         return response(201,{operationToken:sign(claims),expiresAt:new Date(claims.exp*1000).toISOString(),testOnly:true});
       }
       if(!exact(body,action==='submit'?['operationToken','confirmed','intake']:['operationToken']))fail(400,'INVALID_REQUEST');
@@ -126,4 +130,4 @@ function createStagingGateway({env=process.env,request=fetch,now=()=>Date.now(),
     }finally{clearTimeout(timer);}
   }};
 }
-module.exports={createStagingGateway,TENANT,URL,ORIGIN,PREFIX};
+module.exports={createStagingGateway,TENANT,URL,ORIGIN,PREVIEW_ORIGIN,PREFIX};
