@@ -39,6 +39,12 @@ on:
         required: true
         default: false
 
+      gateway_process:
+        description: 'Execute approved two temporary Auth users and G02/G04/G05; cleanup required'
+        type: boolean
+        required: true
+        default: false
+
 permissions:
   contents: read
 
@@ -48,7 +54,7 @@ concurrency:
 
 jobs:
   read-only-access:
-    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway'
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Owner must configure this protected environment before any credentialed run.
@@ -232,5 +238,48 @@ jobs:
             twilio-bridge/tests/staging-runner/dispatcher-network-evidence.json
             twilio-bridge/tests/staging-runner/dispatcher-terminal-evidence.json
             twilio-bridge/tests/staging-runner/headless-integration-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  gateway-process:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 2126a003942cd2b3e128ed1000632563dd136942
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned runner dependencies without credentials
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Verify gateway and temporary account safety guards without credentials
+        run: node --test authenticated-support-gateway.staging.test.cjs staging-gateway-node-adapter.test.cjs gateway-browser-acceptance.staging.test.cjs gateway-process-acceptance.test.cjs gateway-auth-fixture-acceptance.test.cjs
+      - name: Approved temporary staging identities and G02 G04 G05
+        env:
+          STAGING_GATEWAY_AUTH_FIXTURES_AUTHORIZED: TWO_TEMP_USERS_G02_G04_G05
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+          # This is the existing project's PUBLIC publishable key, never an admin credential.
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_S4k8gQdF_KqTrtYwdADS7Q_5tfvN_TK'
+        run: node gateway-auth-fixture-acceptance.cjs
+      - name: Retain sanitized process and cleanup evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-gateway-process-evidence
+          path: |
+            twilio-bridge/tests/staging-runner/gateway-auth-fixture-evidence.json
+            twilio-bridge/tests/staging-runner/gateway-process-evidence.json
           if-no-files-found: ignore
           retention-days: 7
