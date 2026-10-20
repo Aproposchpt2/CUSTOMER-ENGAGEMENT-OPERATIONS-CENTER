@@ -40,8 +40,10 @@ function createBrowserAcceptance({post,onEvidence=()=>{},now=()=>Date.now()}){
     async recover(){
       need(token,'PREPARE_FIRST');const r=await post('status',{operationToken:token});
       if(r.status===200){verified(r);need(!fixture.caseId||fixture.caseId===r.body.caseId,'RECOVERY_CASE_CHANGED');fixture.caseId=r.body.caseId;fixture.contactId=r.body.customerId;}
-      else need(r.status===202&&!r.body.success&&!r.body.caseId,'RECOVERY_NOT_SAFE');
-      checks.push({test:'status recovery',result:r.status===200?'HTTP_CONFIRMED':'PENDING',state:r.body.state});save();return evidence();
+      else need(r.status===202&&r.body?.success===false&&['ACCEPTED','RUNNING','UNKNOWN'].includes(r.body.state)&&!Object.hasOwn(r.body,'caseId')&&!Object.hasOwn(r.body,'customerId')&&r.body.notificationSent===false&&r.body.technicianFollowupConfirmed===false,'RECOVERY_NOT_SAFE');
+      // Export only verified, allowlisted response observations, never the token,
+      // request headers, raw response, unexpected upstream fields or credentials.
+      checks.push({test:'status recovery',result:r.status===200?'HTTP_CONFIRMED':'PENDING',state:r.body.state,status:r.status,observedAt:new Date(now()).toISOString(),responseChecks:{success:r.body.success,caseIdPresent:Object.hasOwn(r.body,'caseId'),customerIdPresent:Object.hasOwn(r.body,'customerId'),notificationSent:r.body.notificationSent,technicianFollowupConfirmed:r.body.technicianFollowupConfirmed}});save();return evidence();
     },
     async repeat(){
       need(token&&fixture.caseId,'CONFIRMED_TICKET_REQUIRED');const r=await post('submit',submitBody());verified(r);need(r.body.caseId===fixture.caseId,'DUPLICATE_CASE_CHANGED');checks.push({test:'G04 sequential duplicate HTTP result',result:'ORIGINAL_ID_RETURNED_DATABASE_COUNT_PENDING'});save();return evidence();
