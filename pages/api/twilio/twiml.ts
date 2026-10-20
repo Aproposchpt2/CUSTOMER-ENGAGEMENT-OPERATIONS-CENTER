@@ -66,7 +66,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const bridgeWsUrl = process.env.TWILIO_BRIDGE_WS_URL;
-  const isStaging = typeof bridgeWsUrl === 'string' && bridgeWsUrl.includes('railway');
+  const isStaging = typeof bridgeWsUrl === 'string' && bridgeWsUrl.includes('staging');
   const hmacSecret = (isStaging && process.env.BRIDGE_HMAC_SECRET_STAGING) || process.env.BRIDGE_HMAC_SECRET;
 
   if (!bridgeWsUrl || !hmacSecret) {
