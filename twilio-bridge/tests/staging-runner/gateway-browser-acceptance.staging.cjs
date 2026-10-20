@@ -1,6 +1,6 @@
 'use strict';
 // Browser test coordinator only. Never exports authentication or operation tokens.
-function createBrowserAcceptance({post,onEvidence=()=>{}}){
+function createBrowserAcceptance({post,onEvidence=()=>{},now=()=>Date.now()}){
   let token=null,fixture=null;const checks=[];
   const need=(v,code)=>{if(!v)throw Error(code);};
   const evidence=()=>({scope:'GATEWAY_BROWSER_OBSERVATIONS_ONLY',fixture,checks:[...checks],databaseVerified:false,cleanupVerified:false,pending:['G02 foreign/inactive real user','G03 real capability expiry','G04 two-process first-submit race','G05 committed interruption recovery','G06 invalid persisted association','G07 independent database evidence and cleanup']});
@@ -9,6 +9,16 @@ function createBrowserAcceptance({post,onEvidence=()=>{}}){
   const verified=r=>need(r.status===200&&r.body.success===true&&r.body.state==='COMPLETED'&&/^[0-9a-f-]{36}$/i.test(r.body.caseId)&&/^[0-9a-f-]{36}$/i.test(r.body.customerId)&&r.body.testOnly===true&&r.body.notificationSent===false&&r.body.technicianFollowupConfirmed===false,'TICKET_NOT_CONFIRMED');
   return {
     evidence,
+    async expired(){
+      need(token&&fixture,'PREPARE_FIRST');
+      need(!fixture.submissionAttempted,'EXPIRY_REQUIRES_UNSUBMITTED_FIXTURE');
+      // Test the issued capability unchanged, against the actual server clock.
+      // No shortened TTL, forged signature, synthetic clock or ticket submission.
+      need(Number.isFinite(Date.parse(fixture.expiresAt))&&now()>=Date.parse(fixture.expiresAt)+2000,'WAIT_FOR_REAL_CAPABILITY_EXPIRY');
+      const r=await post('status',{operationToken:token});
+      need(r.status===403&&r.body?.error==='OPERATION_NOT_AUTHORIZED'&&!r.body.caseId&&!r.body.customerId&&!r.body.success,'EXPIRED_CAPABILITY_NOT_REJECTED');
+      checks.push({test:'G03 real capability expiry',result:'EXPIRED_CAPABILITY_REJECTED',status:r.status,expiresAt:fixture.expiresAt,observedAt:new Date(now()).toISOString(),ticketSubmissionAttempted:false});save();return evidence();
+    },
     async prepare(){
       need(!fixture,'FIXTURE_ALREADY_PREPARED');
       const runId='gateway-'+crypto.randomUUID();
