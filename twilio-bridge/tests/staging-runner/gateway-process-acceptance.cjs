@@ -18,14 +18,26 @@ function requestFor(action,body,bearer){return new Request(PREVIEW_ORIGIN+'/api/
 const validId=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
 const childKeys=['PATH','STELLAR_BRIDGE_STAGING','CSS_TENANT_ID','STAGING_SUPABASE_URL','STAGING_SUPABASE_SERVICE_ROLE_KEY','STAGING_DATABASE_URL','STAGING_DATABASE_CA_PEM','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','STAGING_GATEWAY_TEST_BEARER','STAGING_GATEWAY_PROCESS_AUTHORIZED'];
 function childEnv(env){return Object.fromEntries(childKeys.filter(k=>env[k]!==undefined).map(k=>[k,env[k]]));}
+function verifyObserver(observer,db,stream){
+ need(observer.role==='postgres','OBSERVER_CONNECTION_REJECTED');
+ need(db.ssl?.rejectUnauthorized===true&&stream.encrypted===true&&stream.authorized===true,'OBSERVER_CLIENT_TLS_REJECTED');
+ const protocol=stream.getProtocol?.();need(['TLSv1.2','TLSv1.3'].includes(protocol),'OBSERVER_CLIENT_TLS_REJECTED');
+ const pooled=db.host==='aws-0-us-west-1.pooler.supabase.com'&&db.port===5432&&db.user==='postgres.'+PROJECT;
+ const direct=db.host==='db.'+PROJECT+'.supabase.co'&&db.user==='postgres';
+ need(pooled||direct,'OBSERVER_TARGET_REJECTED');
+ if(direct)need(observer.database_backend_tls===true,'OBSERVER_CONNECTION_REJECTED');
+ // pg_stat_ssl describes the pooler's database-side hop, not this verified TLS socket.
+ // Never assert end-to-end TLS for the pooled connection.
+ return {...observer,client_encrypted:true,client_certificate_verified:true,reject_unauthorized:true,tls_protocol:protocol,tls_verified_scope:pooled?'RUNNER_TO_APPROVED_SESSION_POOLER':'DIRECT_DATABASE',backend_tls_observation:observer.database_backend_tls};
+}
 async function child(){
  let c,phase='preflight';const queued=[],waiting=[];
  process.on('message',m=>{const w=waiting.find(x=>x.type===m?.type);if(w){waiting.splice(waiting.indexOf(w),1);clearTimeout(w.timer);w.resolve(m);}else queued.push(m);});
  const receive=type=>{const at=queued.findIndex(m=>m.type===type);if(at>=0)return Promise.resolve(queued.splice(at,1)[0]);return new Promise((resolve,reject)=>{const w={type,resolve,timer:setTimeout(()=>reject(Error('WORKER_CONTROL_TIMEOUT')),20000)};waiting.push(w);});};
  try{
   const cfg=authorized();phase='observer_connect';c=new Client(cfg.db);c.on('error',()=>{});await c.connect();phase='observer_query';await c.query('BEGIN READ ONLY');
-  const observer=(await c.query("SELECT pg_backend_pid() backend_pid,current_user AS role,clock_timestamp() ready_at,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) database_backend_tls")).rows[0];
-  need(observer.role==='postgres'&&observer.database_backend_tls===true,'OBSERVER_CONNECTION_REJECTED');
+  let observer=(await c.query("SELECT pg_backend_pid() backend_pid,current_user AS role,clock_timestamp() ready_at,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) database_backend_tls")).rows[0];
+  observer=verifyObserver(observer,cfg.db,c.connection.stream);
   phase='await_job';process.send({type:'ready',pid:process.pid,observer});const job=await receive('execute');let initialLookup=true;
   const transport=async(url,init)=>{
    const parsed=new URL(url);need(parsed.origin===ENDPOINT,'UPSTREAM_TARGET_REJECTED');
@@ -55,7 +67,7 @@ async function child(){
  }catch(e){if(c)await c.end().catch(()=>{});process.send?.({type:'failure',pid:process.pid,phase,code:e.safeCode||databaseErrorCode(e)},()=>process.disconnect());process.exitCode=2;}
 }
 const active=new Set();
-function workerFailure(m){const allowed=new Set(['GATEWAY_WORKER_FAILED','OBSERVER_CONNECTION_REJECTED','INITIAL_LOOKUP_ALREADY_PERSISTED','COMMITTED_CASE_RESPONSE_INVALID','CAPABILITY_REPORT_REJECTED','UPSTREAM_TARGET_REJECTED','GATEWAY_PROCESS_AUTHORIZATION_REQUIRED','REAL_TEST_USER_AUTH_REQUIRED','PUBLISHABLE_KEY_REQUIRED','WORKER_CONTROL_TIMEOUT','DATABASE_PROBE_FAILED','DATABASE_CONNECTION_TIMEOUT','DATABASE_QUERY_TIMEOUT']);const code=allowed.has(m.code)||(typeof m.code==='string'&&m.code.startsWith('DATABASE_')&&databaseErrorCode({code:m.code.slice(9)})===m.code)?m.code:'GATEWAY_WORKER_FAILED';const e=Error(code);e.safeCode=code;e.worker={pid:Number.isSafeInteger(m.pid)?m.pid:null,phase:['preflight','observer_connect','observer_query','await_job','gateway_handle'].includes(m.phase)?m.phase:'unknown',code};return e;}
+function workerFailure(m){const allowed=new Set(['GATEWAY_WORKER_FAILED','OBSERVER_CONNECTION_REJECTED','OBSERVER_CLIENT_TLS_REJECTED','OBSERVER_TARGET_REJECTED','INITIAL_LOOKUP_ALREADY_PERSISTED','COMMITTED_CASE_RESPONSE_INVALID','CAPABILITY_REPORT_REJECTED','UPSTREAM_TARGET_REJECTED','GATEWAY_PROCESS_AUTHORIZATION_REQUIRED','REAL_TEST_USER_AUTH_REQUIRED','PUBLISHABLE_KEY_REQUIRED','WORKER_CONTROL_TIMEOUT','DATABASE_PROBE_FAILED','DATABASE_CONNECTION_TIMEOUT','DATABASE_QUERY_TIMEOUT']);const code=allowed.has(m.code)||(typeof m.code==='string'&&m.code.startsWith('DATABASE_')&&databaseErrorCode({code:m.code.slice(9)})===m.code)?m.code:'GATEWAY_WORKER_FAILED';const e=Error(code);e.safeCode=code;e.worker={pid:Number.isSafeInteger(m.pid)?m.pid:null,phase:['preflight','observer_connect','observer_query','await_job','gateway_handle'].includes(m.phase)?m.phase:'unknown',code};return e;}
 function launch(onTrace,onObservation=()=>{}){
  const p=fork(__filename,['--worker'],{env:childEnv(process.env),execArgv:[],stdio:['ignore','ignore','ignore','ipc']});active.add(p);
  const messages=[],waiters=[];let resolveExit;const exited=new Promise(r=>resolveExit=r);
@@ -126,5 +138,5 @@ async function main(){
  }
  process.exitCode=report.status==='PASS'?0:2;
 }
-module.exports={authorized,gatewayEnv,requestFor,childEnv,confirmed,quiescent,workerFailure};
+module.exports={authorized,gatewayEnv,requestFor,childEnv,confirmed,quiescent,workerFailure,verifyObserver};
 if(require.main===module){if(process.argv[2]==='--worker')child();else main();}
