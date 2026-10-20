@@ -1,0 +1,7 @@
+import Link from 'next/link';
+import MarketingLayout from '@/components/MarketingLayout';
+import BrandHero from '@/components/BrandHero';
+import SystemExplorer from '@/components/SystemExplorer';
+import { products, productHref } from '@/lib/marketingProducts';
+import s from '@/styles/marketing.module.css';
+export default function ProductsPage(){return <MarketingLayout><BrandHero headline="Distinct roles. Connected intelligence." description="Explore the foundational Operations Center and the specialist systems built on top of it."><Link href="#explore" className={s.primaryButton}>Find your starting point ↓</Link></BrandHero><section id="explore" className={s.section}><span className={s.micro}>THE PRODUCT COLLECTION</span><div className={s.productRows}>{products.map(p=><article key={p.slug} className={s.productRow}><span className={s.rowNumber}>{p.number}</span><div><span className={s.micro}>{p.category}</span><h2>{p.name}</h2><p>{p.description}</p></div><Link href={productHref(p.slug)} className={s.secondaryButton}>Explore product ↗</Link></article>)}</div></section><section className={s.section}><div className={s.sectionIntro}><span className={s.micro}>HOW THEY CONNECT</span><h2>The relationship<br/><em>behind the products.</em></h2></div><SystemExplorer/></section><section className={s.closingSection}><h2>Start with the work<br/><em>you want to improve.</em></h2><Link href="/intake" className={s.primaryButton}>Discuss your configuration ↗</Link></section></MarketingLayout>}

@@ -122,3 +122,14 @@ test('unentitled (hidden-at-launch) enterprise API routes are blocked on tenant 
     assert.equal(isUnentitledApiRoute(p), false, p);
   }
 });
+
+test('product collection and nested product pages stay off customer and staff hosts', () => {
+  for (const path of ['/products', '/products/customer-engagement-operations-center', '/products/sales-service-system', '/products/support-specialist', '/products/future-system']) {
+    assert.equal(isBlockedOnTenantHost(path), true, path);
+    assert.equal(isBlockedOnOperatorHost(path), true, path);
+    assert.equal(isAllowedOnAppHost(path), false, path);
+  }
+  // Prefix matching must not swallow an unrelated operational route.
+  assert.equal(isBlockedOnTenantHost('/products-report'), false);
+  assert.equal(isBlockedOnOperatorHost('/products-report'), false);
+});

@@ -30,14 +30,14 @@ export default function Footer({
             {serviceDescription}
           </p>
           <p style={{ fontSize: '.72rem', color: '#7D899C', marginTop: '.5rem' }}>
-            Apropos Group LLC d/b/a Stellar Unified Communications
+            Operated by APROPOS GROUP LLC
           </p>
         </div>
 
         <div>
           <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: '#C8A96B', marginBottom: '.8rem' }}>Company</div>
           {[
-            { href: '/about', label: 'About Stellar UC' },
+            { href: '/about', label: 'About Stellar Intelligent Technologies' },
             { href: 'https://aproposgroupllc.com', label: 'Apropos Group LLC' },
           ].map(({ href, label }) => (
             <div key={href} style={{ marginBottom: '.4rem' }}>
@@ -69,7 +69,7 @@ export default function Footer({
 
       <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '.5rem' }}>
         <span style={{ fontSize: '.72rem', color: '#7D899C' }}>
-          © 2026 Apropos Group LLC d/b/a Stellar Unified Communications
+          © 2026 APROPOS GROUP LLC
         </span>
       </div>
     </footer>

@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
     if (referer) {
       try {
         const source = new URL(referer);
-        enteredFromHomepage = source.origin === request.nextUrl.origin && source.pathname === '/';
+        enteredFromHomepage = source.origin === request.nextUrl.origin && (source.pathname === '/' || source.pathname === '/products/sales-service-system');
       } catch {
         enteredFromHomepage = false;
       }
