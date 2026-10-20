@@ -1,0 +1,177 @@
+{
+  "scope": "REAL_BROWSER_EXPIRY_AND_INDEPENDENT_SQL",
+  "result": "PASS",
+  "project": "hvzauakkhlivzeqatfqm",
+  "tenant": "5885a020-d363-4c27-910a-c035eda132f5",
+  "deployId": "6ad747abc3fe26d78bc9f2b6",
+  "deployedCommit": "ec9f9a0edf3cf9f73a72dd193641b21d33abe7c4",
+  "browser": {
+    "scope": "GATEWAY_BROWSER_OBSERVATIONS_ONLY",
+    "fixture": {
+      "runId": "gateway-9ffaf9e8-3d29-4e2e-a657-4bd1642c6d4f",
+      "operationId": "gateway:dd7b6c87-ae99-443c-9bf2-482eae7d3f9f",
+      "session": "phone-staging:CAe7967357ad474f769e1eb4b083e11059",
+      "email": "gateway-9ffaf9e8-3d29-4e2e-a657-4bd1642c6d4f@example.invalid",
+      "intake": {
+        "name": "Fictional staging customer",
+        "email": "gateway-9ffaf9e8-3d29-4e2e-a657-4bd1642c6d4f@example.invalid",
+        "phone": "",
+        "product": "Synthetic staging router",
+        "purchaseDate": "2026-10-01",
+        "issue": "Fictional staging gateway acceptance; no real customer or notification.",
+        "steps": "gateway-9ffaf9e8-3d29-4e2e-a657-4bd1642c6d4f",
+        "impact": "No real business affected",
+        "priority": "NORMAL"
+      },
+      "expiresAt": "2026-10-20T11:07:40.000Z"
+    },
+    "checks": [
+      {
+        "test": "G03 real capability expiry",
+        "result": "EXPIRED_CAPABILITY_REJECTED",
+        "status": 403,
+        "expiresAt": "2026-10-20T11:07:40.000Z",
+        "observedAt": "2026-10-20T11:07:55.710Z",
+        "ticketSubmissionAttempted": false
+      }
+    ],
+    "databaseVerified": false,
+    "cleanupVerified": false,
+    "pending": [
+      "G02 foreign/inactive real user",
+      "G03 real capability expiry",
+      "G04 two-process first-submit race",
+      "G05 committed interruption recovery",
+      "G06 invalid persisted association",
+      "G07 independent database evidence and cleanup"
+    ]
+  },
+  "baseline": [
+    {
+      "name": "cases",
+      "count": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "name": "contacts",
+      "count": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "name": "workflows",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "events",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "receipts",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "effects",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "final": [
+    {
+      "name": "cases",
+      "count": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "name": "contacts",
+      "count": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "name": "workflows",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "events",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "receipts",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "effects",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "securityBefore": [
+    {
+      "security_fingerprint": "7d7d57fadb6ad09162e3b6c37baa1a31"
+    }
+  ],
+  "securityAfter": [
+    {
+      "security_fingerprint": "7d7d57fadb6ad09162e3b6c37baa1a31"
+    }
+  ],
+  "verification": {
+    "sameRows": true,
+    "sameSecurity": true,
+    "final": [
+      {
+        "name": "cases",
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      {
+        "name": "contacts",
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      {
+        "name": "workflows",
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "name": "events",
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "name": "receipts",
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      {
+        "name": "effects",
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    ],
+    "security": [
+      {
+        "security_fingerprint": "7d7d57fadb6ad09162e3b6c37baa1a31"
+      }
+    ]
+  },
+  "ticketSubmissionAttempted": false,
+  "fixtureCleanup": "NO_DATABASE_FIXTURE_CREATED",
+  "sql": {
+    "snapshot": "select 'cases' name,count(*)::int count,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by id),'')) fingerprint from public.stellar_support_cases t union all select 'contacts',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by id),'')) from public.ai4cc_contacts t union all select 'workflows',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by workflow_id),'')) from public.stellar_orchestrator_workflows_staging t union all select 'events',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_orchestrator_events_staging t union all select 'receipts',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_dispatch_receipts_staging t union all select 'effects',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_dispatch_effects_staging t;",
+    "security": "select md5(jsonb_build_object('tables',(select jsonb_agg(to_jsonb(x) order by relname) from(select relname,relrowsecurity,relacl::text from pg_class where relnamespace='public'::regnamespace and relname in('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging'))x),'functions',(select jsonb_agg(to_jsonb(x) order by proname) from(select proname,md5(prosrc) body_hash,prosecdef,proconfig,proacl::text from pg_proc where pronamespace='public'::regnamespace and proname in('stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_orch_lookup_staging'))x),'policies',(select jsonb_agg(to_jsonb(x) order by tablename,policyname) from(select tablename,policyname,roles::text,cmd,qual,with_check from pg_policies where schemaname='public' and tablename in('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging'))x))::text) security_fingerprint;"
+  },
+  "remaining": [
+    "G02 real foreign/inactive user",
+    "G04 two-process first-submit race",
+    "G05 gateway committed process interruption/restart",
+    "G06 invalid persisted association through HTTP"
+  ],
+  "note": "Browser pending list is a static harness checklist; coordinator closes real expiry and independent SQL verification using actual observations above. No shortened TTL or forged token."
+}
