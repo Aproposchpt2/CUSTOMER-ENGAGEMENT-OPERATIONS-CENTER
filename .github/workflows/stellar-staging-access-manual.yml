@@ -33,6 +33,12 @@ on:
         required: true
         default: false
 
+      headless:
+        description: 'Execute authorized I01-I07 headless orchestration integration and cleanup'
+        type: boolean
+        required: true
+        default: false
+
 permissions:
   contents: read
 
@@ -55,7 +61,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Reviewed staging test revision; do not execute arbitrary branch contents with secrets.
-          ref: 432422e3835c7f1a7ab701989ef430a5d0ab459f
+          ref: 46c82b6efecc844bbac426e46c6f4e3f5e815a6c
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -67,7 +73,7 @@ jobs:
       - name: Validate acceptance evidence guards without secrets
         run: node --test c1-r1-acceptance.test.cjs
       - name: Validate dispatcher and acceptance safety guards without secrets
-        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs dispatcher-collision-acceptance.test.cjs dispatcher-network-acceptance.test.cjs dispatcher-terminal-acceptance.test.cjs
+        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs dispatcher-collision-acceptance.test.cjs dispatcher-network-acceptance.test.cjs dispatcher-terminal-acceptance.test.cjs support-orchestration-integration.staging.test.cjs headless-integration-acceptance.test.cjs
       - name: Independent PostgreSQL client check (read only)
         env:
           STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
@@ -201,6 +207,17 @@ jobs:
           STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
         run: node dispatcher-terminal-acceptance.cjs
+      - name: I01-I07 headless staging orchestration integration
+        if: inputs.headless == true
+        env:
+          STAGING_HEADLESS_INTEGRATION_AUTHORIZED: I01_I07
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node headless-integration-acceptance.cjs
       - name: Retain only redacted access evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -214,5 +231,6 @@ jobs:
             twilio-bridge/tests/staging-runner/dispatcher-collision-evidence.json
             twilio-bridge/tests/staging-runner/dispatcher-network-evidence.json
             twilio-bridge/tests/staging-runner/dispatcher-terminal-evidence.json
+            twilio-bridge/tests/staging-runner/headless-integration-evidence.json
           if-no-files-found: ignore
           retention-days: 7
