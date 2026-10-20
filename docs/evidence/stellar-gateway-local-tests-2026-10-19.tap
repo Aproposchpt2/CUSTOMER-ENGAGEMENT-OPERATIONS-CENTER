@@ -1,0 +1,160 @@
+TAP version 13
+# Subtest: feature flags and exact staging target fail closed
+ok 1 - feature flags and exact staging target fail closed
+  ---
+  duration_ms: 8.934724
+  type: 'test'
+  ...
+# Subtest: strict route, origin and method are rejected before upstream calls
+ok 2 - strict route, origin and method are rejected before upstream calls
+  ---
+  duration_ms: 2.348467
+  type: 'test'
+  ...
+# Subtest: begin verifies remote user and active admin membership but performs no RPC
+ok 3 - begin verifies remote user and active admin membership but performs no RPC
+  ---
+  duration_ms: 11.52855
+  type: 'test'
+  ...
+# Subtest: missing, invalid and anonymous sessions cannot get a capability
+ok 4 - missing, invalid and anonymous sessions cannot get a capability
+  ---
+  duration_ms: 2.421863
+  type: 'test'
+  ...
+# Subtest: untrusted user metadata does not grant role, tenant or active membership
+ok 5 - untrusted user metadata does not grant role, tenant or active membership
+  ---
+  duration_ms: 2.999613
+  type: 'test'
+  ...
+# Subtest: membership is checked afresh on each submit
+ok 6 - membership is checked afresh on each submit
+  ---
+  duration_ms: 2.14337
+  type: 'test'
+  ...
+# Subtest: capability cannot be used by a different authenticated user
+ok 7 - capability cannot be used by a different authenticated user
+  ---
+  duration_ms: 2.443128
+  type: 'test'
+  ...
+# Subtest: tampered and expired capabilities fail without database RPC
+ok 8 - tampered and expired capabilities fail without database RPC
+  ---
+  duration_ms: 3.790823
+  type: 'test'
+  ...
+# Subtest: body cannot supply tenant, session, operation, case or authorization flags
+ok 9 - body cannot supply tenant, session, operation, case or authorization flags
+  ---
+  duration_ms: 5.855746
+  type: 'test'
+  ...
+# Subtest: explicit confirmation and valid intake are required before ticket RPC
+ok 10 - explicit confirmation and valid intake are required before ticket RPC
+  ---
+  duration_ms: 2.909211
+  type: 'test'
+  ...
+# Subtest: capability binds confirmed intake; changed valid data is rejected without a write
+ok 11 - capability binds confirmed intake; changed valid data is rejected without a write
+  ---
+  duration_ms: 1.448007
+  type: 'test'
+  ...
+# Subtest: bounded body reader rejects oversized, malformed and non-JSON requests
+ok 12 - bounded body reader rejects oversized, malformed and non-JSON requests
+  ---
+  duration_ms: 1.101762
+  type: 'test'
+  ...
+# Subtest: verified success is whitelisted, private and does not assert delivery
+ok 13 - verified success is whitelisted, private and does not assert delivery
+  ---
+  duration_ms: 6.337522
+  type: 'test'
+  ...
+# Subtest: duplicate submit and status recover the original operation without new write
+ok 14 - duplicate submit and status recover the original operation without new write
+  ---
+  duration_ms: 3.897618
+  type: 'test'
+  ...
+# Subtest: two overlapping same-instance submits coalesce and preserve one write
+ok 15 - two overlapping same-instance submits coalesce and preserve one write
+  ---
+  duration_ms: 17.000052
+  type: 'test'
+  ...
+# Subtest: invalid duplicate intake cannot bypass validation through in-flight coalescing
+ok 16 - invalid duplicate intake cannot bypass validation through in-flight coalescing
+  ---
+  duration_ms: 5.06942
+  type: 'test'
+  ...
+# Subtest: separate gateway instances reuse signed capability after restart
+ok 17 - separate gateway instances reuse signed capability after restart
+  ---
+  duration_ms: 5.414826
+  type: 'test'
+  ...
+# Subtest: credential rotation rejects old capability without using another key
+ok 18 - credential rotation rejects old capability without using another key
+  ---
+  duration_ms: 2.169625
+  type: 'test'
+  ...
+# Subtest: lost completion response resolves through canonical lookup
+ok 19 - lost completion response resolves through canonical lookup
+  ---
+  duration_ms: 4.548581
+  type: 'test'
+  ...
+# Subtest: uncertain case failure stays UNKNOWN and never retries ticket submission
+ok 20 - uncertain case failure stays UNKNOWN and never retries ticket submission
+  ---
+  duration_ms: 6.55159
+  type: 'test'
+  ...
+# Subtest: ACCEPTED workflow from interrupted start does not trigger automatic write
+ok 21 - ACCEPTED workflow from interrupted start does not trigger automatic write
+  ---
+  duration_ms: 2.469727
+  type: 'test'
+  ...
+# Subtest: foreign canonical session cannot become a verified gateway ticket
+ok 22 - foreign canonical session cannot become a verified gateway ticket
+  ---
+  duration_ms: 3.785888
+  type: 'test'
+  ...
+# Subtest: upstream deadlines are bounded and do not expose raw error details
+ok 23 - upstream deadlines are bounded and do not expose raw error details
+  ---
+  duration_ms: 31.644567
+  type: 'test'
+  ...
+# Subtest: timeout after write begins returns UNKNOWN; fresh status recovers original case
+ok 24 - timeout after write begins returns UNKNOWN; fresh status recovers original case
+  ---
+  duration_ms: 33.869031
+  type: 'test'
+  ...
+# Subtest: request abort before authentication performs no upstream operation
+ok 25 - request abort before authentication performs no upstream operation
+  ---
+  duration_ms: 3.986852
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 299.631343
