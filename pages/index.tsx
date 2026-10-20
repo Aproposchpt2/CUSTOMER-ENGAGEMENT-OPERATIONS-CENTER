@@ -41,7 +41,7 @@ export default function HomePage() {
       document.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Escape' && d!.classList.contains('open')) toggle(false);
         if (e.key === 'Tab' && d!.classList.contains('open')) {
-          const f = [...d!.querySelectorAll<HTMLElement>('button,a[href]')];
+          const f = Array.from(d!.querySelectorAll<HTMLElement>('button,a[href]'));
           if (e.shiftKey && document.activeElement === f[0]) {
             e.preventDefault(); f[f.length - 1].focus();
           } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) {
@@ -81,7 +81,7 @@ export default function HomePage() {
         operations: { label: '03 / OPERATIONAL CONTINUITY', title: 'From conversation to coordinated action.', desc: 'Connect incoming requests, approved workflows and human follow-up so important customer work does not disappear between systems.', lines: [['01 / RECEIVE', 'Customer request enters the operation'], ['02 / CLASSIFY', 'Identify the appropriate service workflow'], ['03 / COORDINATE', 'Prepare task and relevant context'], ['04 / FOLLOW UP', 'Route the next step to the responsible team']] },
         cost: { label: '04 / EFFICIENT COST STRUCTURES', title: 'A more intentional use of resources.', desc: 'Explore how reallocating recurring work may reduce avoidable overhead while maintaining human oversight and service quality.', lines: [['IDENTIFY', 'Map high-volume recurring work'], ['REASSIGN', 'Use intelligent systems for approved tasks'], ['REFOCUS', 'Reserve staff time for higher-value work'], ['EVALUATE', 'Review actual usage, service quality and costs']] },
       };
-      const tabs = [...document.querySelectorAll<HTMLButtonElement>('.showcase-tab')];
+      const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.showcase-tab'));
       const display = document.getElementById('capDisplay');
       if (!tabs.length || !display) return;
       let current = 'response';
@@ -95,7 +95,7 @@ export default function HomePage() {
         const ct = el('capTitle'); if (ct) ct.textContent = d.title;
         const cd = el('capDesc'); if (cd) cd.textContent = d.desc;
         const cc = el('capCounter'); if (cc) cc.textContent = String(keys.indexOf(key) + 1).padStart(2, '0') + ' — 04';
-        display.replaceChildren(...d.lines.map(([k, v]) => {
+        display!.replaceChildren(...d.lines.map(([k, v]) => {
           const node = document.createElement('div'); node.className = 'demo-line';
           const a = document.createElement('span'); a.className = 'demo-kicker'; a.textContent = k;
           const b = document.createElement('div'); b.className = 'demo-copy'; b.textContent = v;
