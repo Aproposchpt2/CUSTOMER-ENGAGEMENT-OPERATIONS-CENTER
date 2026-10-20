@@ -1,8 +1,9 @@
 import { trackPublicEvent } from '@/lib/publicAnalytics';
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import MarketingLayout from '@/components/MarketingLayout';
+import BrandSignature from '@/components/BrandSignature';
+
 import { CALL_RECORDING_NOTICE } from '@/lib/legal';
 
 const PHONE_DISPLAY = '(725) 330-5102';
@@ -49,9 +50,10 @@ export default function DemoPage() {
 
   return <>
     
-    <Header />
-    <main className="page">
+    <MarketingLayout>
+    <div className="page">
       <section className="intro">
+        <BrandSignature/>
         <div className="eyebrow">LIVE DEMO</div>
         <h1>Don&apos;t take our word for it. Call it.</h1>
         <p>This is a real, production system — not a sandbox, not a recording. Three steps, no signup.</p>
@@ -117,7 +119,7 @@ export default function DemoPage() {
       <section className="closing">
         <Link href="/acquisition" className="ghostCta">← Back to the buyer walkthrough</Link>
       </section>
-    </main>
+    </div>
 
     <div className={`drawerBackdrop ${drawerOpen ? 'open' : ''}`} onClick={() => setDrawerOpen(false)} aria-hidden={!drawerOpen} />
     <aside className={`demoDrawer ${drawerOpen ? 'open' : ''}`} aria-hidden={!drawerOpen} aria-label="Live demo instructions">
@@ -153,7 +155,7 @@ export default function DemoPage() {
       </div>
     </aside>
 
-    <Footer />
+    </MarketingLayout>
     <style jsx>{`
       :global(*){box-sizing:border-box}
       :global(body){margin:0;background:#06111f}

@@ -3,8 +3,9 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useMemo, useState, type FormEvent } from 'react';
 import { SMS_CONSENT_TEXT } from '@/lib/legal';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import MarketingLayout from '@/components/MarketingLayout';
+import BrandSignature from '@/components/BrandSignature';
+
 
 // Minimum-friction public intake: four required fields only, no qualification questions.
 // Qualification happens after capture, in the private Sales Service assessment.
@@ -51,17 +52,18 @@ export default function IntakePage() {
   return (
     <>
       <Head>
-        <title>Get Started — Intelligent Customer Engagement Operation Center</title>
+        <title>Request a Consultation | STELLAR INTELLIGENT TECHNOLOGIES</title>
         <meta name="description" content="Tell us how to reach you." />
       </Head>
-      <Header />
-      <main className="page">
+      <MarketingLayout>
+      <div className="page">
+      <BrandSignature/>
         <section className="card">
           {submitted ? (
             <div className="success">
               <div className="eyebrow">THANK YOU</div>
               <h1>We&apos;ve received your information.</h1>
-              <p>Your Sales Service consultation request has been received. Select an available appointment time using our Google Calendar link.</p>
+              <p>Your consultation request has been received. Select an available appointment time using our Google Calendar link.</p>
               <a className="bookingLink" href="https://calendar.app.google/DNAMvEyWbg2jfxaN8" target="_blank" rel="noopener noreferrer">Schedule Your Google Meet Consultation →</a>
               <p className="bookingNote">Your appointment is not confirmed until you complete the Google Calendar booking.</p>
             </div>
@@ -98,8 +100,8 @@ export default function IntakePage() {
             </>
           )}
         </section>
-      </main>
-      <Footer />
+      </div>
+      </MarketingLayout>
       <style jsx>{`
         :global(body){margin:0;background:#06111f}
         .page{min-height:70vh;color:#eef8ff;background:radial-gradient(circle at 80% 5%,rgba(53,178,235,.14),transparent 32%),linear-gradient(155deg,#06111f,#071827 55%,#06111f);display:grid;place-items:center;padding:70px 20px}

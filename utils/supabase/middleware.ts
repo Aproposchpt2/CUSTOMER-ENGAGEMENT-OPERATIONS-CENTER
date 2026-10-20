@@ -9,7 +9,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 // Public marketing/sale surface — buyer-facing pages meant to be seen without a login.
-const PUBLIC_PATHS = new Set(['/', '/login', '/web-chat', '/acquisition', '/demo', '/partners', '/intake', '/about', '/platform', '/privacy', '/terms', '/sms-terms', '/business-estimate', '/robots.txt', '/sitemap.xml', '/llms.txt', '/google23838fcccce365eb.html']);
+const PUBLIC_PATHS = new Set(['/', '/products', '/login', '/web-chat', '/acquisition', '/demo', '/partners', '/intake', '/about', '/platform', '/privacy', '/terms', '/sms-terms', '/business-estimate', '/robots.txt', '/sitemap.xml', '/llms.txt', '/google23838fcccce365eb.html']);
 // /api/intake/ authenticates itself with a per-tenant `x-ai4cc-intake-key` header that also selects
 // the tenant (see pages/api/intake/webhook.ts) — called machine-to-machine by ElevenLabs, which
 // can't carry a Supabase session cookie.
@@ -20,7 +20,7 @@ const PUBLIC_PATHS = new Set(['/', '/login', '/web-chat', '/acquisition', '/demo
 // /platform/ holds the public capability detail pages linked from the homepage.
 // /live/ holds public read-only mirrors of real CRM data (see pages/live/*), backed only
 // by /api/public/* endpoints — never the authenticated admin API routes.
-const PUBLIC_PREFIXES = ['/api/chat/', '/api/intake/', '/api/sms/', '/api/public/', '/platform/', '/live/'];
+const PUBLIC_PREFIXES = ['/products/', '/api/chat/', '/api/intake/', '/api/sms/', '/api/public/', '/platform/', '/live/'];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
