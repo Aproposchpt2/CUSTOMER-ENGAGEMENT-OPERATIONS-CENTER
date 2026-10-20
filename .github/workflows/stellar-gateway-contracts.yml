@@ -37,4 +37,4 @@ jobs:
         run: npm ci --ignore-scripts --no-fund --no-audit
       - name: Process runner safety checks without staging execution
         working-directory: twilio-bridge/tests/staging-runner
-        run: node --test gateway-process-acceptance.test.cjs
+        run: node --test gateway-process-acceptance.test.cjs gateway-auth-fixture-acceptance.test.cjs
