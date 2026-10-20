@@ -66,7 +66,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   const bridgeWsUrl = process.env.TWILIO_BRIDGE_WS_URL;
-  const hmacSecret = process.env.BRIDGE_HMAC_SECRET;
+  const isStaging = typeof bridgeWsUrl === 'string' && bridgeWsUrl.includes('railway');
+  const hmacSecret = (isStaging && process.env.BRIDGE_HMAC_SECRET_STAGING) || process.env.BRIDGE_HMAC_SECRET;
 
   if (!bridgeWsUrl || !hmacSecret) {
     const msg = profile === 'sales'
