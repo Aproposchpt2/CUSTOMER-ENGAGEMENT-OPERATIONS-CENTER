@@ -41,7 +41,7 @@ SELECT * FROM public.stellar_create_phone_support_test_intake(
 );
 RESET ROLE;
 ```
-$1=fixed approved tenant;$2=DIFFERENT case session;$3..$11=validated fictional intake. Require exactly one result,created_new=true,valid case/customer UUIDs. Inspect real RPC signature before binding; the date cast must match its current signature. Query exact case/contact metadata before progressing. No retry after an uncertain write/COMMIT.
+$1=fixed approved tenant;$2=DIFFERENT case session;$3..$11=validated fictional intake. Require exactly one result,created_new=true,valid case/customer UUIDs. Read-only catalog inspection confirmed the current signature: uuid,text,text,text,text,text,date,text,text,text,text; the date cast above matches. Reverify before execution if the function changes. Query exact case/contact metadata before progressing. No retry after an uncertain write/COMMIT.
 
 Existing-admin INSERT:
 ```sql
@@ -61,7 +61,7 @@ Before COMMIT,verify:
 Then COMMIT once; independently inspect from a fresh connection. On any blocked control,ROLLBACK where possible and report BLOCKED. No disabling constraints/RLS/triggers/authentication.
 
 ## Actual HTTP test
-Within the unchanged900-second capability expiry, use the existing protected browser status/recovery action. Existing Netlify SSO and application authentication must remain in force. No deployment or new public endpoint.
+Within the unchanged900-second capability expiry, use the existing protected browser status/recovery action. Read-only source inspection at deployed commitec9f9a0edf3cf9f73a72dd193641b21d33abe7c4 confirms Check original operation is available after Prepare and does not require Submit. Existing Netlify SSO and application authentication must remain in force. No deployment or new public endpoint.
 - Invoke STATUS only through /api/staging-orchestration/status with original signed capability held in browser.
 - Expected current behavior: HTTP202,success=false,state=UNKNOWN,no caseId/customerId/ticket number,notificationSent=false,technicianFollowupConfirmed=false. No raw SQL error or unrelated record disclosure.
 - Confirm real upstream lookup rejected COMPLETED_ASSOCIATION_INVALID using an independently scoped read-only/savepoint SQL call if needed. Do not invent a visible error code if gateway intentionally returns sanitized UNKNOWN.
