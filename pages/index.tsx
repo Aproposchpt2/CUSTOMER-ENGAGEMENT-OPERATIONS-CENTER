@@ -147,22 +147,12 @@ export default function HomePage() {
           <div className="heroInner">
             <div className="heroIdentity">
               <div className="heroCompany">STELLAR INTELLIGENT TECHNOLOGIES</div>
+              <div className="heroBrandLine">INNOVATIVE BUSINESS SYSTEM SOLUTIONS</div>
               <div className="heroOperator">Operated by Apropos Group LLC</div>
             </div>
-            <div className="overline">THE FUTURE OF BUSINESS · REDEFINING THE WORK</div>
-            <h1>TECHNOLOGY HANDLES THE PREDICTABLE.<br /><em>STAFF HANDLE THE EXCEPTIONAL.</em></h1>
-            <p className="heroLead">Human intelligence and intelligent technology are beginning to work together in a different way.</p>
-            <p className="heroCopy">The opportunity is not simply to automate more. It is to reconsider how work gets done—allowing intelligent systems to support recurring responsibilities while employees focus on judgment, relationships, creativity, and business growth.</p>
             <div className="actions">
               <a className="primary" href="#why">Understand the Shift <span>↘</span></a>
               <a className="secondary" href="#products">Explore the Three Systems <span>→</span></a>
-            </div>
-            <div className="heroFoot">
-              <span>PEOPLE</span>
-              <span className="goldPlus">+</span>
-              <span>INTELLIGENT SYSTEMS</span>
-              <span className="goldPlus">=</span>
-              <span>A MORE RESPONSIVE OPERATION</span>
             </div>
           </div>
         </section>
