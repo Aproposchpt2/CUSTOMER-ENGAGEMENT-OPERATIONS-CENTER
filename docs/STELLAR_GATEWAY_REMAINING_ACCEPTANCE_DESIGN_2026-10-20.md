@@ -1,0 +1,28 @@
+# STELLAR INTELLIGENT TECHNOLOGIES — Remaining gateway acceptance design
+Operated by Apropos Group LLC
+
+October 20, 2026. Isolated staging only. PR #77 remains draft/unmerged. Production NO-GO.
+
+## What is running now
+Real unchanged 900-second capability expiry, private preview deploy 6ad747abc3fe26d78bc9f2b6, source ec9f9a0edf3cf9f73a72dd193641b21d33abe7c4. Capability issued without ticket submission; expires 2026-10-20T11:07:40Z. Check no earlier than 11:07:42Z. Operation gateway:dd7b6c87-ae99-443c-9bf2-482eae7d3f9f; original session phone-staging:CAe7967357ad474f769e1eb4b083e11059. No token is in this document or downloaded evidence. Before expiry no support-case/write RPC has been invoked for this operation. Expected after expiry: status HTTP403 OPERATION_NOT_AUTHORIZED, no verified case/customer/success, unchanged database snapshots. Actual result must be recorded separately; not yet PASS.
+
+## G02 — Real foreign/inactive identity
+Prerequisite: owner identifies an existing, controlled staging test identity and supplies its login only through secure sign-in. Verify it has no active OWNER/ADMIN membership for staging tenant 5885a020-d363-4c27-910a-c035eda132f5. Use a separate authenticated browser context/session to avoid replacing the owner's session. Attempt begin/status/submit with no foreign record disclosure, capture HTTP401/403 and unchanged six-table snapshot. Do not fabricate JWTs, alter the owner's membership, create accounts, add role grants, or disable RLS. Current owner success and mocked negative unit tests do not close G02. BLOCKED until an authorized controlled identity/session mechanism exists.
+
+## G04/G05 — Two processes and committed restart
+Use two distinct OS processes of the actual createStagingGateway module with fresh database connections and the unchanged service integration. Keep existing staging database credentials inside the protected GitHub environment. Authentication must be real against staging Auth; a dedicated controlled identity is required. Never export cookies, bearer values or signing keys from the owner's browser. A mocked authentication request adapter would validate only a narrower process/integration boundary and cannot be reported as full gateway acceptance.
+
+Concurrency sequence: issue exactly one capability, retain it only in process memory, register sanitized manifest before any write, launch workers A/B behind a parent barrier, release simultaneously and record distinct process IDs, connection IDs, timestamps, RPC correlation, original operation/session/case IDs, and per-worker results. No uncertain initial-submit retry. One response may be UNKNOWN while the other commits; fresh status must verify original case. Assert exactly one case and one COMPLETED event with original tenant/session. Capture no-case concurrency separately with read-only recovery, never ticket creation.
+
+Restart sequence: worker A issues the approved single submit; a local parent-controlled test adapter pauses only after the real case RPC COMMIT and before reconciliation. Persist sanitized manifest and RPC trace, independently confirm RUNNING plus exactly one original test-only case, SIGKILL A, then launch worker B with a fresh connection. B invokes status/recover only, never submit/create-case. Verify COMPLETED with exact original case and one completion event. Repeat recovery; count case-write invocations remains one. Record process exit signal, IDs and SQL timestamps. This control must live solely in the test adapter, never in the production or approved voice bridge.
+
+Do not silently add a new credentialed workflow, broaden permissions, copy Netlify/Railway secrets, create auth accounts, expose test process-control endpoints, provision infrastructure, or claim multiple browser requests prove separate server processes. Prepare exact runnable harness and reviewed immutable commit before owner approval of any new credential/identity mechanism. Current protected runner has database credentials but no reviewed real-user gateway authentication mechanism.
+
+## G06 — Invalid persisted association through HTTP
+Existing rollback-only SQL negative fixture cannot be seen by another HTTP connection. Committing a deliberately invalid completed association would require a separately approved, tightly scoped committed negative-fixture mechanism with deterministic cleanup and dispatcher isolation. Do not disable checks or reuse another tenant's records. Existing V5 SQL rejection evidence remains valid but does not establish a new real-HTTP gateway fixture. Mark BLOCKED until that mechanism is reviewed/authorized.
+
+## Cleanup and acceptance
+Before and after every committed fixture batch: six-table row counts/fingerprints, RLS/policies/ACLs/function body hashes. Register manifest before first write, quiesce all workers, verify exact test-only contact/case/workflow associations, remove only manifest-bound events/workflows/cases/contacts and any known test-only receipts/effects, and verify from an independent connection. Stop on ambiguous write or cleanup control failure. Preserve notifications-disabled metadata. No voice, telephone, Railway, production or PR merge changes.
+
+## CI correction
+Secret-free gateway CI incorrectly filtered pull requests to main only. Updated it to include PR77's actual repair/restore-approved-support-20261017 base. Commit f7fc50e3226bfa927e21250249fb36dabfb01ce0. Actual GitHub contracts check succeeded in run39410988768, job118588411567; gateway-contract also succeeded in run39410988716, job118588411608. Local suite46/46 PASS includes three expiry-harness guard tests; these unit tests do not substitute for the real clock expiry check.
