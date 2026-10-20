@@ -40,3 +40,12 @@ Approval requested specifically covers creating/removing these two temporary sta
 - No model,voice,greeting,persona,instructions or live telephone tests.
 
 Owner confirms sole business tenancy is DEVELOPMENT AND TESTING and there are no external clients. Primary WorkAgent active; fallback standby until platform/chat termination. Approved agent unchanged.
+
+## October 20 session-resume implementation and protected run
+Owner continued the proposed temporary-fixture assignment. Bootstrap implemented in gateway-auth-fixture-acceptance.cjs with six guard tests. Reviewed immutable source 2126a003942cd2b3e128ed1000632563dd136942. Local gateway suite 59/59 PASS. Actual GitHub contracts run39448709773/job118717443564 and gateway-contract run39448709413 succeeded. These are contract checks, not live process acceptance.
+
+Manual workflow revision3ec81a5eb3e01fe1979486811d8118159381770a adds a gateway_process-only job using existing protected environment stellar-staging-access; no deployment step. Existing public publishable key obtained using Supabase public-key-only connector; private secrets stay in protected environment. Auth bootstrap verifies exact random marker and identity, membership, session revocation, remote denial after deletion, Auth/application fingerprints and permissions. Audit records intentionally retained. Timed-out process groups are killed and cannot be reported PASS; uncertain application cleanup remains review-blocked.
+
+Queued concrete manual run #11: https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39448935596 . gateway-process job118718246620 is WAITING for the existing owner environment review; read-only-access job is skipped. No temporary accounts or new test fixtures created, and G02/G04/G05 remain unexecuted. Fresh SQL:20 cases,13 contacts,0 workflows/events/receipts/effects,0 synthetic gateway Auth users. No cleanup needed for this queued run yet. Owner must select stellar-staging-access and approve the pending protected job. GitHub labels this Approve and deploy, but this job executes tests only. Do not approve from the owner's browser on their behalf.
+
+G06 committed invalid-association gateway test remains separately pending. Production NO-GO; PR77 unmerged; approved Support Specialist and all production/routing/Railway controls preserved.
