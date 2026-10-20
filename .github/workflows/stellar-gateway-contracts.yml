@@ -25,10 +25,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      # No secrets, package installation, database connection or deployment.
+      # No secrets, database connection or deployment. Install only pinned test dependencies.
       - name: Gateway, Node HTTP adapter and browser harness contracts
         run: >-
           node --test
           twilio-bridge/tests/staging-runner/authenticated-support-gateway.staging.test.cjs
           twilio-bridge/tests/staging-runner/staging-gateway-node-adapter.test.cjs
           twilio-bridge/tests/staging-runner/gateway-browser-acceptance.staging.test.cjs
+      - name: Install pinned process test dependencies without secrets
+        working-directory: twilio-bridge/tests/staging-runner
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Process runner safety checks without staging execution
+        working-directory: twilio-bridge/tests/staging-runner
+        run: node --test gateway-process-acceptance.test.cjs
