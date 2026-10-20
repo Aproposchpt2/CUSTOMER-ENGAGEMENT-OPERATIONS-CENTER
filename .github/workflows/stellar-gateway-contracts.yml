@@ -2,7 +2,7 @@ name: Stellar staging gateway contracts
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, repair/restore-approved-support-20261017]
     paths:
       - 'pages/api/staging-orchestration/**'
       - 'pages/experimental-staging-orchestration-test.tsx'
