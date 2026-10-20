@@ -211,7 +211,7 @@ export default function Home() {
         <section className="contrastSection" id="model">
           <div className="contrastInner">
             <span className="eyebrow">02 · A NEW MODEL FOR WORK</span>
-            <h2>It isn&apos;t about replacing people. <em>It&apos;s about redefining responsibilities.</em></h2>
+            <h2>It isn&apos;t about replacing people. <em className="stellar-branded-display">It&apos;s about redefining responsibilities.</em></h2>
             <div className="quoteRule"></div>
             <p>The most valuable contribution of intelligent technology is not imitation of the human workforce. It is handling defined, repeatable activities so people can concentrate on what requires human understanding.</p>
             <div className="modelGrid">
