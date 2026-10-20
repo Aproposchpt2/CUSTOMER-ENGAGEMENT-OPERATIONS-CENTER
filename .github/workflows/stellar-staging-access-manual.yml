@@ -45,6 +45,12 @@ on:
         required: true
         default: false
 
+      connection_review:
+        description: 'Read-only observer role and TLS diagnostics; no fixtures or acceptance'
+        type: boolean
+        required: true
+        default: false
+
 permissions:
   contents: read
 
@@ -54,7 +60,7 @@ concurrency:
 
 jobs:
   read-only-access:
-    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process != true
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process != true && inputs.connection_review != true
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Owner must configure this protected environment before any credentialed run.
@@ -242,7 +248,7 @@ jobs:
           retention-days: 7
 
   gateway-process:
-    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process == true
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process == true && inputs.connection_review != true
     runs-on: ubuntu-latest
     timeout-minutes: 8
     environment: stellar-staging-access
@@ -281,5 +287,44 @@ jobs:
           path: |
             twilio-bridge/tests/staging-runner/gateway-auth-fixture-evidence.json
             twilio-bridge/tests/staging-runner/gateway-process-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  connection-review:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.connection_review == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b2b3ef9483db3cf395d6784a77e054c46452e5a9
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned diagnostic dependencies without credentials
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Validate read-only diagnostic classification
+        run: node --test gateway-connection-review.test.cjs
+      - name: Read-only role and verified client TLS observations
+        env:
+          STAGING_CONNECTION_REVIEW_AUTHORIZED: READ_ONLY
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node gateway-connection-review.cjs
+      - name: Retain read-only metadata evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-gateway-connection-review
+          path: twilio-bridge/tests/staging-runner/gateway-connection-review-evidence.json
           if-no-files-found: ignore
           retention-days: 7
