@@ -1,0 +1,85 @@
+{
+  "report": "G06 Fixture Cleanup — Final Verification Report",
+  "date": "2026-10-20",
+  "scenario": "G06 — invalid persisted association: workflow COMPLETED with wrong case/contact; stellar_orch_lookup_staging returns COMPLETED_ASSOCIATION_INVALID",
+  "branch": "feature/staging-orchestrator-trigger-gateway",
+  "project": "hvzauakkhlivzeqatfqm (STELLAR-UCAAS-STAGING)",
+  "pr": "77 (draft, unmerged, must remain unmerged)",
+
+  "fixture": {
+    "workflow_id": "b27e2890-a06a-4e7a-af15-900052661cd4",
+    "case_id": "9a82b21f-b772-4ad0-abae-2520bdefb4d2",
+    "contact_id": "3ea6bc8a-d660-49c0-b349-186cf6d6ae1b",
+    "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5"
+  },
+
+  "script1_fixture_check": {
+    "status": "PASS",
+    "description": "Pre-cleanup fingerprint verification — all three row hashes matched expected values exactly",
+    "workflow_hash": "493cb2483df02e9100585df809e73b34",
+    "case_hash": "0ccc8e765e4a81f6ca52d89acc563a7b",
+    "contact_hash": "afce6b92eb106fe9106bb9f27f11e017",
+    "events_count": 0
+  },
+
+  "script2_guarded_cleanup": {
+    "status": "PASS",
+    "result": "EXACT_WORKFLOW_CASE_CONTACT_REMOVED",
+    "cleanup_observed_at": "2026-10-20T21:44:24.076599+00:00",
+    "description": "Single guarded transaction with count pre-checks, fingerprint assertions, exact-ID DELETE predicates, ROW_COUNT guards, and post-delete fingerprint re-verification before COMMIT"
+  },
+
+  "script3_baseline": {
+    "status": "PASS",
+    "description": "Post-cleanup row counts and full-table fingerprints",
+    "stellar_support_cases": {
+      "count": 20,
+      "hash": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    "ai4cc_contacts": {
+      "count": 13,
+      "hash": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    "stellar_orchestrator_workflows_staging": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "stellar_orchestrator_events_staging": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "stellar_dispatch_receipts_staging": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "stellar_dispatch_effects_staging": {
+      "count": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  },
+
+  "script4_security_verification": {
+    "status": "PASS",
+    "description": "All 9 security checks confirmed no drift from pre-cleanup securityBefore snapshot",
+    "checks": {
+      "rls_ai4cc_contacts": "PASS",
+      "rls_stellar_support_cases": "PASS",
+      "rls_workflows_staging": "PASS",
+      "fn_accept_staging": "PASS",
+      "fn_lookup_staging": "PASS",
+      "fn_reconcile_staging": "PASS",
+      "fn_transition_staging": "PASS",
+      "fn_create_test_intake": "PASS",
+      "policy_count_unchanged": "PASS"
+    },
+    "function_hashes_verified": {
+      "stellar_orch_accept_staging": "4c4337ec749b93cfe09de8bbbc373ea5",
+      "stellar_orch_lookup_staging": "cd40f1c0b858369f9cb05289b3e04d57",
+      "stellar_orch_reconcile_case_staging": "b4247b5237bc1e0444bf75759a1b4fa3",
+      "stellar_orch_transition_staging": "45c1c64f600b143a8c175552d4ae85dd",
+      "stellar_create_phone_support_test_intake": "a3112520c30b739beaf49604ab66417f"
+    }
+  },
+
+  "verdict": "G06 PASS — synthetic fixture fully removed; pre-existing rows, RLS policies, stored function bytecodes, and row-level security configuration all match pre-cleanup snapshot exactly; no collateral change detected"
+}
