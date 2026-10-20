@@ -8,6 +8,15 @@ const PAGE_CSS = `
 .presence-orb{position:fixed;right:24px;bottom:24px;z-index:60;width:66px;height:66px;border-radius:50%;border:1px solid var(--goldLight);background:var(--panel);color:var(--goldLight);font:600 11px 'DM Sans',sans-serif;cursor:pointer;box-shadow:0 0 0 8px rgba(200,168,75,.08),0 16px 48px #0009;animation:presencePulse 3s infinite}.presence-orb span{display:block;font-size:23px}.presence-tip{position:fixed;right:102px;bottom:33px;z-index:59;max-width:250px;padding:13px 17px;border:1px solid rgba(200,168,75,.5);border-radius:16px 16px 3px 16px;background:var(--panel);color:var(--ivory);font-size:12px;box-shadow:0 14px 40px #0008;animation:tipEnter .7s both}.presence-tip button{background:none;border:0;color:var(--goldLight);cursor:pointer;margin-left:9px}.presence-drawer{position:fixed;z-index:90;top:0;right:0;width:min(430px,100vw);height:100dvh;background:#101010;border-left:1px solid var(--gold);box-shadow:-25px 0 75px #000b;transform:translateX(105%);transition:transform .4s ease;display:flex;flex-direction:column}.presence-drawer.open{transform:translateX(0)}.drawer-head{padding:25px;border-bottom:1px solid #c8a84b55;display:flex;justify-content:space-between;align-items:start}.drawer-head strong{display:block;color:var(--goldLight);font-family:'Syncopate',sans-serif;font-size:11px;letter-spacing:.1em}.drawer-head small{color:var(--body)}.drawer-close{border:1px solid #c8a84b66;background:transparent;color:var(--ivory);padding:8px 12px;cursor:pointer}.drawer-body{padding:24px;overflow-y:auto;flex:1}.chat-bubble{padding:15px 18px;margin:12px 0;border-radius:15px;background:#1b1b1b;border:1px solid #c8a84b33;color:var(--ivory);font-size:14px}.chat-bubble.user{margin-left:30px;background:#292312}.chat-options{display:grid;gap:10px;margin-top:20px}.chat-options button,.drawer-cta{background:transparent;border:1px solid #c8a84b88;color:var(--goldLight);padding:14px;text-align:left;cursor:pointer;font:inherit}.chat-options button:hover,.drawer-cta:hover{background:#c8a84b20}.drawer-cta{display:block;margin-top:22px;text-align:center}.presence-scrim{position:fixed;inset:0;background:#0009;z-index:80;display:none}.presence-scrim.open{display:block}.presence-status{display:flex;align-items:center;gap:10px;color:var(--body);font-size:12px;margin:18px 0}.presence-dot{height:9px;width:9px;background:var(--goldLight);border-radius:50%;box-shadow:0 0 0 5px #c8a84b20;animation:presencePulse 2s infinite}.reasonCard,.productCard,.modelGrid>div{transition:transform .35s,border-color .35s,box-shadow .35s}.reasonCard:hover,.productCard:hover,.modelGrid>div:hover{transform:translateY(-7px);border-color:var(--gold);box-shadow:0 20px 45px #0008}.hero::after{content:'';position:absolute;right:8%;top:15%;width:220px;height:220px;border:1px solid #c8a84b24;border-radius:50%;box-shadow:0 0 0 45px #c8a84b06,0 0 0 90px #c8a84b04;pointer-events:none;animation:orbitFloat 8s ease-in-out infinite}.heroInner{position:relative;z-index:1}.presence-rail{position:fixed;left:0;top:42%;z-index:25;writing-mode:vertical-rl;transform:rotate(180deg);padding:16px 9px;background:#101010;border:1px solid #c8a84b44;border-left:0;font:9px 'Syncopate',sans-serif;letter-spacing:.14em;color:var(--goldLight)}.reveal{opacity:0;transform:translateY(20px);transition:opacity .7s,transform .7s}.reveal.visible{opacity:1;transform:none}@keyframes presencePulse{50%{box-shadow:0 0 0 13px #c8a84b06,0 16px 48px #0009}}@keyframes orbitFloat{50%{transform:translateY(25px) rotate(10deg)}}@keyframes tipEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@media(max-width:580px){.presence-rail,.hero::after{display:none}.presence-orb{right:16px;bottom:16px}.presence-tip{right:90px;bottom:22px;max-width:190px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 .heroIdentity{margin:0 0 48px;padding:0 0 34px;border-bottom:1px solid rgba(200,168,75,.27)}.heroCompany{font-family:"Cormorant Garamond",Georgia,serif!important;color:var(--ivory);font-weight:400!important;font-size:clamp(44px,6.1vw,90px)!important;line-height:.97!important;letter-spacing:-.025em!important;overflow-wrap:break-word}.heroOperator{font-family:"DM Sans",Arial,sans-serif;font-size:12px;color:var(--muted);margin-top:16px;letter-spacing:.07em}.hero .overline{margin-bottom:22px}.hero h1{font-size:clamp(44px,6.1vw,90px)}@media(max-width:580px){.heroIdentity{margin-bottom:36px;padding-bottom:25px}.heroCompany{font-size:clamp(36px,8vw,52px)}.hero h1{font-size:clamp(42px,9vw,58px)}}
+
+/* Brand typography: homepage phrases specified in the October 20 typestyle review.
+   Reuse established fonts and palette; no copy, spacing, or layout changes. */
+.stellar-branded-wordmark .wordmarkPrimary{font-family:'Cormorant Garamond',Georgia,serif}
+.stellar-branded-wordmark .wordmarkSecondary{font-family:'Syncopate',Arial,sans-serif}
+.stellar-branded-wordmark .operator{font-family:'DM Sans',Arial,sans-serif}
+.hero h1 .stellar-branded-display,.sectionHeading h2 .stellar-branded-display,.contrastInner h2 .stellar-branded-display,.flowInner h2 .stellar-branded-display,.closing h2 .stellar-branded-display{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400}
+.stellar-branded-feature-tabs .showcase-tab{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400}
+.stellar-branded-questions p{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400}
 `;
 
 export default function Home() {
@@ -128,7 +137,7 @@ export default function Home() {
 
       <header className="header">
         <div className="headerInner">
-          <a className="wordmark" href="#top">
+          <a className="wordmark stellar-branded-wordmark" href="#top">
             <span className="wordmarkPrimary">STELLAR</span>
             <span className="wordmarkSecondary">INTELLIGENT TECHNOLOGIES</span>
             <span className="operator">Operated by Apropos Group LLC</span>
@@ -151,7 +160,7 @@ export default function Home() {
               <div className="heroOperator">Operated by Apropos Group LLC</div>
             </div>
             <div className="overline">THE FUTURE OF BUSINESS · REDEFINING THE WORK</div>
-            <h1>TECHNOLOGY HANDLES THE PREDICTABLE.<br /><em>STAFF HANDLE THE EXCEPTIONAL.</em></h1>
+            <h1>TECHNOLOGY HANDLES THE PREDICTABLE.<br /><em className="stellar-branded-display">STAFF HANDLE THE EXCEPTIONAL.</em></h1>
             <p className="heroLead">Human intelligence and intelligent technology are beginning to work together in a different way.</p>
             <p className="heroCopy">The opportunity is not simply to automate more. It is to reconsider how work gets done—allowing intelligent systems to support recurring responsibilities while employees focus on judgment, relationships, creativity, and business growth.</p>
             <div className="actions">
@@ -172,12 +181,12 @@ export default function Home() {
           <div className="sectionHeading">
             <div>
               <span className="eyebrow">01 · UNDERSTANDING THE CHANGE</span>
-              <h2>The shift is already <em>underway.</em></h2>
+              <h2>The shift is already <em className="stellar-branded-display">underway.</em></h2>
             </div>
             <p>Businesses are rethinking which responsibilities require human attention—and which can be supported reliably by intelligent technology.</p>
           </div>
           <div className="intelligence-showcase" aria-label="Explore intelligent technology capabilities">
-            <div className="showcase-tabs" role="tablist" aria-label="Technology capabilities">
+            <div className="showcase-tabs stellar-branded-feature-tabs" role="tablist" aria-label="Technology capabilities">
               <button className="showcase-tab is-active" type="button" role="tab" aria-selected="true" data-cap="response"><span className="tab-index">01</span><span>Always-on<br />responsiveness</span><span className="tab-arrow">↗</span></button>
               <button className="showcase-tab" type="button" role="tab" aria-selected="false" data-cap="workforce"><span className="tab-index">02</span><span>Workforce<br />alignment</span><span className="tab-arrow">↗</span></button>
               <button className="showcase-tab" type="button" role="tab" aria-selected="false" data-cap="operations"><span className="tab-index">03</span><span>Operational<br />continuity</span><span className="tab-arrow">↗</span></button>
@@ -224,7 +233,7 @@ export default function Home() {
           <div className="sectionHeading">
             <div>
               <span className="eyebrow">03 · THE STELLAR INTELLIGENT TECHNOLOGIES SUITE</span>
-              <h2>Three systems. <em>One direction.</em></h2>
+              <h2>Three systems. <em className="stellar-branded-display">One direction.</em></h2>
             </div>
             <p>From the intelligent platform to sales and support engagement, each system has a distinct responsibility within the customer lifecycle.</p>
           </div>
@@ -256,7 +265,7 @@ export default function Home() {
         <section className="flowSection">
           <div className="flowInner">
             <span className="eyebrow">04 · PRACTICAL WORKFORCE ALIGNMENT</span>
-            <h2>From traditional workflows to <em>intelligent execution.</em></h2>
+            <h2>From traditional workflows to <em className="stellar-branded-display">intelligent execution.</em></h2>
             <div className="flowGrid">
               <div className="flowStep"><span>01</span><strong>Identify recurring work</strong></div>
               <div className="flowStep"><span>02</span><strong>Establish approved business rules</strong></div>
@@ -270,11 +279,11 @@ export default function Home() {
           <div className="sectionHeading">
             <div>
               <span className="eyebrow">05 · QUESTIONS WORTH ASKING</span>
-              <h2>Is your business ready to <em>redefine the work?</em></h2>
+              <h2>Is your business ready to <em className="stellar-branded-display">redefine the work?</em></h2>
             </div>
             <p>The right starting point is understanding existing workflows and deciding where intelligence can support better customer experiences.</p>
           </div>
-          <div className="questions">
+          <div className="questions stellar-branded-questions">
             <p>What happens when a customer reaches your business after hours?</p>
             <p>Which routine responsibilities take your employees away from higher-value work?</p>
             <p>Could your sales and support teams benefit from better continuity and context?</p>
@@ -283,7 +292,7 @@ export default function Home() {
 
         <section className="closing">
           <span className="eyebrow">DISCOVER THE POSSIBILITIES</span>
-          <h2>A more responsive business begins with <em>a different approach to work.</em></h2>
+          <h2>A more responsive business begins with <em className="stellar-branded-display">a different approach to work.</em></h2>
           <p>Explore how intelligent customer engagement, sales, and support systems can complement the people who drive your business forward.</p>
           <a className="primary" href="/intake">Learn About Stellar&apos;s Approach <span>↗</span></a>
         </section>
