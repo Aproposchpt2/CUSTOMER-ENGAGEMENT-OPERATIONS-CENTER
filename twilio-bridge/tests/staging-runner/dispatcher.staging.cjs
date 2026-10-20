@@ -49,7 +49,7 @@ function createDispatcher({store,transport,now=()=>Date.now(),workerId,workflowI
    return {state:committed?'DELIVERED':'LEASE_LOST',eventId:message.payload.eventId};
   }catch(error){
    // Never persist raw response bodies, credential-bearing errors, or stack traces.
-   const code=error.safeCode||(error.name==='TimeoutError'||error.name==='AbortError'?'TRANSPORT_TIMEOUT':'DELIVERY_UNCERTAIN');
+   const code=error.safeCode==='DURABLE_RECEIPT_REQUIRED'?'ACK_MISMATCH':error.safeCode||(error.name==='TimeoutError'||error.name==='AbortError'?'TRANSPORT_TIMEOUT':'DELIVERY_UNCERTAIN');
    const quarantine=['TENANT_REJECTED','EVENT_ID_REJECTED','ASSOCIATION_ID_REJECTED','EVENT_TYPE_REJECTED','SESSION_REJECTED','EVENT_TIME_REJECTED','AUTHORITATIVE_ASSOCIATION_INVALID','ACK_MISMATCH'].includes(code);
    const terminal=quarantine||claim.attempt>=maxAttempts;
    const nextAttemptAt=terminal?null:now()+Math.min(300000,1000*2**(claim.attempt-1));
