@@ -284,9 +284,34 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className="section">
+          <div className="sectionHeading">
+            <div>
+              <span className="eyebrow">04 · THE PLATFORM BEHIND IT</span>
+              <h2>Four capabilities. <em>One intelligent foundation.</em></h2>
+            </div>
+            <p>The technology that makes each specialist system work — from call flow design to live operations and quality intelligence.</p>
+          </div>
+          <div className="reasonGrid">
+            {[
+              { href: '/platform/flow-authoring', num: '01', name: 'Flow Authoring', desc: 'Build call logic without writing code. AI script builder, visual flow designer, simulation and versioning.' },
+              { href: '/platform/governance-platform', num: '02', name: 'Governance Platform', desc: 'Multi-tenant access control and role-based permissions built into the data model from the start.' },
+              { href: '/platform/intelligence-qa', num: '03', name: 'Intelligence & QA', desc: 'Analytics, transcript intelligence, QA scoring and agent coaching across every interaction.' },
+              { href: '/platform/live-operations', num: '04', name: 'Live Operations', desc: 'Unified agent workspace for voice, SMS and web chat. One screen with full context.' },
+            ].map(p => (
+              <div key={p.href} className="reasonCard">
+                <div className="cardNumber">{p.num}</div>
+                <h3>{p.name}</h3>
+                <p>{p.desc}</p>
+                <a href={p.href} style={{ display: 'block', marginTop: '22px', fontSize: '11px', letterSpacing: '.07em', fontFamily: "'Syncopate',sans-serif", color: 'var(--goldLight)' }}>EXPLORE CAPABILITY ↗</a>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="flowSection">
           <div className="flowInner">
-            <span className="eyebrow">04 · PRACTICAL WORKFORCE ALIGNMENT</span>
+            <span className="eyebrow">05 · PRACTICAL WORKFORCE ALIGNMENT</span>
             <h2>From traditional workflows to <em>intelligent execution.</em></h2>
             <div className="flowGrid">
               <div className="flowStep"><span>01</span><strong>Identify recurring work</strong></div>
@@ -300,7 +325,7 @@ export default function HomePage() {
         <section className="section" id="questions">
           <div className="sectionHeading">
             <div>
-              <span className="eyebrow">05 · QUESTIONS WORTH ASKING</span>
+              <span className="eyebrow">06 · QUESTIONS WORTH ASKING</span>
               <h2>Is your business ready to <em>redefine the work?</em></h2>
             </div>
             <p>The right starting point is understanding existing workflows and deciding where intelligence can support better customer experiences.</p>
