@@ -258,7 +258,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: a8b0a90e046f6fb2b65a2259d2fc99b180ab4dba
+          ref: 978711e308539e7a1c2007c0ea9d19746d1aef49
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
