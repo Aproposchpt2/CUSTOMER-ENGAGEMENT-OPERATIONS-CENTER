@@ -1,0 +1,7 @@
+{
+  "scope": "LOCAL_NEXT_MIDDLEWARE_FICTIONAL_BUILD_AND_RUNTIME_PUBLIC_KEY",
+  "apiStatus": 401,
+  "pageStatus": 307,
+  "pageRedirect": "http://localhost:4057/login?next=%2Fexperimental-staging-orchestration-test",
+  "fixtureWrites": 0
+}
