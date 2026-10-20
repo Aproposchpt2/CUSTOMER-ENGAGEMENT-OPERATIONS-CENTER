@@ -31,7 +31,12 @@ export default function StagingOrchestrationTest({ authorized }: { authorized: b
       return { status: r.status, body: await r.json() };
     },
   });
-  const run = async (action: string) => { setBusy(true); try { await getRunner()[action](); setMessage('Observation recorded. Database verification and cleanup remain required.'); } catch { setMessage('Operation not confirmed. Preserve this manifest and use Check original operation; do not start another test.'); } finally { setBusy(false); } };
+  const run = async (action: string) => {
+    if (action === 'expired' && evidence?.fixture?.expiresAt && Date.now() < Date.parse(evidence.fixture.expiresAt) + 2000) {
+      setMessage('Wait until ' + evidence.fixture.expiresAt + ' plus two seconds, then check expiry. Do not submit this expiry-only fixture.'); return;
+    }
+    setBusy(true); try { await getRunner()[action](); setMessage('Observation recorded. Database verification and cleanup remain required.'); } catch { setMessage('Operation not confirmed. Preserve this manifest and use Check original operation; do not start another test.'); } finally { setBusy(false); }
+  };
   const download = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a'); link.href = url; link.download = 'stellar-gateway-cleanup-manifest.json'; link.click(); URL.revokeObjectURL(url); setManifestSaved(true);
@@ -49,8 +54,10 @@ export default function StagingOrchestrationTest({ authorized }: { authorized: b
       <button disabled={busy || !evidence?.fixture?.caseId} onClick={() => run('repeat')}>Repeat same confirmed request</button>
       <button disabled={busy || !evidence} onClick={() => run('negatives')}>Test rejected requests</button>
       <button disabled={busy || !evidence} onClick={() => run('missing')}>Test absent operation</button>
+      <button disabled={busy || !evidence || evidence?.fixture?.submissionAttempted} onClick={() => run('expired')}>Check real capability expiry</button>
     </div>
     <p>Keep this page open. Operation capabilities expire after 15 minutes. A page refresh or lost capability requires coordinated recovery, never a blind new submission.</p>
+    <p>For a dedicated expiry test, prepare a fresh fixture, save its manifest, and leave it unsubmitted until its displayed expiry plus two seconds. Then check real capability expiry.</p>
     <pre aria-label="Sanitized staging evidence" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{evidence ? JSON.stringify(evidence, null, 2) : 'No test fixture prepared.'}</pre>
   </main>;
 }
