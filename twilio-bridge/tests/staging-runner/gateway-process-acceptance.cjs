@@ -2,7 +2,7 @@
 // Reviewable manual runner only. No listener, deployment, auth-user creation or voice import.
 const {fork}=require('node:child_process'),{randomUUID}=require('node:crypto'),fs=require('node:fs');
 const {Client}=require('pg');
-const {config,TENANT,PROJECT}=require('./access-check.cjs');
+const {config,TENANT,PROJECT,databaseErrorCode}=require('./access-check.cjs');
 const base=require('./c1-r1-acceptance.cjs'),helpers=require('./dispatcher-acceptance.cjs');
 const {createStagingGateway,PREVIEW_ORIGIN,URL:ENDPOINT}=require('./authenticated-support-gateway.staging.cjs');
 const stamp=()=>new Date().toISOString();
@@ -19,14 +19,14 @@ const validId=x=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9
 const childKeys=['PATH','STELLAR_BRIDGE_STAGING','CSS_TENANT_ID','STAGING_SUPABASE_URL','STAGING_SUPABASE_SERVICE_ROLE_KEY','STAGING_DATABASE_URL','STAGING_DATABASE_CA_PEM','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','STAGING_GATEWAY_TEST_BEARER','STAGING_GATEWAY_PROCESS_AUTHORIZED'];
 function childEnv(env){return Object.fromEntries(childKeys.filter(k=>env[k]!==undefined).map(k=>[k,env[k]]));}
 async function child(){
- let c;const queued=[],waiting=[];
+ let c,phase='preflight';const queued=[],waiting=[];
  process.on('message',m=>{const w=waiting.find(x=>x.type===m?.type);if(w){waiting.splice(waiting.indexOf(w),1);clearTimeout(w.timer);w.resolve(m);}else queued.push(m);});
  const receive=type=>{const at=queued.findIndex(m=>m.type===type);if(at>=0)return Promise.resolve(queued.splice(at,1)[0]);return new Promise((resolve,reject)=>{const w={type,resolve,timer:setTimeout(()=>reject(Error('WORKER_CONTROL_TIMEOUT')),20000)};waiting.push(w);});};
  try{
-  const cfg=authorized();c=new Client(cfg.db);c.on('error',()=>{});await c.connect();await c.query('BEGIN READ ONLY');
+  const cfg=authorized();phase='observer_connect';c=new Client(cfg.db);c.on('error',()=>{});await c.connect();phase='observer_query';await c.query('BEGIN READ ONLY');
   const observer=(await c.query("SELECT pg_backend_pid() backend_pid,current_user AS role,clock_timestamp() ready_at,(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) database_backend_tls")).rows[0];
   need(observer.role==='postgres'&&observer.database_backend_tls===true,'OBSERVER_CONNECTION_REJECTED');
-  process.send({type:'ready',pid:process.pid,observer});const job=await receive('execute');let initialLookup=true;
+  phase='await_job';process.send({type:'ready',pid:process.pid,observer});const job=await receive('execute');let initialLookup=true;
   const transport=async(url,init)=>{
    const parsed=new URL(url);need(parsed.origin===ENDPOINT,'UPSTREAM_TARGET_REJECTED');
    const name=parsed.pathname.startsWith('/rest/v1/rpc/')?parsed.pathname.slice('/rest/v1/rpc/'.length):null;
@@ -48,20 +48,21 @@ async function child(){
    return result;
   };
   const gate=createStagingGateway({env:gatewayEnv(),request:transport});
-  const startedAt=stamp(),res=await gate.handle(requestFor(job.action,job.body,process.env.STAGING_GATEWAY_TEST_BEARER)),body=await res.json();
+  phase='gateway_handle';const startedAt=stamp(),res=await gate.handle(requestFor(job.action,job.body,process.env.STAGING_GATEWAY_TEST_BEARER)),body=await res.json();
   need(!Object.hasOwn(body,'operationToken'),'CAPABILITY_REPORT_REJECTED');
   await c.query('ROLLBACK');await c.end();c=null;
   process.send({type:'result',pid:process.pid,status:res.status,body,startedAt,finishedAt:stamp()},()=>process.disconnect());
- }catch(e){if(c)await c.end().catch(()=>{});process.send?.({type:'failure',code:e.safeCode||'GATEWAY_WORKER_FAILED'},()=>process.disconnect());process.exitCode=2;}
+ }catch(e){if(c)await c.end().catch(()=>{});process.send?.({type:'failure',pid:process.pid,phase,code:e.safeCode||databaseErrorCode(e)},()=>process.disconnect());process.exitCode=2;}
 }
 const active=new Set();
-function launch(onTrace){
+function workerFailure(m){const allowed=new Set(['GATEWAY_WORKER_FAILED','OBSERVER_CONNECTION_REJECTED','INITIAL_LOOKUP_ALREADY_PERSISTED','COMMITTED_CASE_RESPONSE_INVALID','CAPABILITY_REPORT_REJECTED','UPSTREAM_TARGET_REJECTED','GATEWAY_PROCESS_AUTHORIZATION_REQUIRED','REAL_TEST_USER_AUTH_REQUIRED','PUBLISHABLE_KEY_REQUIRED','WORKER_CONTROL_TIMEOUT','DATABASE_PROBE_FAILED','DATABASE_CONNECTION_TIMEOUT','DATABASE_QUERY_TIMEOUT']);const code=allowed.has(m.code)||(typeof m.code==='string'&&m.code.startsWith('DATABASE_')&&databaseErrorCode({code:m.code.slice(9)})===m.code)?m.code:'GATEWAY_WORKER_FAILED';const e=Error(code);e.safeCode=code;e.worker={pid:Number.isSafeInteger(m.pid)?m.pid:null,phase:['preflight','observer_connect','observer_query','await_job','gateway_handle'].includes(m.phase)?m.phase:'unknown',code};return e;}
+function launch(onTrace,onObservation=()=>{}){
  const p=fork(__filename,['--worker'],{env:childEnv(process.env),execArgv:[],stdio:['ignore','ignore','ignore','ipc']});active.add(p);
  const messages=[],waiters=[];let resolveExit;const exited=new Promise(r=>resolveExit=r);
- p.on('message',m=>{if(m.type==='rpc')onTrace(m);messages.push(m);for(const w of [...waiters])if(m.type===w.type||m.type==='failure'){clearTimeout(w.timer);waiters.splice(waiters.indexOf(w),1);m.type==='failure'?w.reject(Error(m.code)):w.resolve(m);}});
+ p.on('message',m=>{if(m.type==='rpc')onTrace(m);if(m.type==='ready')onObservation(m);if(m.type==='failure')onObservation(workerFailure(m).worker);messages.push(m);for(const w of [...waiters])if(m.type===w.type||m.type==='failure'){clearTimeout(w.timer);waiters.splice(waiters.indexOf(w),1);m.type==='failure'?w.reject(workerFailure(m)):w.resolve(m);}});
  p.on('exit',(code,signal)=>{active.delete(p);resolveExit({pid:p.pid,code,signal,at:stamp()});for(const w of waiters){clearTimeout(w.timer);w.reject(Error('WORKER_EXITED_BEFORE_RESULT'));}});
  p.on('error',()=>{for(const w of waiters){clearTimeout(w.timer);w.reject(Error('WORKER_START_FAILED'));}});
- const wait=type=>{const m=messages.find(x=>x.type===type||x.type==='failure');if(m)return m.type==='failure'?Promise.reject(Error(m.code)):Promise.resolve(m);return new Promise((resolve,reject)=>{const w={type,resolve,reject,timer:setTimeout(()=>{waiters.splice(waiters.indexOf(w),1);reject(Error('GATEWAY_WORKER_TIMEOUT'));},25000)};waiters.push(w);});};
+ const wait=type=>{const m=messages.find(x=>x.type===type||x.type==='failure');if(m)return m.type==='failure'?Promise.reject(workerFailure(m)):Promise.resolve(m);return new Promise((resolve,reject)=>{const w={type,resolve,reject,timer:setTimeout(()=>{waiters.splice(waiters.indexOf(w),1);reject(Error('GATEWAY_WORKER_TIMEOUT'));},25000)};waiters.push(w);});};
  return {p,wait,exited};
 }
 async function hydrate(c,f){
@@ -75,7 +76,7 @@ function confirmed(r,f){need(r.status===200&&r.body.success===true&&r.body.state
 function quiescent(traces){return traces.every(x=>x.phase!=='uncertain')&&traces.filter(x=>x.phase==='started').every(x=>traces.some(y=>y.rpcId===x.rpcId&&y.pid===x.pid&&y.phase==='settled'));}
 async function security(c){const previous=await helpers.security(c);const lookup=(await c.query("SELECT md5(prosrc) body_hash,prosecdef,proconfig,proacl::text,has_function_privilege('service_role',oid,'EXECUTE') service_execute,has_function_privilege('anon',oid,'EXECUTE') anon_execute,has_function_privilege('authenticated',oid,'EXECUTE') authenticated_execute FROM pg_proc WHERE oid='public.stellar_orch_lookup_staging(uuid,text)'::regprocedure")).rows[0];need(lookup?.body_hash==='83b86abef8590434d473c32ee9284460'&&lookup.service_execute&&!lookup.anon_execute&&!lookup.authenticated_execute,'LOOKUP_SECURITY_REJECTED');return {previous,lookup};}
 async function main(){
- const report={scope:'REAL_GATEWAY_MODULE_PROCESSES_NOT_NETLIFY_WORKER_CONTROL',status:'BLOCKED',project:PROJECT,tenant:TENANT,startedAt:stamp(),fixtures:[],tests:{},rpcTraces:[]};
+ const report={scope:'REAL_GATEWAY_MODULE_PROCESSES_NOT_NETLIFY_WORKER_CONTROL',status:'BLOCKED',project:PROJECT,tenant:TENANT,startedAt:stamp(),fixtures:[],tests:{},rpcTraces:[],workerObservations:[]};
  const save=()=>fs.writeFileSync('gateway-process-evidence.json',JSON.stringify(report,null,2),{mode:0o600});let c;let snapshotTaken=false;
  try{
   const cfg=authorized();c=new Client(cfg.db);c.on('error',()=>{});await c.connect();need((await c.query('SELECT current_user AS role')).rows[0].role==='postgres','EXISTING_ADMIN_REQUIRED');
@@ -90,9 +91,9 @@ async function main(){
    const f={tag,email,operation:claims.operationId,session:claims.sessionId};report.fixtures.push(f);save();
    return {f,submit:{operationToken:body.operationToken,confirmed:true,intake},status:{operationToken:body.operationToken}};
   };
-  const trace=x=>{report.rpcTraces.push(x);save();};
-  const recover=async job=>{const w=launch(trace);const ready=await w.wait('ready');w.p.send({type:'execute',action:'status',body:job.status});const result=await w.wait('result'),exit=await w.exited;need(exit.code===0,'RECOVERY_PROCESS_EXIT');return {ready,result,exit};};
-  const pair=await make('concurrent-first-submit'),a=launch(trace),b=launch(trace);const ready=await Promise.all([a.wait('ready'),b.wait('ready')]);
+  const trace=x=>{report.rpcTraces.push(x);save();},observe=x=>{report.workerObservations.push(x);save();};
+  const recover=async job=>{const w=launch(trace,observe);const ready=await w.wait('ready');w.p.send({type:'execute',action:'status',body:job.status});const result=await w.wait('result'),exit=await w.exited;need(exit.code===0,'RECOVERY_PROCESS_EXIT');return {ready,result,exit};};
+  const pair=await make('concurrent-first-submit'),a=launch(trace,observe),b=launch(trace,observe);const ready=await Promise.all([a.wait('ready'),b.wait('ready')]);
   need(ready[0].pid!==ready[1].pid&&ready[0].observer.backend_pid!==ready[1].observer.backend_pid,'INDEPENDENT_WORKERS_REQUIRED');
   for(const w of[a,b])w.p.send({type:'execute',action:'submit',body:pair.submit,lookupBarrier:true});
   const absent=await Promise.all([a.wait('lookupAbsent'),b.wait('lookupAbsent')]);const releasedAt=stamp();for(const w of[a,b])w.p.send({type:'releaseLookup'});
@@ -101,7 +102,7 @@ async function main(){
   await hydrate(c,pair.f);const recovered=await recover(pair);await hydrate(c,pair.f);confirmed(recovered.result,pair.f);const state=await base.state(c,pair.f);base.assertState(state,pair.f,'COMPLETED');
   need(report.rpcTraces.filter(x=>x.name==='stellar_create_phone_support_test_intake'&&x.phase==='started').length===1,'CONCURRENT_DUPLICATE_TICKET_WRITE');
   report.tests.G04={status:'PASS',ready,absent,releasedAt,results,exits,recovered,state,connectionNote:'Observer backend IDs are separate read-only worker connections; PostgREST RPC backend IDs are not exposed.'};save();
-  const restart=await make('restart-after-commit'),workerA=launch(trace),readyA=await workerA.wait('ready');workerA.p.send({type:'execute',action:'submit',body:restart.submit,crashAfterCase:true});
+  const restart=await make('restart-after-commit'),workerA=launch(trace,observe),readyA=await workerA.wait('ready');workerA.p.send({type:'execute',action:'submit',body:restart.submit,crashAfterCase:true});
   const committed=await workerA.wait('caseCommitted');Object.assign(restart.f,{caseId:committed.caseId,contactId:committed.contactId});save();const persisted=await hydrate(c,restart.f);base.assertState(persisted,restart.f,'RUNNING');
   workerA.p.kill('SIGKILL');const crash=await workerA.exited;need(crash.signal==='SIGKILL','ACTUAL_PROCESS_CRASH_REQUIRED');
   const writes=report.rpcTraces.filter(x=>x.name==='stellar_create_phone_support_test_intake'&&x.phase==='started').length;
@@ -109,7 +110,7 @@ async function main(){
   const beforeRepeat=await base.state(c,restart.f),repeat=await recover(restart);confirmed(repeat.result,restart.f);need(JSON.stringify(beforeRepeat)===JSON.stringify(await base.state(c,restart.f)),'RECOVERY_CHANGED_COMPLETED_STATE');
   need(writes===report.rpcTraces.filter(x=>x.name==='stellar_create_phone_support_test_intake'&&x.phase==='started').length,'RESTART_REPEATED_CASE_WRITE');
   report.tests.G05={status:'PASS',readyA,committed,persisted,crash,workerB,repeat,additionalRecoveryTicketWrites:0};report.status='PASS';save();
- }catch(e){report.status=snapshotTaken?'FAIL':'BLOCKED';report.failureCode=e.safeCode||'GATEWAY_PROCESS_ACCEPTANCE_FAILED';}
+ }catch(e){report.status=snapshotTaken?'FAIL':'BLOCKED';report.failureCode=e.safeCode||'GATEWAY_PROCESS_ACCEPTANCE_FAILED';if(e.worker)report.failureWorker=e.worker;}
  finally{
   await Promise.all([...active].map(p=>new Promise(r=>{p.once('exit',r);p.kill('SIGKILL');})));
   if(c&&snapshotTaken){try{
@@ -125,5 +126,5 @@ async function main(){
  }
  process.exitCode=report.status==='PASS'?0:2;
 }
-module.exports={authorized,gatewayEnv,requestFor,childEnv,confirmed,quiescent};
+module.exports={authorized,gatewayEnv,requestFor,childEnv,confirmed,quiescent,workerFailure};
 if(require.main===module){if(process.argv[2]==='--worker')child();else main();}
