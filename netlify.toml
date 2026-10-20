@@ -32,3 +32,8 @@
     Permissions-Policy = "camera=(), geolocation=(), microphone=(self), payment=(), usb=()"
     Cross-Origin-Opener-Policy = "same-origin"
     X-DNS-Prefetch-Control = "off"
+
+# The project URL is public connection metadata, not an authentication credential.
+# Scope this false-positive exclusion to isolated PR previews; retain scanning for all keys.
+[context.deploy-preview.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
