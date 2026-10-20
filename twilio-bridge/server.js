@@ -4,6 +4,7 @@ const http = require('http');
 const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
+const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -15,6 +16,24 @@ const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const LIVE_MODEL = process.env.OPENAI_LIVE_MODEL || 'gpt-live-1';
 const REASONING_MODEL = process.env.OPENAI_REASONING_MODEL || 'gpt-5.6-terra';
+// Explicit staging mode also follows Railway's isolated environment name.
+const STAGING_ONLY = process.env.STELLAR_BRIDGE_STAGING === 'true' || process.env.RAILWAY_ENVIRONMENT_NAME === 'staging';
+// Stellar Technologies Support Desk — greeting and intake flow per owner direction.
+const APPROVED_SUPPORT_INSTRUCTIONS = "You are the Stellar UC Intelligent Customer Product Support Desk representative in an ISOLATED TEST. This is a fictional customer-support intake simulation. Be warm, concise, attentive, and professional. Introduce yourself as the Support Desk, not the Sales Specialist. Ask one question at a time. Obtain a fictional customer's name, phone, email, product model, purchase date, problem description, steps already tried, and business impact. Ask sensible non-destructive diagnostic questions, avoid repeating attempted steps, classify urgency based on impact, and summarize all captured information clearly. After gathering and confirming fictional intake details, call submit_support_intake once. Wait for its result. State a case was created only if the tool returns success with customerId and caseId. If unavailable or unsuccessful, explain no case was confirmed. Never invent a case number, send a message, book a callback, or contact staff. Do not invent support policies, warranty coverage, product specifications, technical fixes, or response-time guarantees. Avoid collecting payment information, passwords, or other sensitive data. For potentially dangerous electrical or hardware issues advise the caller to stop using the device and contact qualified support. When asked whether records were created, rely exclusively on the actual submit_support_intake tool response; never claim a write from conversational inference. Ask permission before summarizing contact information. English only.";
+const APPROVED_SUPPORT_BRIEF = "You are the Stellar UC Intelligent Customer Product Support Desk representative in a fictional support intake test. Be natural and concise. Ask one support-intake question at a time and delegate deeper diagnostic reasoning to the reasoning backend. After collecting and confirming the caller fictional details, use submit_support_intake exactly once. The tool becomes available after the secure voice channel opens. Wait for its returned result. Speak the real caseId only on confirmed success; otherwise explain the record was not confirmed. Never invent a result.";
+// Opening wording is separate from the frozen owner-approved conversational persona.
+const SUPPORT_GREETING = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
+const SUPPORT_GREETING_INSTRUCTION = `At the start of this telephone call, say exactly: "${SUPPORT_GREETING}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+// Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
+const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
+After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
+Only after the tool confirms success with both customerId and caseId, say "Your support ticket has been created. Are you ready to take down the ticket number?" Pause and wait for the caller's answer. Do not read the number before the caller is ready. If they are not ready, acknowledge and wait; if they decline the number, move on without forcing it. When ready, read the exact returned caseId slowly in manageable groups, then offer to repeat it. Never invent, shorten, or replace the identifier.
+After giving the ticket number or the caller declining it, ask "Is there anything further I can help you with?" Wait for the answer. If yes, continue the conversation naturally and help with the additional concern without resubmitting the same ticket. If no, and an authorized technician follow-up is explicitly confirmed by a trusted tool result, say "Great, a technician will contact you soon. Have a great day." This owner-approved wording does not imply a specific response-time guarantee. If no follow-up is confirmed, close warmly with "Thank you for calling. Have a great day" without promising technician contact. In this isolated staging test no real outreach is enabled; never claim otherwise.
+If saving fails, is unavailable, or is blocked, explain "I could not confirm that your support ticket was created." Do not announce success, offer a fabricated ticket number, or promise technician contact. Offer further help and explain the limitation honestly. No repeated automatic save attempts or duplicate tickets.
+Delegate to the backend when the caller asks to create or submit a support ticket, confirms the final intake summary, asks for submission status, corrects captured details, or reports that they are waiting. The Live speaking model cannot execute the database tool itself: request backend work rather than merely saying the save is pending. The backend must extract the nine required fields from the existing conversation, ask for any missing information or confirmation, and invoke submit_support_intake only when complete and confirmed. A backend review request does not mean that a save has started. If an application fallback asks for a backend review, use the current conversation without making the caller repeat it.
+Move promptly from the caller's final confirmation to the save tool. Do not say you are waiting for ticket creation before the application has actually started saving. If required details or permission are missing, ask the next necessary question promptly instead of waiting silently. Application ticket-status updates are authoritative: distinguish pending, confirmed and failed saves. After a confirmed result, promptly tell the caller the ticket is created and ask readiness. Read only the exact application-supplied ticket identifier; never improvise an identifier while waiting for the backend. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
+
+
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
 const CSS_TENANT_ID = process.env.CSS_TENANT_ID || '5885a020-d363-4c27-910a-c035eda132f5';
@@ -24,6 +43,8 @@ const MAX_CALL_MS = parseInt(process.env.MAX_CALL_DURATION_MS || '2700000', 10);
 const TOKEN_TTL_SECS = 120;
 
 let activeCalls = 0;
+let lastStagingSupportSession = null;
+let lastStagingSupportSave = null;
 const recentEvents = [];
 function logEvent(msg) { console.log(msg); recentEvents.push({ t: Date.now(), msg }); if (recentEvents.length > 50) recentEvents.shift(); }
 
@@ -81,6 +102,7 @@ function validateBridgeToken(token) {
 
 // ─── Twilio REST API helper ───────────────────────────────────────────────────
 async function twilioUpdateCall(callSid, twiml) {
+  if (STAGING_ONLY) return; // never perform external hangups or transfers from staging
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) return;
   const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Calls/${callSid}.json`;
   const creds = Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64');
@@ -101,6 +123,7 @@ function makeBridgeSignature() {
 
 // ─── Intake helpers ───────────────────────────────────────────────────────────
 async function callSalesIntakeStart(callSid, callerPhone) {
+  if (STAGING_ONLY) return { interactionId: `staging:${callSid}`, transferAllowed: 'no' };
   const res = await fetch(`${NETLIFY_BASE_URL}/api/intake/webhook`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ai4cc-intake-key': AI4CC_INTAKE_KEY },
@@ -112,6 +135,7 @@ async function callSalesIntakeStart(callSid, callerPhone) {
 }
 
 async function callSalesIntakeSubmit(body) {
+  if (STAGING_ONLY) throw new Error('STAGING_WRITES_DISABLED');
   const res = await fetch(`${NETLIFY_BASE_URL}/api/intake/webhook`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ai4cc-intake-key': AI4CC_INTAKE_KEY },
@@ -123,6 +147,7 @@ async function callSalesIntakeSubmit(body) {
 }
 
 async function callSupportIntake(body) {
+  if (STAGING_ONLY) throw new Error('STAGING_WRITES_DISABLED');
   const res = await fetch(`${NETLIFY_BASE_URL}/api/twilio/phone-support-intake`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-bridge-signature': makeBridgeSignature() },
@@ -185,22 +210,25 @@ const SUPPORT_SYSTEM_PROMPT = `You are the Stellar UC Customer Support represent
 
 Be warm, concise, attentive, and professional. Ask one question at a time.
 
-Collect from the caller (in this order):
-1. Their full name
-2. Their phone number (read back digit by digit)
-3. Their email address (spell back letter by letter)
-4. The product they need help with
-5. Approximate purchase date
-6. Description of the problem
-7. Steps they have already tried
-8. Business impact (how this affects their work)
-9. Urgency (LOW, NORMAL, HIGH, or URGENT based on impact)
+## Conversation Flow
 
-After collecting and confirming all details out loud, call submit_support_intake exactly once. Wait for the tool result. Only say a case was created if the tool returns success with a caseId. Never invent a case number.
+1. GREETING (already delivered): The caller was greeted with "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" — wait for their name.
+2. ACKNOWLEDGMENT: Once the caller gives their name, say "[Name], how can we help you today?" then listen.
+3. INTAKE: Collect the following one question at a time:
+   - Full name (collected in step 1)
+   - Phone number (read back digit by digit to confirm)
+   - Email address (spell back letter by letter to confirm)
+   - Product they need help with
+   - Approximate purchase date
+   - Description of the problem
+   - Steps they have already tried
+   - Business impact (how this affects their work)
+   - Urgency (LOW, NORMAL, HIGH, or URGENT based on impact)
+4. CONFIRM: Read all details back and ask the caller to confirm before submitting.
+5. SUBMIT: Call submit_support_intake exactly once. Wait for the tool result. Only say a case was created if the tool returns success with a caseId. Never invent a case number.
+6. CLOSE: "A support case has been opened. Our team will follow up with you." Then call end_call.
 
-After successful case creation: "A support case has been opened. Our team will follow up with you." Then call end_call.
-
-If the tool fails, apologize and advise them to call back or email support@stellaruc.com.
+If submit_support_intake fails, apologize and advise them to call back or email support@stellaruc.com.
 
 Never ask for passwords or payment information. Never promise specific fix timelines.`;
 
@@ -271,6 +299,39 @@ const supportTools = [
   },
 ];
 
+// Staging tool definition matches the approved browser baseline (b8ce29ad) exactly,
+// with end_call added for telephone. All 9 fields required; description preserves
+// fictional-test framing the owner approved.
+const stagingSupportTools = [
+  {
+    type: 'function',
+    name: 'submit_support_intake',
+    description: 'Submit a fictional customer support intake to staging only after confirming all details with the caller. Call exactly once, then wait for the real database result before speaking a case ID.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        product: { type: 'string' },
+        purchaseDate: { type: 'string', description: 'YYYY-MM-DD' },
+        issue: { type: 'string' },
+        steps: { type: 'string' },
+        impact: { type: 'string' },
+        priority: { type: 'string', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] },
+      },
+      required: ['name', 'email', 'phone', 'product', 'purchaseDate', 'issue', 'steps', 'impact', 'priority'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'end_call',
+    description: 'Hang up the call after closing the conversation.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+];
+
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
   logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
@@ -284,7 +345,21 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let callEnded = false;
   let audioDeltaCount = 0;
   let sessionStarted = false;
-  const audioBuffer = []; // holds media payloads received before session.started
+  const audioBuffer = []; // caller input waits until the first greeting chunk has played
+  const GREETING_MARK = 'stellar-greeting-start';
+  const MAX_STARTUP_AUDIO_BYTES = 80000; // ten seconds of PCMU at 8 kHz
+  let startupAudioBytes = 0;
+  let greetingAudioSent = false;
+  let greetingPlayed = false;
+  let streamStartedAt = null;
+  let greetingDeadline = null;
+  let startupSilence = null;
+  const supportProgressTimers = new Set();
+  let supportReviewTimer = null;
+  let supportInputVersion = 0;
+  let supportReviewedVersion = 0;
+  let supportBackendActive = false;
+  let supportSavePending = false;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -292,9 +367,15 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     if (callEnded) return;
     callEnded = true;
     clearTimeout(deadline);
+    clearTimeout(greetingDeadline);
+    clearTimeout(supportReviewTimer);
+    clearInterval(startupSilence);
+    for (const timer of supportProgressTimers) clearTimeout(timer);
+    supportProgressTimers.clear();
+    audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
-    if (openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.close();
+    if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
 
@@ -303,7 +384,21 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   }
 
   function sendToOpenAI(obj) {
-    if (openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.send(JSON.stringify(obj));
+    if (!callEnded && openaiWs && openaiWs.readyState === WebSocket.OPEN) openaiWs.send(JSON.stringify(obj));
+  }
+
+  // Recover missed Live -> Responses delegation without interpreting caller words in regexes.
+  // The existing backend decides whether intake is complete and consent is confirmed.
+  function scheduleSupportReview(delay = 15000) {
+    clearTimeout(supportReviewTimer);
+    supportReviewTimer = setTimeout(() => {
+      if (callEnded || !sessionStarted || !greetingPlayed || supportReviewedVersion >= supportInputVersion) return;
+      if (supportBackendActive || supportSavePending) { scheduleSupportReview(5000); return; }
+      supportReviewedVersion = supportInputVersion;
+      supportBackendActive = true;
+      logEvent(`[${callSid}] support backend review requested after caller inactivity`);
+      sendToOpenAI({type:'response.create'});
+    }, delay);
   }
 
   function clearTwilioAudio() {
@@ -313,26 +408,44 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   // ── Send session.start to configure the Live API session ──────────────────
   // Called once: after WS is open AND intake is complete
   function startSession(instructions, tools) {
+    // Staging support: omit session.input — the brief gpt-live-1 direct-audio path produces
+    // inaudible output. Greeting fires via response.create in session.started handler instead,
+    // which routes through delegation (gpt-5.6-terra) and produces audible session.output_transcript.
+    const sessionInput = !(STAGING_ONLY && profile === 'support')
+      ? { input: [{ role: 'developer', content: [{ type: 'input_text', text:
+          profile === 'support'
+            ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
+            : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
+        }] }] }
+      : {};
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
-        instructions: profile === 'sales'
+        ...sessionInput,
+        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : profile === 'sales'
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
+        // The owner-approved browser Support session used provider-default turn behavior.
+        ...(STAGING_ONLY && profile === 'support' ? {} : { turn_detection: {
+          type: 'server_vad',
+          threshold: 0.6,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 700,
+          interrupt_response: false,
+        } }),
         delegation: {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions,
+            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : instructions,
             tools,
             tool_choice: 'auto',
           },
         },
       },
     });
-    // response.create sent after session.started fires (see event handler below)
   }
 
   // ── Execute a tool call ────────────────────────────────────────────────────
@@ -357,12 +470,48 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           } finally { leadSubmissionPending = false; }
         }
       } else if (name === 'submit_support_intake') {
-        output = await callSupportIntake({ callSid, ...args });
+        if (!STAGING_ONLY) output = await callSupportIntake({ ...args, callSid });
+        else {
+          const started = Date.now();
+          supportSavePending = true;
+          let pending = true;
+          logEvent(`[${callSid}] support save started`);
+          sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+            content:'The application is now submitting the support ticket. Please give me a moment while I create your support ticket. Creation is not confirmed yet.'});
+          const timer = setTimeout(() => {
+            supportProgressTimers.delete(timer);
+            if (pending && !callEnded) sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+              content:'The application is still waiting for the ticket save result. Thank you for your patience; I am still here. Do not announce success yet.'});
+          }, 4000);
+          supportProgressTimers.add(timer);
+          try {
+            output = await submitStagingSupport(args, callSid);
+            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'confirmed'};
+            // Give the speaking Live model verified facts directly, before backend continuation.
+            sendToOpenAI({type:'session.thinking.append',delegation_id:null,
+              content:`Verified database save: support ticket created. The exact caseId is ${output.caseId}. Use only this identifier, never an invented substitute. Notifications and technician follow-up are disabled.`});
+            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+              content:`The database has confirmed ticket ${output.caseId}. Promptly tell the caller their support ticket is created and ask whether they are ready to take down the number. Wait for readiness. When ready, read exactly ${output.caseId} in character groups; never invent or shorten it.`});
+          } catch (error) {
+            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'not_confirmed'};
+            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+              content:'The application could not confirm ticket creation. Tell the caller no ticket was confirmed. Do not provide a ticket number or promise technician contact. Offer further help.'});
+            throw error;
+          } finally {
+            pending = false;
+            supportSavePending = false;
+            clearTimeout(timer);
+            supportProgressTimers.delete(timer);
+            logEvent(`[${callSid}] support save ${lastStagingSupportSave.status} elapsedMs=${lastStagingSupportSave.elapsedMs}`);
+          }
+        }
       } else if (name === 'end_call') {
         output = { success: true };
         setTimeout(() => { twilioUpdateCall(callSid, '<Response><Hangup/></Response>'); cleanup('END_CALL_TOOL'); }, 1500);
       } else if (name === 'transfer_to_specialist') {
-        if (!leadSaved) {
+        if (STAGING_ONLY) {
+          output = { error: 'STAGING_TRANSFERS_DISABLED: no transfer was attempted.' };
+        } else if (!leadSaved) {
           output = { error: 'Transfer blocked: lead has not been saved and verified.' };
         } else if (transferAllowed !== 'yes') {
           output = { error: 'Transfer not available for this call. Offer a callback instead.' };
@@ -389,22 +538,54 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     const completedToolCalls = new Set();
 
     openaiWs.on('message', (raw) => {
+      if (callEnded) return;
       let msg;
       try { msg = JSON.parse(raw.toString()); } catch { return; }
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+      if (STAGING_ONLY && profile === 'support') {
+        if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+          supportInputVersion++;
+          scheduleSupportReview();
+        }
+        if (t === 'response.created') {
+          supportBackendActive = true;
+          supportReviewedVersion = supportInputVersion;
+        }
+        if (['response.completed','response.done','response.failed','response.cancelled'].includes(t))
+          supportBackendActive = false;
+      }
 
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
-        if (t === 'session.started') {
+        if (STAGING_ONLY && profile === 'support' && msg.session) {
+          // Keep only non-sensitive provider-resolved settings; never retain the full session.
+          const safeId = value => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : null;
+          lastStagingSupportSession = {
+            model: safeId(msg.session.model),
+            voice: safeId(msg.session.audio?.output?.voice),
+            audioFormat: safeId(msg.session.audio?.format?.type),
+            reasoningModel: safeId(msg.session.delegation?.responses?.model),
+          };
+        }
+        if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
-          // Flush audio buffered while session was initializing
-          for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
-          audioBuffer.length = 0;
-          // Trigger the opening greeting
-          sendToOpenAI({ type: 'response.create' });
+          logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
+          // For staging support: session.input alone only produces brief gpt-live-1 direct audio
+          // (no transcript events, inaudible on a real call). Force the greeting through the
+          // delegation path (gpt-5.6-terra) with response.create — produces session.output_transcript.delta
+          // and audible speech.
+          if (STAGING_ONLY && profile === 'support') {
+            sendToOpenAI({ type: 'response.create' });
+          }
+          // Hold early caller speech until greeting mark echo; keep Live audio clock with PCMU silence.
+          const silence = Buffer.alloc(160, 0xff).toString('base64');
+          startupSilence = setInterval(() => {
+            if (!callEnded && !greetingPlayed)
+              sendToOpenAI({ type: 'session.input_audio.append', audio: silence });
+          }, 20);
         }
       } else if (t === 'response.created' || t === 'response.done') {
         logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
@@ -425,12 +606,33 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
       // Audio out → Twilio (Live API: session.output_audio.delta; Realtime: response.output_audio.delta)
       if ((t === 'session.output_audio.delta' || t === 'response.output_audio.delta') && msg.delta) {
-        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta len=${msg.delta.length}`); }
+        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta streamElapsedMs=${Date.now() - streamStartedAt}`); }
         audioDeltaCount++;
         sendToTwilio({ event: 'media', streamSid, media: { payload: msg.delta } });
+        if (!greetingAudioSent) {
+          greetingAudioSent = true;
+          // Twilio echoes this mark when the preceding first audio chunk has played.
+          sendToTwilio({ event: 'mark', streamSid, mark: { name: GREETING_MARK } });
+        }
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
-        clearTwilioAudio();
-        sendToOpenAI({ type: 'response.cancel' });
+        // Startup speech must not erase the greeting before any audio has played.
+        // GPT-Live manages full-duplex speech itself, as in the approved browser.
+        // Speech detection alone is not a request to cancel delegated support work.
+        if (greetingPlayed && !(STAGING_ONLY && profile === 'support')) {
+          clearTwilioAudio();
+          sendToOpenAI({ type: 'response.cancel' });
+        }
+      } else if (STAGING_ONLY && profile === 'support' && t === 'response.output_item.done'
+        && msg.item?.type === 'function_call') {
+        const { call_id: id, name, arguments: args } = msg.item;
+        if (typeof id !== 'string' || !id.trim() || completedToolCalls.has(id)) return;
+        completedToolCalls.add(id);
+        delete toolCallBuffers[id];
+        executeTool(id, name, args || '{}');
+      } else if (STAGING_ONLY && profile === 'support'
+        && (t === 'response.function_call_arguments.delta' || t === 'response.function_call_arguments.done')) {
+        // Arguments fragments may lack name/call correlation. Wait for the finished item.
+        return;
       } else if (t === 'response.function_call_arguments.delta') {
         const id = msg.call_id;
         if (!toolCallBuffers[id]) toolCallBuffers[id] = { name: msg.name || '', args: '' };
@@ -451,10 +653,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
   // ── Twilio Media Streams handler ───────────────────────────────────────────
   twilioWs.on('message', async (raw) => {
+    if (callEnded) return;
     let msg;
     try { msg = JSON.parse(raw.toString()); } catch { return; }
 
     if (msg.event === 'start') {
+      if (streamSid) return;
+      streamStartedAt = Date.now();
+      greetingDeadline = setTimeout(() => cleanup('GREETING_START_TIMEOUT'), 10000);
       streamSid = msg.start?.streamSid || msg.streamSid;
       logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
@@ -480,6 +686,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       wsReady.then(async () => {
         logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
         const intake = await intakeP;
+        if (callEnded) return;
 
         let instructions;
         let tools;
@@ -491,9 +698,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
           tools = salesTools(interactionId);
         } else {
-          instructions = SUPPORT_SYSTEM_PROMPT
-            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}\n\nStart by saying exactly: "Hello, you have reached Stellar Technologies. To whom do I have the pleasure of speaking with today?"`;
-          tools = supportTools;
+          instructions = STAGING_ONLY ? APPROVED_SUPPORT_INSTRUCTIONS : SUPPORT_SYSTEM_PROMPT
+            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
+          // Staging uses the approved-baseline tool schema; production uses the production schema.
+          tools = STAGING_ONLY ? stagingSupportTools : supportTools;
         }
 
         startSession(instructions, tools);
@@ -504,12 +712,26 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     } else if (msg.event === 'media' && openaiWs) {
       const payload = msg.media?.payload;
       if (payload) {
-        if (!sessionStarted) {
-          if (audioBuffer.length < 200) audioBuffer.push(payload); // buffer until session.started
+        if (!greetingPlayed) {
+          startupAudioBytes += Buffer.byteLength(payload, 'base64');
+          if (startupAudioBytes > MAX_STARTUP_AUDIO_BYTES || audioBuffer.length >= 500) {
+            cleanup('STARTUP_AUDIO_OVERFLOW');
+            return;
+          }
+          audioBuffer.push(payload);
         } else if (openaiWs.readyState === WebSocket.OPEN) {
           openaiWs.send(JSON.stringify({ type: 'session.input_audio.append', audio: payload }));
         }
       }
+    } else if (msg.event === 'mark' && msg.streamSid === streamSid
+      && msg.mark?.name === GREETING_MARK && greetingAudioSent && !greetingPlayed) {
+      greetingPlayed = true;
+      clearTimeout(greetingDeadline);
+      clearInterval(startupSilence);
+      logEvent(`[${callSid}] greeting first chunk played streamElapsedMs=${Date.now() - streamStartedAt} queuedPackets=${audioBuffer.length}`);
+      for (const payload of audioBuffer) sendToOpenAI({ type: 'session.input_audio.append', audio: payload });
+      audioBuffer.length = 0;
+      startupAudioBytes = 0;
     } else if (msg.event === 'stop') {
       cleanup('TWILIO_STOP');
     }
@@ -527,9 +749,23 @@ function start() {
   fillPool();
 
   const app = express();
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length }));
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+    supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
+    supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
+    supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
+    supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
+    supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
+    supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
+  }));
 
   app.get('/debug', async (req, res) => {
+    if (STAGING_ONLY) {
+      const supplied = Buffer.from(req.headers.authorization || '');
+      const expected = Buffer.from(`Bearer ${BRIDGE_HMAC_SECRET}`);
+      if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected))
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
     const results = {
       hmacSecretSet: !!BRIDGE_HMAC_SECRET,
       openaiKeySet: !!OPENAI_API_KEY,
