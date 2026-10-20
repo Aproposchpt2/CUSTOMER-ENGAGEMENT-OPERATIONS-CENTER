@@ -47,6 +47,9 @@ export default function AgentWorkspacePage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState('');
   const [showVoiceTest, setShowVoiceTest] = useState(false);
+  const [smsReply, setSmsReply] = useState('');
+  const [smsSending, setSmsSending] = useState(false);
+  const [smsResult, setSmsResult] = useState<{ ok: boolean; message: string } | null>(null);
   // The disposable ElevenLabs test widget is for Apropos staff only; customers never see it.
   const [isHome, setIsHome] = useState(false);
   useEffect(() => {
@@ -99,6 +102,31 @@ export default function AgentWorkspacePage() {
       await refresh(); setSelectedId(data.interactionId);
     } catch (e) { setError((e as Error).message); }
     finally { setRunning(false); }
+  }
+
+  async function sendSmsReply() {
+    if (!selected || !smsReply.trim() || smsSending) return;
+    const headers = await authHeaders();
+    if (!headers) { await router.replace('/login'); return; }
+    setSmsSending(true);
+    setSmsResult(null);
+    try {
+      const res = await fetch('/api/sms/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify({ interactionId: selected.id, to: selected.customer_identifier, body: smsReply.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? 'Send failed');
+      setSmsResult({ ok: true, message: 'Sent' });
+      setSmsReply('');
+      await refresh();
+      setSelectedId(selected.id);
+    } catch (e) {
+      setSmsResult({ ok: false, message: (e as Error).message });
+    } finally {
+      setSmsSending(false);
+    }
   }
 
   async function operate(operation: 'claim' | 'callback_pending' | 'complete' | 'reopen') {
@@ -160,6 +188,8 @@ export default function AgentWorkspacePage() {
           <div className="content"><div className="panel"><h3>Transcript</h3>{selected.transcript.length === 0 ? <p className="muted">No transcript turns.</p> : selected.transcript.map((turn) => <div className={`turn ${turn.speaker === 'agent' ? 'agent' : ''}`} key={`${turn.sequence_no}-${turn.speaker}`}><small>{turn.speaker ?? 'speaker'}</small><p>{turn.content}</p></div>)}</div><div className="side"><div className="panel"><h3>AI Assist</h3>{(selected.assist?.suggested_replies ?? []).map((reply) => <p key={reply}>• {reply}</p>)}{(selected.assist?.next_best_actions ?? []).length > 0 && <><small className="accent">NEXT BEST ACTIONS</small>{selected.assist?.next_best_actions.map((action) => <p key={action}>→ {action}</p>)}</>}</div><div className="panel"><h3>QA</h3><div className="qa">{[['Quality',selected.qa?.quality_score],['Compliance',selected.qa?.compliance_score],['Adherence',selected.qa?.flow_adherence_score],['Sentiment',selected.qa?.sentiment_score]].map(([label,value]) => <div key={String(label)}><small>{label}</small><b>{value ?? '—'}</b></div>)}</div></div></div></div>
 
           {(selected.assist?.compliance_alerts?.length ?? 0) + selected.compliance.length > 0 && <div className="compliance"><h3>Compliance Findings</h3>{selected.assist?.compliance_alerts?.map((alert) => <p key={alert}>⚠ {alert}</p>)}{selected.compliance.map((finding,index) => <p key={`${finding.rule_code}-${index}`}>⚠ {finding.finding}</p>)}</div>}
+
+          {selected.channel === 'sms' && <div className="panel smsCompose"><h3>Reply via SMS</h3><p className="muted" style={{fontSize:'.75rem',marginBottom:'10px'}}>Sending to {selected.customer_identifier ?? 'unknown'}</p><div style={{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',gap:'8px',alignItems:'end'}}><textarea value={smsReply} onChange={(e) => { setSmsReply(e.target.value); setSmsResult(null); }} placeholder="Type an SMS reply…" rows={3} style={{resize:'vertical',minHeight:70,borderRadius:8,border:'1px solid #23465f',background:'#0a1d2c',color:'#e8f0fe',padding:'.8rem',fontFamily:'inherit',width:'100%',boxSizing:'border-box'}} /><button onClick={sendSmsReply} disabled={smsSending || !smsReply.trim()} style={{border:0,borderRadius:8,background:'#8df0c2',color:'#06111f',padding:'.8rem 1.1rem',fontWeight:900,cursor:'pointer',opacity:smsSending||!smsReply.trim()?0.6:1,whiteSpace:'nowrap'}}>{smsSending ? 'Sending…' : 'Send SMS'}</button></div>{smsResult && <div style={{marginTop:'8px',fontSize:'.8rem',color:smsResult.ok?'#8df0c2':'#ff9090'}}>{smsResult.message}</div>}</div>}
         </div>}</section>
       </div>}
     </div></main>
