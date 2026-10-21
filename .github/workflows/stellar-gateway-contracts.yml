@@ -1,0 +1,40 @@
+name: Stellar staging gateway contracts
+
+on:
+  pull_request:
+    branches: [main, repair/restore-approved-support-20261017]
+    paths:
+      - 'pages/api/staging-orchestration/**'
+      - 'pages/experimental-staging-orchestration-test.tsx'
+      - 'twilio-bridge/tests/staging-runner/*gateway*'
+      - 'twilio-bridge/tests/staging-runner/support-orchestration-integration.staging.cjs'
+      - '.github/workflows/stellar-gateway-contracts.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    if: github.event.pull_request.head.repo.full_name == 'Aproposchpt2/ai4-contact-center' && github.event.pull_request.head.ref == 'feature/staging-orchestrator-trigger-gateway'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      # No secrets, database connection or deployment. Install only pinned test dependencies.
+      - name: Gateway, Node HTTP adapter and browser harness contracts
+        run: >-
+          node --test
+          twilio-bridge/tests/staging-runner/authenticated-support-gateway.staging.test.cjs
+          twilio-bridge/tests/staging-runner/staging-gateway-node-adapter.test.cjs
+          twilio-bridge/tests/staging-runner/gateway-browser-acceptance.staging.test.cjs
+      - name: Install pinned process test dependencies without secrets
+        working-directory: twilio-bridge/tests/staging-runner
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Process runner safety checks without staging execution
+        working-directory: twilio-bridge/tests/staging-runner
+        run: node --test gateway-process-acceptance.test.cjs gateway-auth-fixture-acceptance.test.cjs

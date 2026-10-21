@@ -1,0 +1,80 @@
+{
+  "runId": 39454780216,
+  "jobId": 118738659480,
+  "workflowCommit": "beb11d65972d7cb5218bea2f222a53a66eacaa34",
+  "executableCommit": "978711e308539e7a1c2007c0ea9d19746d1aef49",
+  "scope": "REAL_GATEWAY_MODULE_PROCESSES_NOT_NETLIFY_INTERNAL_WORKER_CONTROL",
+  "guardTests": {
+    "pass": 61,
+    "fail": 0
+  },
+  "actualJobSummary": {
+    "status": "PASS",
+    "tests": {
+      "G02": {
+        "status": "PASS",
+        "httpStatus": 403,
+        "response": {
+          "error": "STAGING_ACCESS_DENIED"
+        },
+        "scope": "REAL_AUTHENTICATED_NONMEMBER_NO_FOREIGN_TENANCY"
+      },
+      "G04": {
+        "status": "PASS"
+      },
+      "G05": {
+        "status": "PASS"
+      }
+    },
+    "authCleanupVerified": true,
+    "applicationCleanupVerified": true,
+    "securityUnchanged": true
+  },
+  "finishedSummaryAt": "2026-10-20T16:21:21.697Z",
+  "independentFinalSql": [
+    {
+      "scope": "cases",
+      "n": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "scope": "contacts",
+      "n": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "scope": "workflows",
+      "n": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "scope": "events",
+      "n": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "scope": "receipts",
+      "n": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "scope": "effects",
+      "n": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "independentSyntheticAuthUsers": 0,
+  "artifact": {
+    "id": 12280931998,
+    "name": "stellar-gateway-process-evidence",
+    "digest": "sha256:4dfb592e757dcc8d6e8cbc0446f8d2b91cc6ac2877290edc22c2e6a26d6bf2fc",
+    "url": "https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39454780216/artifacts/12280931998",
+    "expiresAt": "2026-10-27T16:21:21Z"
+  },
+  "limitations": [
+    "Summary and independent final SQL verified. Detailed artifact process IDs, case IDs and timings have not been independently unpacked in this turn: execution environment unavailable.",
+    "G06 real gateway invalid-association fixture remains pending.",
+    "No live voice acceptance, production change, deployment, merge or approved-agent modification.",
+    "Verified TLS scope is runner to approved session pooler; backend hop TLS=false recorded separately."
+  ]
+}

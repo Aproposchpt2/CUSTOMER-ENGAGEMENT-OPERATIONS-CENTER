@@ -1,0 +1,330 @@
+name: Stellar staging access (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      acceptance:
+        description: 'Execute authorized C1/R1 synthetic fixtures, restart tests, and cleanup'
+        type: boolean
+        required: true
+        default: false
+
+      dispatcher:
+        description: 'Execute authorized D01-D11 committed dispatcher acceptance and cleanup'
+        type: boolean
+        required: true
+        default: false
+
+      collision:
+        description: 'Execute authorized C01-C04 SQL collision, active-lease fencing and lock-crash tests'
+        type: boolean
+        required: true
+        default: false
+
+      network:
+        description: 'Execute authorized U01-U04 uncertain commit, database timeout and connection-loss tests'
+        type: boolean
+        required: true
+        default: false
+
+      terminal:
+        description: 'Execute authorized T01-T05 final-attempt crash and invalid-delivery quarantine tests'
+        type: boolean
+        required: true
+        default: false
+
+      headless:
+        description: 'Execute authorized I01-I07 headless orchestration integration and cleanup'
+        type: boolean
+        required: true
+        default: false
+
+      gateway_process:
+        description: 'Execute approved two temporary Auth users and G02/G04/G05; cleanup required'
+        type: boolean
+        required: true
+        default: false
+
+      connection_review:
+        description: 'Read-only observer role and TLS diagnostics; no fixtures or acceptance'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stellar-staging-access
+  cancel-in-progress: false
+
+jobs:
+  read-only-access:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process != true && inputs.connection_review != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Owner must configure this protected environment before any credentialed run.
+    # No repository-wide credentials or deployment steps. Fixtures require explicit acceptance input.
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Reviewed staging test revision; do not execute arbitrary branch contents with secrets.
+          ref: 46c82b6efecc844bbac426e46c6f4e3f5e815a6c
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install pinned test dependencies without secrets
+        run: npm ci --ignore-scripts --no-fund
+      - name: Run guard tests without secrets
+        run: npm test
+      - name: Validate acceptance evidence guards without secrets
+        run: node --test c1-r1-acceptance.test.cjs
+      - name: Validate dispatcher and acceptance safety guards without secrets
+        run: node --test dispatcher.staging.test.cjs dispatcher-database.staging.test.cjs dispatcher-acceptance.test.cjs dispatcher-collision-acceptance.test.cjs dispatcher-network-acceptance.test.cjs dispatcher-terminal-acceptance.test.cjs support-orchestration-integration.staging.test.cjs headless-integration-acceptance.test.cjs
+      - name: Independent PostgreSQL client check (read only)
+        env:
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee psql-evidence.json
+          import json, os, re, shutil, subprocess, sys, tempfile
+          from urllib.parse import urlsplit, unquote
+          from pathlib import Path
+          
+          def check():
+              if not shutil.which("psql"):
+                  return {"status": "BLOCKED", "code": "PSQL_CLIENT_UNAVAILABLE"}
+              try:
+                  u = urlsplit(os.environ["STAGING_DATABASE_URL"])
+                  valid = (u.scheme in ("postgres", "postgresql")
+                           and u.hostname == "aws-0-us-west-1.pooler.supabase.com"
+                           and u.port == 5432 and u.path == "/postgres"
+                           and not u.query and not u.fragment
+                           and unquote(u.username or "") == "postgres.hvzauakkhlivzeqatfqm"
+                           and bool(u.password))
+                  if not valid:
+                      return {"status": "BLOCKED", "code": "PSQL_TARGET_REJECTED"}
+                  ca = os.environ.get("STAGING_DATABASE_CA_PEM", "")
+                  if "-----BEGIN CERTIFICATE-----" not in ca:
+                      return {"status": "BLOCKED", "code": "PSQL_CA_REQUIRED"}
+                  with tempfile.TemporaryDirectory() as directory:
+                      root = Path(directory) / "root.crt"
+                      root.write_text(ca)
+                      root.chmod(0o600)
+                      env = {k: os.environ[k] for k in ("PATH", "LANG") if k in os.environ}
+                      env.update(PGHOST=u.hostname, PGPORT="5432", PGDATABASE="postgres",
+                                 PGUSER=unquote(u.username), PGPASSWORD=unquote(u.password),
+                                 PGSSLMODE="verify-full", PGSSLROOTCERT=str(root), PGGSSENCMODE="disable",
+                                 PGCONNECT_TIMEOUT="8", PGAPPNAME="stellar-readonly-independent-client",
+                                 PGOPTIONS="-c default_transaction_read_only=on -c statement_timeout=8000")
+                      sql = """BEGIN READ ONLY;
+                      SELECT json_build_object('status','DATABASE_CLIENT_CONNECTED',
+                        'backendPid',pg_backend_pid(),'readOnly',current_setting('transaction_read_only'),
+                        'databaseBackendTls',(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()));
+                      ROLLBACK;"""
+                      result = subprocess.run(["psql", "-X", "-w", "-A", "-t", "-q",
+                                   "-v", "ON_ERROR_STOP=1", "-v", "VERBOSITY=sqlstate", "-c", "\\conninfo", "-c", sql],
+                                  env=env, capture_output=True, text=True, timeout=15)
+                      if result.returncode:
+                          auth = "28P01" in result.stderr or "password authentication failed" in result.stderr.lower()
+                          return {"status": "BLOCKED", "code": "PSQL_AUTHENTICATION_REJECTED" if auth else "PSQL_CONNECTION_REJECTED"}
+                      lines = result.stdout.strip().splitlines()
+                      evidence = json.loads(lines[-1])
+                      client_tls = any("SSL connection" in line for line in lines)
+                      if (evidence.get("status") != "DATABASE_CLIENT_CONNECTED"
+                          or evidence.get("readOnly") != "on" or not client_tls):
+                          return {"status": "BLOCKED", "code": "PSQL_READONLY_TLS_NOT_VERIFIED"}
+                      return {**evidence, "clientTlsVerified": True, "clientTlsMode": "verify-full", "acceptanceExecuted": False}
+              except subprocess.TimeoutExpired:
+                  return {"status": "BLOCKED", "code": "PSQL_TIMEOUT"}
+              except Exception:
+                  return {"status": "BLOCKED", "code": "PSQL_CONFIGURATION_REJECTED"}
+          
+          evidence = check()
+          print(json.dumps(evidence))
+          sys.exit(0 if evidence["status"] == "DATABASE_CLIENT_CONNECTED" else 2)
+          PY
+      - name: Check staging access (no fixtures)
+        env:
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        # Keep the reviewed runner's staging-only validation and pinned code unchanged.
+        run: |
+          set -euo pipefail
+          STAGING_SUPABASE_URL="$SUPABASE_URL" \
+          STAGING_SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
+          node access-check.cjs | tee access-evidence.json
+      - name: C1 concurrency and R1 committed worker restart
+        if: inputs.acceptance == true
+        env:
+          STAGING_ACCEPTANCE_AUTHORIZED: C1_R1
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node c1-r1-acceptance.cjs
+      - name: D01-D11 committed dispatcher acceptance
+        if: inputs.dispatcher == true
+        env:
+          STAGING_DISPATCH_ACCEPTANCE_AUTHORIZED: D01_D11
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-acceptance.cjs
+      - name: C01-C04 simultaneous SQL collision acceptance
+        if: inputs.collision == true
+        env:
+          STAGING_DISPATCH_COLLISION_AUTHORIZED: C01_C04
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-collision-acceptance.cjs
+      - name: U01-U04 uncertain commit and database connection loss
+        if: inputs.network == true
+        env:
+          STAGING_DISPATCH_NETWORK_AUTHORIZED: U01_U04
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-network-acceptance.cjs
+      - name: T01-T05 final-attempt crash and invalid delivery
+        if: inputs.terminal == true
+        env:
+          STAGING_DISPATCH_TERMINAL_AUTHORIZED: T01_T05
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node dispatcher-terminal-acceptance.cjs
+      - name: I01-I07 headless staging orchestration integration
+        if: inputs.headless == true
+        env:
+          STAGING_HEADLESS_INTEGRATION_AUTHORIZED: I01_I07
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node headless-integration-acceptance.cjs
+      - name: Retain only redacted access evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-staging-access-evidence
+          path: |
+            twilio-bridge/tests/staging-runner/access-evidence.json
+            twilio-bridge/tests/staging-runner/psql-evidence.json
+            twilio-bridge/tests/staging-runner/c1-r1-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-collision-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-network-evidence.json
+            twilio-bridge/tests/staging-runner/dispatcher-terminal-evidence.json
+            twilio-bridge/tests/staging-runner/headless-integration-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  gateway-process:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.gateway_process == true && inputs.connection_review != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 978711e308539e7a1c2007c0ea9d19746d1aef49
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned runner dependencies without credentials
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Verify gateway and temporary account safety guards without credentials
+        run: node --test authenticated-support-gateway.staging.test.cjs staging-gateway-node-adapter.test.cjs gateway-browser-acceptance.staging.test.cjs gateway-process-acceptance.test.cjs gateway-auth-fixture-acceptance.test.cjs
+      - name: Approved temporary staging identities and G02 G04 G05
+        env:
+          STAGING_GATEWAY_AUTH_FIXTURES_AUTHORIZED: TWO_TEMP_USERS_G02_G04_G05
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+          # This is the existing project's PUBLIC publishable key, never an admin credential.
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_S4k8gQdF_KqTrtYwdADS7Q_5tfvN_TK'
+        run: node gateway-auth-fixture-acceptance.cjs
+      - name: Retain sanitized process and cleanup evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-gateway-process-evidence
+          path: |
+            twilio-bridge/tests/staging-runner/gateway-auth-fixture-evidence.json
+            twilio-bridge/tests/staging-runner/gateway-process-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  connection-review:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/feature/staging-orchestrator-trigger-gateway' && inputs.connection_review == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: stellar-staging-access
+    defaults:
+      run:
+        working-directory: twilio-bridge/tests/staging-runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: b2b3ef9483db3cf395d6784a77e054c46452e5a9
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned diagnostic dependencies without credentials
+        run: npm ci --ignore-scripts --no-fund --no-audit
+      - name: Validate read-only diagnostic classification
+        run: node --test gateway-connection-review.test.cjs
+      - name: Read-only role and verified client TLS observations
+        env:
+          STAGING_CONNECTION_REVIEW_AUTHORIZED: READ_ONLY
+          STELLAR_BRIDGE_STAGING: 'true'
+          CSS_TENANT_ID: 5885a020-d363-4c27-910a-c035eda132f5
+          STAGING_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_DATABASE_CA_PEM: ${{ secrets.STAGING_DATABASE_CA_PEM }}
+        run: node gateway-connection-review.cjs
+      - name: Retain read-only metadata evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stellar-gateway-connection-review
+          path: twilio-bridge/tests/staging-runner/gateway-connection-review-evidence.json
+          if-no-files-found: ignore
+          retention-days: 7

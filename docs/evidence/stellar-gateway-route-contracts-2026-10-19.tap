@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: feature flags and exact staging target fail closed
+ok 1 - feature flags and exact staging target fail closed
+  ---
+  duration_ms: 9.997907
+  type: 'test'
+  ...
+# Subtest: strict route, origin and method are rejected before upstream calls
+ok 2 - strict route, origin and method are rejected before upstream calls
+  ---
+  duration_ms: 2.786228
+  type: 'test'
+  ...
+# Subtest: begin verifies remote user and active admin membership but performs no RPC
+ok 3 - begin verifies remote user and active admin membership but performs no RPC
+  ---
+  duration_ms: 8.72969
+  type: 'test'
+  ...
+# Subtest: missing, invalid and anonymous sessions cannot get a capability
+ok 4 - missing, invalid and anonymous sessions cannot get a capability
+  ---
+  duration_ms: 3.215507
+  type: 'test'
+  ...
+# Subtest: untrusted user metadata does not grant role, tenant or active membership
+ok 5 - untrusted user metadata does not grant role, tenant or active membership
+  ---
+  duration_ms: 5.073332
+  type: 'test'
+  ...
+# Subtest: membership is checked afresh on each submit
+ok 6 - membership is checked afresh on each submit
+  ---
+  duration_ms: 3.426817
+  type: 'test'
+  ...
+# Subtest: capability cannot be used by a different authenticated user
+ok 7 - capability cannot be used by a different authenticated user
+  ---
+  duration_ms: 3.838042
+  type: 'test'
+  ...
+# Subtest: tampered and expired capabilities fail without database RPC
+ok 8 - tampered and expired capabilities fail without database RPC
+  ---
+  duration_ms: 5.01286
+  type: 'test'
+  ...
+# Subtest: body cannot supply tenant, session, operation, case or authorization flags
+ok 9 - body cannot supply tenant, session, operation, case or authorization flags
+  ---
+  duration_ms: 6.654015
+  type: 'test'
+  ...
+# Subtest: explicit confirmation and valid intake are required before ticket RPC
+ok 10 - explicit confirmation and valid intake are required before ticket RPC
+  ---
+  duration_ms: 2.977038
+  type: 'test'
+  ...
+# Subtest: capability binds confirmed intake; changed valid data is rejected without a write
+ok 11 - capability binds confirmed intake; changed valid data is rejected without a write
+  ---
+  duration_ms: 1.327807
+  type: 'test'
+  ...
+# Subtest: bounded body reader rejects oversized, malformed and non-JSON requests
+ok 12 - bounded body reader rejects oversized, malformed and non-JSON requests
+  ---
+  duration_ms: 1.141825
+  type: 'test'
+  ...
+# Subtest: verified success is whitelisted, private and does not assert delivery
+ok 13 - verified success is whitelisted, private and does not assert delivery
+  ---
+  duration_ms: 5.331782
+  type: 'test'
+  ...
+# Subtest: duplicate submit and status recover the original operation without new write
+ok 14 - duplicate submit and status recover the original operation without new write
+  ---
+  duration_ms: 6.036965
+  type: 'test'
+  ...
+# Subtest: two overlapping same-instance submits coalesce and preserve one write
+ok 15 - two overlapping same-instance submits coalesce and preserve one write
+  ---
+  duration_ms: 11.687524
+  type: 'test'
+  ...
+# Subtest: invalid duplicate intake cannot bypass validation through in-flight coalescing
+ok 16 - invalid duplicate intake cannot bypass validation through in-flight coalescing
+  ---
+  duration_ms: 3.637485
+  type: 'test'
+  ...
+# Subtest: separate gateway instances reuse signed capability after restart
+ok 17 - separate gateway instances reuse signed capability after restart
+  ---
+  duration_ms: 2.983719
+  type: 'test'
+  ...
+# Subtest: credential rotation rejects old capability without using another key
+ok 18 - credential rotation rejects old capability without using another key
+  ---
+  duration_ms: 2.076342
+  type: 'test'
+  ...
+# Subtest: lost completion response resolves through canonical lookup
+ok 19 - lost completion response resolves through canonical lookup
+  ---
+  duration_ms: 5.087325
+  type: 'test'
+  ...
+# Subtest: uncertain case failure stays UNKNOWN and never retries ticket submission
+ok 20 - uncertain case failure stays UNKNOWN and never retries ticket submission
+  ---
+  duration_ms: 7.192938
+  type: 'test'
+  ...
+# Subtest: ACCEPTED workflow from interrupted start does not trigger automatic write
+ok 21 - ACCEPTED workflow from interrupted start does not trigger automatic write
+  ---
+  duration_ms: 2.024333
+  type: 'test'
+  ...
+# Subtest: foreign canonical session cannot become a verified gateway ticket
+ok 22 - foreign canonical session cannot become a verified gateway ticket
+  ---
+  duration_ms: 3.165721
+  type: 'test'
+  ...
+# Subtest: upstream deadlines are bounded and do not expose raw error details
+ok 23 - upstream deadlines are bounded and do not expose raw error details
+  ---
+  duration_ms: 31.059567
+  type: 'test'
+  ...
+# Subtest: timeout after write begins returns UNKNOWN; fresh status recovers original case
+ok 24 - timeout after write begins returns UNKNOWN; fresh status recovers original case
+  ---
+  duration_ms: 33.728475
+  type: 'test'
+  ...
+# Subtest: request abort before authentication performs no upstream operation
+ok 25 - request abort before authentication performs no upstream operation
+  ---
+  duration_ms: 5.148687
+  type: 'test'
+  ...
+# Subtest: preparation publishes synthetic cleanup manifest without submit
+ok 26 - preparation publishes synthetic cleanup manifest without submit
+  ---
+  duration_ms: 1.882768
+  type: 'test'
+  ...
+# Subtest: cleanup manifest and attempted flag are published before the one initial write
+ok 27 - cleanup manifest and attempted flag are published before the one initial write
+  ---
+  duration_ms: 1.069269
+  type: 'test'
+  ...
+# Subtest: uncertain HTTP response prevents another initial write
+ok 28 - uncertain HTTP response prevents another initial write
+  ---
+  duration_ms: 0.377346
+  type: 'test'
+  ...
+# Subtest: pending result has no fabricated case and preserves recovery state
+ok 29 - pending result has no fabricated case and preserves recovery state
+  ---
+  duration_ms: 0.243315
+  type: 'test'
+  ...
+# Subtest: repeat requires confirmed original case and never prepares another operation
+ok 30 - repeat requires confirmed original case and never prepares another operation
+  ---
+  duration_ms: 0.393008
+  type: 'test'
+  ...
+# Subtest: negative checks use rejected requests and keep capabilities out of evidence
+ok 31 - negative checks use rejected requests and keep capabilities out of evidence
+  ---
+  duration_ms: 0.998813
+  type: 'test'
+  ...
+# Subtest: absent operation checks status without submitting it
+ok 32 - absent operation checks status without submitting it
+  ---
+  duration_ms: 0.365862
+  type: 'test'
+  ...
+# Subtest: HTTP observations never claim database verification or cleanup
+ok 33 - HTTP observations never claim database verification or cleanup
+  ---
+  duration_ms: 0.403366
+  type: 'test'
+  ...
+# Subtest: only the explicit private PR77 preview configuration can mount
+ok 34 - only the explicit private PR77 preview configuration can mount
+  ---
+  duration_ms: 1.932698
+  type: 'test'
+  ...
+# Subtest: real local Node HTTP request streams through cookie bearer adapter
+ok 35 - real local Node HTTP request streams through cookie bearer adapter
+  ---
+  duration_ms: 47.425905
+  type: 'test'
+  ...
+# Subtest: disabled preview route touches neither cookies nor upstreams
+ok 36 - disabled preview route touches neither cookies nor upstreams
+  ---
+  duration_ms: 5.710064
+  type: 'test'
+  ...
+# Subtest: wrong host and forwarded-host spoof cannot reach authentication
+ok 37 - wrong host and forwarded-host spoof cannot reach authentication
+  ---
+  duration_ms: 4.01352
+  type: 'test'
+  ...
+# Subtest: wrong origin, GET and query parameters are rejected
+ok 38 - wrong origin, GET and query parameters are rejected
+  ---
+  duration_ms: 7.205646
+  type: 'test'
+  ...
+# Subtest: explicit bearer does not invoke cookie fallback
+ok 39 - explicit bearer does not invoke cookie fallback
+  ---
+  duration_ms: 8.018573
+  type: 'test'
+  ...
+# Subtest: invalid explicit bearer never falls back to a valid cookie session
+ok 40 - invalid explicit bearer never falls back to a valid cookie session
+  ---
+  duration_ms: 4.034654
+  type: 'test'
+  ...
+# Subtest: stream limits and malformed JSON are enforced through the Node adapter
+ok 41 - stream limits and malformed JSON are enforced through the Node adapter
+  ---
+  duration_ms: 7.368863
+  type: 'test'
+  ...
+# Subtest: preview capability is not accepted on the existing private base host
+ok 42 - preview capability is not accepted on the existing private base host
+  ---
+  duration_ms: 6.896653
+  type: 'test'
+  ...
+# Subtest: unapproved preview origins are refused at construction
+ok 43 - unapproved preview origins are refused at construction
+  ---
+  duration_ms: 0.796767
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 288.140441

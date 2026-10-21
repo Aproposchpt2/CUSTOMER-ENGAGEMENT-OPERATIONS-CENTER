@@ -1,0 +1,646 @@
+{
+  "runId": 39450946301,
+  "jobId": 118725275880,
+  "artifactId": 12278138478,
+  "artifactSHA256": "e1860ad2dd095e80dffed437fcf807d7f2caed7bce660f4dcc23a54b59b29ad2",
+  "authFixtureEvidence": {
+    "project": "hvzauakkhlivzeqatfqm",
+    "tenant": "5885a020-d363-4c27-910a-c035eda132f5",
+    "status": "FAIL",
+    "startedAt": "2026-10-20T15:52:58.059Z",
+    "fixtures": [
+      {
+        "kind": "member",
+        "marker": "e9a1008f-d1dc-4517-821e-c493311d8be3",
+        "email": "stellar-gateway-e9a1008f-d1dc-4517-821e-c493311d8be3@example.invalid",
+        "id": "a56e1375-cac0-4fcc-b0eb-ec17bd11b1bb",
+        "membershipId": "914c58d9-05ef-4ae7-a976-4ffd05f44356"
+      },
+      {
+        "kind": "nonmember",
+        "marker": "81a8615c-348d-410c-b64b-949da0a2d219",
+        "email": "stellar-gateway-81a8615c-348d-410c-b64b-949da0a2d219@example.invalid",
+        "id": "e67e187e-cf30-488a-a2a1-2bf42ed089db"
+      }
+    ],
+    "tests": {
+      "G02": {
+        "status": "PASS",
+        "httpStatus": 403,
+        "response": {
+          "error": "STAGING_ACCESS_DENIED"
+        },
+        "scope": "REAL_AUTHENTICATED_NONMEMBER_NO_FOREIGN_TENANCY"
+      }
+    },
+    "applicationBefore": {
+      "cases": {
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      "contacts": {
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      "workflows": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_receipts_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_effects_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    },
+    "authBefore": {
+      "auth.users": {
+        "count": 1,
+        "fingerprint": "cee8a260399c09831d695b77060f9385"
+      },
+      "auth.identities": {
+        "count": 1,
+        "fingerprint": "156e79abed862d79de9d7f3645dd4f4b"
+      },
+      "auth.sessions": {
+        "count": 27,
+        "fingerprint": "8bef4ac0123bfa972fe5e29faecc6d39"
+      },
+      "public.tenant_users": {
+        "count": 1,
+        "fingerprint": "b31b66caa9cc8f8b252941e8a8a87c9c"
+      }
+    },
+    "securityBefore": {
+      "fingerprint": "26b198f99901b474beae7a2314b3f7e7"
+    },
+    "auditBefore": 0,
+    "process": {
+      "pid": 2285,
+      "code": 2,
+      "signal": null,
+      "timedOut": false
+    },
+    "failureCode": "PROCESS_ACCEPTANCE_NOT_PASSED",
+    "authAfter": {
+      "auth.users": {
+        "count": 1,
+        "fingerprint": "cee8a260399c09831d695b77060f9385"
+      },
+      "auth.identities": {
+        "count": 1,
+        "fingerprint": "156e79abed862d79de9d7f3645dd4f4b"
+      },
+      "auth.sessions": {
+        "count": 27,
+        "fingerprint": "8bef4ac0123bfa972fe5e29faecc6d39"
+      },
+      "public.tenant_users": {
+        "count": 1,
+        "fingerprint": "b31b66caa9cc8f8b252941e8a8a87c9c"
+      }
+    },
+    "applicationAfter": {
+      "cases": {
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      "contacts": {
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      "workflows": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_receipts_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_effects_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    },
+    "securityAfter": {
+      "fingerprint": "26b198f99901b474beae7a2314b3f7e7"
+    },
+    "auditAfter": 0,
+    "authCleanupVerified": true,
+    "applicationCleanupVerified": true,
+    "securityUnchanged": true,
+    "finishedAt": "2026-10-20T15:53:03.496Z"
+  },
+  "processEvidence": {
+    "scope": "REAL_GATEWAY_MODULE_PROCESSES_NOT_NETLIFY_WORKER_CONTROL",
+    "status": "FAIL",
+    "project": "hvzauakkhlivzeqatfqm",
+    "tenant": "5885a020-d363-4c27-910a-c035eda132f5",
+    "startedAt": "2026-10-20T15:53:00.632Z",
+    "fixtures": [
+      {
+        "tag": "concurrent-first-submit",
+        "email": "gateway-process-d2e10918-554e-4202-bfa6-245143803ef0@example.invalid",
+        "operation": "gateway:7122714a-5786-4b04-a803-c54101234751",
+        "session": "phone-staging:CA4f02a8e2e19d40ae8b9e620ef8ac05d9"
+      }
+    ],
+    "tests": {},
+    "rpcTraces": [],
+    "workerObservations": [
+      {
+        "pid": 2298,
+        "phase": "observer_query",
+        "code": "OBSERVER_CONNECTION_REJECTED"
+      },
+      {
+        "pid": 2297,
+        "phase": "observer_query",
+        "code": "OBSERVER_CONNECTION_REJECTED"
+      }
+    ],
+    "baseline": {
+      "cases": {
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      "contacts": {
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      "workflows": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_receipts_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_effects_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    },
+    "securityBefore": {
+      "previous": {
+        "old": {
+          "rls": [
+            {
+              "relname": "ai4cc_contacts",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+            },
+            {
+              "relname": "stellar_orchestrator_events_staging",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}"
+            },
+            {
+              "relname": "stellar_orchestrator_workflows_staging",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}"
+            },
+            {
+              "relname": "stellar_support_cases",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}"
+            }
+          ],
+          "functions": [
+            {
+              "proname": "stellar_orch_accept_staging",
+              "body_hash": "7851346eb2e1f346e597eca11c6dd7dd",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            },
+            {
+              "proname": "stellar_orch_reconcile_case_staging",
+              "body_hash": "d545fd9855ecb1cb0ce6f1fb19c160c0",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            },
+            {
+              "proname": "stellar_orch_transition_staging",
+              "body_hash": "727b0626776743e19a99160ebd050ff9",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            }
+          ],
+          "policies": [
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_delete",
+              "roles": "{authenticated}",
+              "cmd": "DELETE",
+              "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_insert",
+              "roles": "{authenticated}",
+              "cmd": "INSERT",
+              "qual": null,
+              "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_select",
+              "roles": "{authenticated}",
+              "cmd": "SELECT",
+              "qual": "private.is_tenant_member(tenant_id)",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_update",
+              "roles": "{authenticated}",
+              "cmd": "UPDATE",
+              "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+              "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+            },
+            {
+              "schemaname": "public",
+              "tablename": "stellar_support_cases",
+              "policyname": "stellar_support_cases_member_read",
+              "roles": "{authenticated}",
+              "cmd": "SELECT",
+              "qual": "private.is_tenant_member(tenant_id)",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "stellar_support_cases",
+              "policyname": "tenant_members_read_cases",
+              "roles": "{public}",
+              "cmd": "SELECT",
+              "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+              "with_check": null
+            }
+          ],
+          "grants": {
+            "insert_allowed": false,
+            "update_allowed": false,
+            "delete_allowed": false
+          }
+        },
+        "tables": [
+          {
+            "relname": "stellar_dispatch_effects_staging",
+            "relrowsecurity": true,
+            "relacl": "{postgres=arwdDxtm/postgres}"
+          },
+          {
+            "relname": "stellar_dispatch_receipts_staging",
+            "relrowsecurity": true,
+            "relacl": "{postgres=arwdDxtm/postgres}"
+          }
+        ],
+        "funcs": [
+          {
+            "proname": "stellar_dispatch_ack_staging",
+            "body_hash": "eb1f229125dd1d28b0c1d61a7bab330c",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_claim_staging",
+            "body_hash": "05aef8c84a393fadfe6eaee4c31de872",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_fail_staging",
+            "body_hash": "84739cd391b2f7fc225ea0c4c8cb3a52",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_receive_staging",
+            "body_hash": "900cdd600e0c47dade8870254f8acb7c",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_verify_staging",
+            "body_hash": "7488901498cd8abbbf9934fdb787db32",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          }
+        ]
+      },
+      "lookup": {
+        "body_hash": "83b86abef8590434d473c32ee9284460",
+        "prosecdef": true,
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+        "service_execute": true,
+        "anon_execute": false,
+        "authenticated_execute": false
+      }
+    },
+    "failureCode": "OBSERVER_CONNECTION_REJECTED",
+    "failureWorker": {
+      "pid": 2298,
+      "phase": "observer_query",
+      "code": "OBSERVER_CONNECTION_REJECTED"
+    },
+    "cleanup": [
+      {
+        "session": "phone-staging:CA4f02a8e2e19d40ae8b9e620ef8ac05d9",
+        "notPersisted": true
+      }
+    ],
+    "final": {
+      "cases": {
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      "contacts": {
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      "workflows": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_receipts_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "stellar_dispatch_effects_staging": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    },
+    "securityAfter": {
+      "previous": {
+        "old": {
+          "rls": [
+            {
+              "relname": "ai4cc_contacts",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}"
+            },
+            {
+              "relname": "stellar_orchestrator_events_staging",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}"
+            },
+            {
+              "relname": "stellar_orchestrator_workflows_staging",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}"
+            },
+            {
+              "relname": "stellar_support_cases",
+              "relrowsecurity": true,
+              "relacl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}"
+            }
+          ],
+          "functions": [
+            {
+              "proname": "stellar_orch_accept_staging",
+              "body_hash": "7851346eb2e1f346e597eca11c6dd7dd",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            },
+            {
+              "proname": "stellar_orch_reconcile_case_staging",
+              "body_hash": "d545fd9855ecb1cb0ce6f1fb19c160c0",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            },
+            {
+              "proname": "stellar_orch_transition_staging",
+              "body_hash": "727b0626776743e19a99160ebd050ff9",
+              "prosecdef": true,
+              "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+              "service_execute": true,
+              "anon_execute": false,
+              "authenticated_execute": false
+            }
+          ],
+          "policies": [
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_delete",
+              "roles": "{authenticated}",
+              "cmd": "DELETE",
+              "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_insert",
+              "roles": "{authenticated}",
+              "cmd": "INSERT",
+              "qual": null,
+              "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_select",
+              "roles": "{authenticated}",
+              "cmd": "SELECT",
+              "qual": "private.is_tenant_member(tenant_id)",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "ai4cc_contacts",
+              "policyname": "ai4cc_contacts_member_update",
+              "roles": "{authenticated}",
+              "cmd": "UPDATE",
+              "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+              "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+            },
+            {
+              "schemaname": "public",
+              "tablename": "stellar_support_cases",
+              "policyname": "stellar_support_cases_member_read",
+              "roles": "{authenticated}",
+              "cmd": "SELECT",
+              "qual": "private.is_tenant_member(tenant_id)",
+              "with_check": null
+            },
+            {
+              "schemaname": "public",
+              "tablename": "stellar_support_cases",
+              "policyname": "tenant_members_read_cases",
+              "roles": "{public}",
+              "cmd": "SELECT",
+              "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+              "with_check": null
+            }
+          ],
+          "grants": {
+            "insert_allowed": false,
+            "update_allowed": false,
+            "delete_allowed": false
+          }
+        },
+        "tables": [
+          {
+            "relname": "stellar_dispatch_effects_staging",
+            "relrowsecurity": true,
+            "relacl": "{postgres=arwdDxtm/postgres}"
+          },
+          {
+            "relname": "stellar_dispatch_receipts_staging",
+            "relrowsecurity": true,
+            "relacl": "{postgres=arwdDxtm/postgres}"
+          }
+        ],
+        "funcs": [
+          {
+            "proname": "stellar_dispatch_ack_staging",
+            "body_hash": "eb1f229125dd1d28b0c1d61a7bab330c",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_claim_staging",
+            "body_hash": "05aef8c84a393fadfe6eaee4c31de872",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_fail_staging",
+            "body_hash": "84739cd391b2f7fc225ea0c4c8cb3a52",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_receive_staging",
+            "body_hash": "900cdd600e0c47dade8870254f8acb7c",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          },
+          {
+            "proname": "stellar_dispatch_verify_staging",
+            "body_hash": "7488901498cd8abbbf9934fdb787db32",
+            "proconfig": [
+              "search_path=\"\""
+            ],
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "prosecdef": true,
+            "service": true,
+            "anon": false,
+            "authenticated": false
+          }
+        ]
+      },
+      "lookup": {
+        "body_hash": "83b86abef8590434d473c32ee9284460",
+        "prosecdef": true,
+        "proconfig": [
+          "search_path=\"\""
+        ],
+        "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+        "service_execute": true,
+        "anon_execute": false,
+        "authenticated_execute": false
+      }
+    },
+    "cleanupVerified": true,
+    "securityUnchanged": true,
+    "finishedAt": "2026-10-20T15:53:02.222Z"
+  }
+}

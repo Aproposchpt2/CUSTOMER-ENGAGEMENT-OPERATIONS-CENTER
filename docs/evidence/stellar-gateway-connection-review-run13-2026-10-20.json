@@ -1,0 +1,54 @@
+{
+  "runId": 39453309398,
+  "jobId": 118733550465,
+  "artifactId": 12278059932,
+  "evidence": {
+    "scope": "READ_ONLY_CONNECTION_REVIEW_NOT_ACCEPTANCE",
+    "project": "hvzauakkhlivzeqatfqm",
+    "tenant": "5885a020-d363-4c27-910a-c035eda132f5",
+    "status": "DIAGNOSTICS_CAPTURED",
+    "startedAt": "2026-10-20T16:05:31.168Z",
+    "observations": [
+      {
+        "type": "observation",
+        "pid": 2454,
+        "backendPid": 2717588,
+        "role": "postgres",
+        "observedAt": "2026-10-20T16:05:31.601Z",
+        "readOnly": "on",
+        "databaseBackendTls": false,
+        "clientEncrypted": true,
+        "clientAuthorized": true,
+        "rejectUnauthorized": true,
+        "tlsProtocol": "TLSv1.3",
+        "assessment": {
+          "roleAccepted": true,
+          "clientTlsVerified": true,
+          "originalObserverGuardAccepted": false
+        }
+      },
+      {
+        "type": "observation",
+        "pid": 2455,
+        "backendPid": 2717590,
+        "role": "postgres",
+        "observedAt": "2026-10-20T16:05:31.590Z",
+        "readOnly": "on",
+        "databaseBackendTls": false,
+        "clientEncrypted": true,
+        "clientAuthorized": true,
+        "rejectUnauthorized": true,
+        "tlsProtocol": "TLSv1.3",
+        "assessment": {
+          "roleAccepted": true,
+          "clientTlsVerified": true,
+          "originalObserverGuardAccepted": false
+        }
+      }
+    ],
+    "acceptanceExecuted": false,
+    "fixturesCreated": false,
+    "originalGuardAccepted": false,
+    "finishedAt": "2026-10-20T16:05:31.731Z"
+  }
+}

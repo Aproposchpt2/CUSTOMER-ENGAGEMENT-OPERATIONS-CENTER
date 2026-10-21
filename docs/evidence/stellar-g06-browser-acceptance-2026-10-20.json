@@ -1,0 +1,471 @@
+{
+  "title": "G06 protected browser invalid association acceptance",
+  "date": "2026-10-20",
+  "result": "PASS_WITH_EVIDENCE_LIMITATION",
+  "manifest": {
+    "workflowId": "d0f60a38-f082-4e73-8793-c4be3b5a907e",
+    "tenantId": "5885a020-d363-4c27-910a-c035eda132f5",
+    "operationId": "gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f",
+    "originalSession": "phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a",
+    "callId": "CAaf4db9fd72404d28ac4c3b128173fb7a",
+    "caseSession": "phone-staging:CAd0f60a38f0824e738793c4be3b5a907e",
+    "email": "gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid",
+    "expiresAt": "2026-10-20T17:05:06.000Z"
+  },
+  "deploy": {
+    "id": "6ad747abc3fe26d78bc9f2b6",
+    "commit": "ec9f9a0edf3cf9f73a72dd193641b21d33abe7c4"
+  },
+  "baseline": [
+    {
+      "t": "cases",
+      "n": 20,
+      "hash": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "t": "contacts",
+      "n": 13,
+      "hash": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "t": "workflows",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "events",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "receipts",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "effects",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "created": [
+    {
+      "observed_at": "2026-10-20 16:51:23.626671+00",
+      "workflow_id": "d0f60a38-f082-4e73-8793-c4be3b5a907e",
+      "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+      "session_id": "phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a",
+      "call_id": "CAaf4db9fd72404d28ac4c3b128173fb7a",
+      "tool_call_id": "gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f",
+      "workflow_type": "support_ticket_creation",
+      "state": "COMPLETED",
+      "case_id": "84d4ac3e-48d7-4965-baba-d591fe5a0756",
+      "version": 1,
+      "created_at": "2026-10-20 16:51:23.626671+00",
+      "updated_at": "2026-10-20 16:51:23.626671+00",
+      "contact_id": "3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa",
+      "case_session": "phone-staging:CAd0f60a38f0824e738793c4be3b5a907e",
+      "email": "gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid",
+      "workflow_hash": "bd29758d80a8d0ee18898b7d5dc6f682",
+      "case_hash": "75fd36c57320c11a2809d7a468daabe3",
+      "contact_hash": "73ee663be9d1a43ee6d14b46e388f0d9"
+    }
+  ],
+  "independentFixture": [
+    {
+      "observed_at": "2026-10-20 16:51:33.948164+00",
+      "workflow_id": "d0f60a38-f082-4e73-8793-c4be3b5a907e",
+      "state": "COMPLETED",
+      "version": 1,
+      "case_id": "84d4ac3e-48d7-4965-baba-d591fe5a0756",
+      "contact_id": "3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa",
+      "session_id": "phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a",
+      "intake_session_id": "phone-staging:CAd0f60a38f0824e738793c4be3b5a907e",
+      "workflow_hash": "bd29758d80a8d0ee18898b7d5dc6f682",
+      "case_hash": "75fd36c57320c11a2809d7a468daabe3",
+      "contact_hash": "73ee663be9d1a43ee6d14b46e388f0d9",
+      "events": 0
+    }
+  ],
+  "sqlRejection": [
+    {
+      "observed_at": "2026-10-20 16:51:53.287941+00",
+      "actual_error": "COMPLETED_ASSOCIATION_INVALID"
+    }
+  ],
+  "afterHttp": [
+    {
+      "observed_at": "2026-10-20 16:52:00.939065+00",
+      "workflow_id": "d0f60a38-f082-4e73-8793-c4be3b5a907e",
+      "state": "COMPLETED",
+      "version": 1,
+      "case_id": "84d4ac3e-48d7-4965-baba-d591fe5a0756",
+      "contact_id": "3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa",
+      "session_id": "phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a",
+      "intake_session_id": "phone-staging:CAd0f60a38f0824e738793c4be3b5a907e",
+      "workflow_hash": "bd29758d80a8d0ee18898b7d5dc6f682",
+      "case_hash": "75fd36c57320c11a2809d7a468daabe3",
+      "contact_hash": "73ee663be9d1a43ee6d14b46e388f0d9",
+      "events": 0
+    }
+  ],
+  "cleanup": [
+    {
+      "cleanup_observed_at": "2026-10-20 16:53:01.948604+00",
+      "result": "EXACT_WORKFLOW_CASE_CONTACT_REMOVED"
+    }
+  ],
+  "final": [
+    {
+      "t": "cases",
+      "n": 20,
+      "hash": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "t": "contacts",
+      "n": 13,
+      "hash": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "t": "workflows",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "events",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "receipts",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "t": "effects",
+      "n": 0,
+      "hash": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "securityBefore": [
+    {
+      "security": {
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "ai4cc_contacts",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "stellar_dispatch_effects_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "stellar_dispatch_receipts_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "rls": true,
+            "name": "stellar_orchestrator_events_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "rls": true,
+            "name": "stellar_orchestrator_workflows_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}",
+            "rls": true,
+            "name": "stellar_support_cases",
+            "force": false
+          }
+        ],
+        "policies": [
+          {
+            "cmd": "DELETE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_delete",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_insert",
+            "schemaname": "public",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_update",
+            "schemaname": "public",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "stellar_support_cases",
+            "permissive": "PERMISSIVE",
+            "policyname": "stellar_support_cases_member_read",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+            "roles": [
+              "public"
+            ],
+            "tablename": "stellar_support_cases",
+            "permissive": "PERMISSIVE",
+            "policyname": "tenant_members_read_cases",
+            "schemaname": "public",
+            "with_check": null
+          }
+        ],
+        "functions": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "a3112520c30b739beaf49604ab66417f",
+            "name": "stellar_create_phone_support_test_intake(uuid,text,text,text,text,text,date,text,text,text,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "4c4337ec749b93cfe09de8bbbc373ea5",
+            "name": "stellar_orch_accept_staging(uuid,text,text,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "cd40f1c0b858369f9cb05289b3e04d57",
+            "name": "stellar_orch_lookup_staging(uuid,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "b4247b5237bc1e0444bf75759a1b4fa3",
+            "name": "stellar_orch_reconcile_case_staging(uuid)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "45c1c64f600b143a8c175552d4ae85dd",
+            "name": "stellar_orch_transition_staging(uuid,text,text,uuid)"
+          }
+        ]
+      }
+    }
+  ],
+  "securityAfter": [
+    {
+      "security": {
+        "tables": [
+          {
+            "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "ai4cc_contacts",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "stellar_dispatch_effects_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres}",
+            "rls": true,
+            "name": "stellar_dispatch_receipts_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "rls": true,
+            "name": "stellar_orchestrator_events_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "rls": true,
+            "name": "stellar_orchestrator_workflows_staging",
+            "force": false
+          },
+          {
+            "acl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}",
+            "rls": true,
+            "name": "stellar_support_cases",
+            "force": false
+          }
+        ],
+        "policies": [
+          {
+            "cmd": "DELETE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_delete",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_insert",
+            "schemaname": "public",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_select",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "ai4cc_contacts",
+            "permissive": "PERMISSIVE",
+            "policyname": "ai4cc_contacts_member_update",
+            "schemaname": "public",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": [
+              "authenticated"
+            ],
+            "tablename": "stellar_support_cases",
+            "permissive": "PERMISSIVE",
+            "policyname": "stellar_support_cases_member_read",
+            "schemaname": "public",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+            "roles": [
+              "public"
+            ],
+            "tablename": "stellar_support_cases",
+            "permissive": "PERMISSIVE",
+            "policyname": "tenant_members_read_cases",
+            "schemaname": "public",
+            "with_check": null
+          }
+        ],
+        "functions": [
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "a3112520c30b739beaf49604ab66417f",
+            "name": "stellar_create_phone_support_test_intake(uuid,text,text,text,text,text,date,text,text,text,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "4c4337ec749b93cfe09de8bbbc373ea5",
+            "name": "stellar_orch_accept_staging(uuid,text,text,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "cd40f1c0b858369f9cb05289b3e04d57",
+            "name": "stellar_orch_lookup_staging(uuid,text)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "b4247b5237bc1e0444bf75759a1b4fa3",
+            "name": "stellar_orch_reconcile_case_staging(uuid)"
+          },
+          {
+            "acl": "{postgres=X/postgres,service_role=X/postgres}",
+            "hash": "45c1c64f600b143a8c175552d4ae85dd",
+            "name": "stellar_orch_transition_staging(uuid,text,text,uuid)"
+          }
+        ]
+      }
+    }
+  ],
+  "securityUnchanged": true,
+  "httpEvidence": {
+    "checks": [
+      {
+        "test": "status recovery",
+        "result": "PENDING",
+        "state": "UNKNOWN"
+      },
+      {
+        "test": "status recovery",
+        "result": "PENDING",
+        "state": "UNKNOWN"
+      }
+    ],
+    "sourceGuard": "Deployed recover() appends PENDING only after status===202 && !body.success && !body.caseId. Raw HTTP response bodies/headers and customerId/notification fields were not separately exported by the UI. Do not claim those fields were directly observed.",
+    "actualBrowserSnapshot": "- main:\n  - heading \"STELLAR INTELLIGENT TECHNOLOGIES\" [level=1]\n  - paragraph: Operated by Apropos Group LLC\n  - heading \"Private staging gateway acceptance\" [level=2]\n  - paragraph: Fictional data only. This page does not place calls or send notifications.\n  - status: Observation recorded. Database verification and cleanup remain required.\n  - button \"Prepare fictional fixture\" [disabled]\n  - button \"Save cleanup manifest\"\n  - button \"Submit fictional request once\"\n  - button \"Check original operation\"\n  - button \"Repeat same confirmed request\" [disabled]\n  - button \"Test rejected requests\"\n  - button \"Test absent operation\"\n  - button \"Check real capability expiry\"\n  - paragraph: Keep this page open. Operation capabilities expire after 15 minutes. A page refresh or lost capability requires coordinated recovery, never a blind new submission.\n  - paragraph: For a dedicated expiry test, prepare a fresh fixture, save its manifest, and leave it unsubmitted until its displayed expiry plus two seconds. Then check real capability expiry.\n  - generic \"Sanitized staging evidence\": \"{ \\\"scope\\\": \\\"GATEWAY_BROWSER_OBSERVATIONS_ONLY\\\", \\\"fixture\\\": { \\\"runId\\\": \\\"gateway-f082e736-793c-4be3-b5a9-907e657556a2\\\", \\\"operationId\\\": \\\"gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f\\\", \\\"session\\\": \\\"phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a\\\", \\\"email\\\": \\\"gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid\\\", \\\"intake\\\": { \\\"name\\\": \\\"Fictional staging customer\\\", \\\"email\\\": \\\"gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid\\\", \\\"phone\\\": \\\"\\\", \\\"product\\\": \\\"Synthetic staging router\\\", \\\"purchaseDate\\\": \\\"2026-10-01\\\", \\\"issue\\\": \\\"Fictional staging gateway acceptance; no real customer or notification.\\\", \\\"steps\\\": \\\"gateway-f082e736-793c-4be3-b5a9-907e657556a2\\\", \\\"impact\\\": \\\"No real business affected\\\", \\\"priority\\\": \\\"NORMAL\\\" }, \\\"expiresAt\\\": \\\"2026-10-20T17:05:06.000Z\\\" }, \\\"checks\\\": [ { \\\"test\\\": \\\"status recovery\\\", \\\"result\\\": \\\"PENDING\\\", \\\"state\\\": \\\"UNKNOWN\\\" }, { \\\"test\\\": \\\"status recovery\\\", \\\"result\\\": \\\"PENDING\\\", \\\"state\\\": \\\"UNKNOWN\\\" } ], \\\"databaseVerified\\\": false, \\\"cleanupVerified\\\": false, \\\"pending\\\": [ \\\"G02 foreign/inactive real user\\\", \\\"G03 real capability expiry\\\", \\\"G04 two-process first-submit race\\\", \\\"G05 committed interruption recovery\\\", \\\"G06 invalid persisted association\\\", \\\"G07 independent database evidence and cleanup\\\" ] }\"\n- iframe:\n  - tablist:\n    - tab:\n      - strong: Deploy Preview\n  - tablist:\n    - button:\n  - tablist:\n    - button:\n  - tablist:\n    - tab \"Logo Collaborate on this Deploy Preview\":\n      - img \"Logo\"\n      - strong:\n        - text: Collaborate\n        - generic: on this Deploy Preview\n  - tablist:\n    - tab \"Log in to the Netlify Drawer\":\n      - strong: Log in to the Netlify Drawer\n  - tablist:\n    - tab \"Copy URL\":\n  - tablist:\n    - button \"Minimize\":\n  - generic \"Netlify Drawer\":\n    - heading \"Collaborate on projects before going live\" [level=2]:\n      - text: Collaborate\n      - text: on projects\n      - text: before going\n      - text: live\n    - paragraph: Share feedback — with images & video — directly from the browser.\n    - paragraph: It flows right into the tools you already know and love.\n    - paragraph: Notify with @replies and make sure that the whole team stays aligned.\n    - button \"Create a free account\"\n    - paragraph: Already have a Netlify account? Log in\n  - alert\n- alert\n- iframe [id=\"nl-hud-frame\"]:\n  - toolbar \"Netlify site tools\":\n    - button \"Private\":\n      - generic: Private\n    - link \"Share\":\n      - /url: https://app.netlify.com/projects/a98fcd5a-893e-4eb7-835b-146f516ff47d/overview?modal=share&from_hud=private&hud_action=share\n      - generic: Share\n    - button \"Pre-launch tools\":\n      - generic: Pre-launch tools\n    - link \"Make public\":\n      - /url: https://app.netlify.com/projects/a98fcd5a-893e-4eb7-835b-146f516ff47d/overview?modal=go-live&from_hud=private&hud_action=make_public\n      - text: Make public\n    - button \"Minimize Netlify tools\":"
+  },
+  "sql": {
+    "create": "BEGIN;\nSET LOCAL statement_timeout='10s';\nDO $test$\nDECLARE r record; n integer;\nBEGIN\nIF current_user <> 'postgres' THEN RAISE EXCEPTION 'AUTHORIZED_ADMIN_REQUIRED'; END IF;\nIF EXISTS(SELECT 1 FROM public.stellar_orchestrator_workflows_staging) OR EXISTS(SELECT 1 FROM public.stellar_orchestrator_events_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_receipts_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_effects_staging) THEN RAISE EXCEPTION 'BASELINE_CHANGED';END IF;\nIF (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.stellar_support_cases c)<>'ddeb4729999cd8a90965ab2197b4355c' OR (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.ai4cc_contacts c)<>'a67f355fc8bc1a3e258ab772b308c485' THEN RAISE EXCEPTION 'BASELINE_CHANGED';END IF;\nEXECUTE 'SET LOCAL ROLE service_role';\nSELECT * INTO STRICT r FROM public.stellar_create_phone_support_test_intake('5885a020-d363-4c27-910a-c035eda132f5'::uuid,'phone-staging:CAd0f60a38f0824e738793c4be3b5a907e','Fictional staging customer','gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid','','Synthetic staging router','2026-10-01'::date,'Fictional staging gateway acceptance; no real customer or notification.','gateway-f082e736-793c-4be3-b5a9-907e657556a2','No real business affected','NORMAL');\nIF r.created_new IS DISTINCT FROM true OR r.case_id IS NULL OR r.customer_id IS NULL THEN RAISE EXCEPTION 'NEW_FIXTURE_REQUIRED';END IF;\nEXECUTE 'RESET ROLE';\nIF NOT EXISTS(SELECT 1 FROM public.stellar_support_cases c JOIN public.ai4cc_contacts k ON k.id=c.contact_id AND k.tenant_id=c.tenant_id WHERE c.id=r.case_id AND k.id=r.customer_id AND c.tenant_id='5885a020-d363-4c27-910a-c035eda132f5'::uuid AND c.test_only=true AND c.intake_session_id='phone-staging:CAd0f60a38f0824e738793c4be3b5a907e' AND k.email='gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid' AND k.metadata->>'test_only'='true' AND k.metadata->>'notifications_disabled'='true') THEN RAISE EXCEPTION 'FIXTURE_METADATA_INVALID';END IF;\nINSERT INTO public.stellar_orchestrator_workflows_staging(workflow_id,tenant_id,session_id,call_id,tool_call_id,workflow_type,state,case_id,version) VALUES('d0f60a38-f082-4e73-8793-c4be3b5a907e','5885a020-d363-4c27-910a-c035eda132f5','phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a','CAaf4db9fd72404d28ac4c3b128173fb7a','gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f','support_ticket_creation','COMPLETED',r.case_id,1);\nGET DIAGNOSTICS n=ROW_COUNT;IF n<>1 THEN RAISE EXCEPTION 'WORKFLOW_COUNT_INVALID';END IF;\nIF (SELECT count(*) FROM public.stellar_support_cases)<>21 OR (SELECT count(*) FROM public.ai4cc_contacts)<>14 OR EXISTS(SELECT 1 FROM public.stellar_support_cases WHERE intake_session_id='phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a') OR EXISTS(SELECT 1 FROM public.stellar_orchestrator_events_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_receipts_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_effects_staging) THEN RAISE EXCEPTION 'FIXTURE_COUNTS_INVALID';END IF;\nIF (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.stellar_support_cases c WHERE id<>r.case_id)<>'ddeb4729999cd8a90965ab2197b4355c' OR (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.ai4cc_contacts c WHERE id<>r.customer_id)<>'a67f355fc8bc1a3e258ab772b308c485' THEN RAISE EXCEPTION 'ORIGINAL_ROWS_CHANGED';END IF;\nEND $test$;\nCOMMIT;\nSELECT now() observed_at,w.*,c.contact_id,c.intake_session_id case_session,k.email,md5(to_jsonb(w)::text) workflow_hash,md5(to_jsonb(c)::text) case_hash,md5(to_jsonb(k)::text) contact_hash FROM public.stellar_orchestrator_workflows_staging w JOIN public.stellar_support_cases c ON c.id=w.case_id JOIN public.ai4cc_contacts k ON k.id=c.contact_id WHERE w.workflow_id='d0f60a38-f082-4e73-8793-c4be3b5a907e';",
+    "independent": "SELECT now() observed_at,w.workflow_id,w.state,w.version,w.case_id,c.contact_id,w.session_id,c.intake_session_id,md5(to_jsonb(w)::text) workflow_hash,md5(to_jsonb(c)::text) case_hash,md5(to_jsonb(k)::text) contact_hash,(SELECT count(*) FROM public.stellar_orchestrator_events_staging) events FROM public.stellar_orchestrator_workflows_staging w JOIN public.stellar_support_cases c ON c.id=w.case_id JOIN public.ai4cc_contacts k ON k.id=c.contact_id WHERE w.workflow_id='d0f60a38-f082-4e73-8793-c4be3b5a907e';",
+    "lookup": "BEGIN;SET LOCAL ROLE service_role;DO $test$ BEGIN PERFORM public.stellar_orch_lookup_staging('5885a020-d363-4c27-910a-c035eda132f5'::uuid,'gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f'); RAISE EXCEPTION 'EXPECTED_REJECTION_NOT_OBSERVED';EXCEPTION WHEN OTHERS THEN IF SQLERRM<>'COMPLETED_ASSOCIATION_INVALID' THEN RAISE;END IF;PERFORM set_config('stellar.g06_observed_error',SQLERRM,true);END $test$;SELECT now() observed_at,current_setting('stellar.g06_observed_error') actual_error;ROLLBACK;",
+    "cleanup": "BEGIN;SET LOCAL statement_timeout='10s';\nDO $cleanup$\nDECLARE n integer;\nBEGIN\nIF current_user<>'postgres' THEN RAISE EXCEPTION 'AUTHORIZED_ADMIN_REQUIRED';END IF;\nIF (SELECT count(*) FROM public.stellar_orchestrator_workflows_staging)<>1 OR (SELECT count(*) FROM public.stellar_support_cases)<>21 OR (SELECT count(*) FROM public.ai4cc_contacts)<>14 OR EXISTS(SELECT 1 FROM public.stellar_orchestrator_events_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_receipts_staging) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_effects_staging) THEN RAISE EXCEPTION 'CLEANUP_COUNTS_UNEXPECTED';END IF;\nIF NOT EXISTS(SELECT 1 FROM public.stellar_orchestrator_workflows_staging w JOIN public.stellar_support_cases c ON c.id=w.case_id JOIN public.ai4cc_contacts k ON k.id=c.contact_id WHERE w.workflow_id='d0f60a38-f082-4e73-8793-c4be3b5a907e' AND w.tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND w.session_id='phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a' AND w.call_id='CAaf4db9fd72404d28ac4c3b128173fb7a' AND w.tool_call_id='gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f' AND w.state='COMPLETED' AND w.version=1 AND c.id='84d4ac3e-48d7-4965-baba-d591fe5a0756' AND c.tenant_id=w.tenant_id AND c.test_only=true AND c.intake_session_id='phone-staging:CAd0f60a38f0824e738793c4be3b5a907e' AND k.id='3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa' AND k.tenant_id=w.tenant_id AND k.email='gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid' AND k.metadata->>'test_only'='true' AND k.metadata->>'notifications_disabled'='true' AND md5(to_jsonb(w)::text)='bd29758d80a8d0ee18898b7d5dc6f682' AND md5(to_jsonb(c)::text)='75fd36c57320c11a2809d7a468daabe3' AND md5(to_jsonb(k)::text)='73ee663be9d1a43ee6d14b46e388f0d9') THEN RAISE EXCEPTION 'EXACT_FIXTURE_NOT_VERIFIED';END IF;\nIF (SELECT count(*) FROM public.stellar_orchestrator_workflows_staging WHERE case_id='84d4ac3e-48d7-4965-baba-d591fe5a0756')<>1 OR (SELECT count(*) FROM public.stellar_support_cases WHERE contact_id='3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa')<>1 THEN RAISE EXCEPTION 'OTHER_REFERENCES';END IF;\nDELETE FROM public.stellar_orchestrator_workflows_staging WHERE workflow_id='d0f60a38-f082-4e73-8793-c4be3b5a907e' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND session_id='phone-staging:CAaf4db9fd72404d28ac4c3b128173fb7a' AND call_id='CAaf4db9fd72404d28ac4c3b128173fb7a' AND tool_call_id='gateway:cff7fb00-add3-4fd1-8324-27c6dee5049f' AND state='COMPLETED' AND version=1 AND case_id='84d4ac3e-48d7-4965-baba-d591fe5a0756';GET DIAGNOSTICS n=ROW_COUNT;IF n<>1 THEN RAISE EXCEPTION 'WORKFLOW_DELETE_COUNT';END IF;\nDELETE FROM public.stellar_support_cases WHERE id='84d4ac3e-48d7-4965-baba-d591fe5a0756' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND intake_session_id='phone-staging:CAd0f60a38f0824e738793c4be3b5a907e' AND test_only=true AND contact_id='3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa';GET DIAGNOSTICS n=ROW_COUNT;IF n<>1 THEN RAISE EXCEPTION 'CASE_DELETE_COUNT';END IF;\nDELETE FROM public.ai4cc_contacts WHERE id='3cdfcc6f-454d-48d9-9b56-81cda4c0c3aa' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND email='gateway-f082e736-793c-4be3-b5a9-907e657556a2@example.invalid' AND metadata->>'test_only'='true' AND metadata->>'notifications_disabled'='true';GET DIAGNOSTICS n=ROW_COUNT;IF n<>1 THEN RAISE EXCEPTION 'CONTACT_DELETE_COUNT';END IF;\nIF (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.stellar_support_cases c)<>'ddeb4729999cd8a90965ab2197b4355c' OR (SELECT md5(coalesce(string_agg(to_jsonb(c)::text,'' ORDER BY id),'')) FROM public.ai4cc_contacts c)<>'a67f355fc8bc1a3e258ab772b308c485' THEN RAISE EXCEPTION 'ORIGINAL_ROWS_CHANGED';END IF;\nEND $cleanup$;COMMIT;\nSELECT now() cleanup_observed_at, 'EXACT_WORKFLOW_CASE_CONTACT_REMOVED' result;",
+    "baseline": "SELECT current_user,now(),(SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) tls;\nSELECT 'cases' t,count(*) n,md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),'')) hash FROM public.stellar_support_cases t UNION ALL SELECT 'contacts',count(*),md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),'')) FROM public.ai4cc_contacts t UNION ALL SELECT 'workflows',count(*),md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY workflow_id),'')) FROM public.stellar_orchestrator_workflows_staging t UNION ALL SELECT 'events',count(*),md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),'')) FROM public.stellar_orchestrator_events_staging t UNION ALL SELECT 'receipts',count(*),md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),'')) FROM public.stellar_dispatch_receipts_staging t UNION ALL SELECT 'effects',count(*),md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),'')) FROM public.stellar_dispatch_effects_staging t;",
+    "security": "SELECT jsonb_build_object('tables',(SELECT jsonb_agg(jsonb_build_object('name',c.relname,'rls',c.relrowsecurity,'force',c.relforcerowsecurity,'acl',c.relacl::text) ORDER BY c.relname) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname IN ('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging')),'policies',(SELECT jsonb_agg(to_jsonb(p) ORDER BY tablename,policyname) FROM pg_policies p WHERE schemaname='public' AND tablename IN ('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging')),'functions',(SELECT jsonb_agg(jsonb_build_object('name',p.oid::regprocedure::text,'hash',md5(pg_get_functiondef(p.oid)),'acl',p.proacl::text) ORDER BY p.oid::regprocedure::text) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND (p.proname LIKE 'stellar_orch_%staging' OR p.proname='stellar_create_phone_support_test_intake'))) security;"
+  },
+  "production": "NO-GO",
+  "remaining": [
+    "Raw HTTP customerId/notification field evidence not exposed in browser coordinator",
+    "Run14 detailed artifact archive/review before Oct27",
+    "Internal pooler-backend TLS security review",
+    "Real voice and performance acceptance"
+  ]
+}

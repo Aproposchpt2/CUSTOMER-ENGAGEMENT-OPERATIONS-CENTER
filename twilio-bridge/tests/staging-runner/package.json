@@ -1,0 +1,11 @@
+{
+  "name": "stellar-staging-runner-access",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test access-check.test.cjs",
+    "check": "node access-check.cjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": { "pg": "8.16.3" }
+}

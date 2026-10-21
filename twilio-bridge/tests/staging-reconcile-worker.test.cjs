@@ -1,0 +1,7 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {reconcileOnce}=require('./staging-reconcile-worker.cjs');
+const baseline={workflowId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',tenantId:'5885a020-d363-4c27-910a-c035eda132f5',endpoint:'https://hvzauakkhlivzeqatfqm.supabase.co',token:'fake',request:async()=>({ok:true,json:async()=>[{workflow_state:'UNKNOWN',verified_case_id:null}]})};
+test('worker handles unknown without creating ticket',async()=>{const before=process.env.STELLAR_BRIDGE_STAGING;process.env.STELLAR_BRIDGE_STAGING='true';try{const r=await reconcileOnce(baseline);assert.equal(r.state,'UNKNOWN');assert.equal(r.caseId,null)}finally{if(before===undefined)delete process.env.STELLAR_BRIDGE_STAGING;else process.env.STELLAR_BRIDGE_STAGING=before}});
+test('worker rejects non-staging execution',async()=>{const before=process.env.STELLAR_BRIDGE_STAGING;delete process.env.STELLAR_BRIDGE_STAGING;try{await assert.rejects(reconcileOnce(baseline),/STAGING_ONLY_REQUIRED/)}finally{if(before!==undefined)process.env.STELLAR_BRIDGE_STAGING=before}});
+test('verified completion requires case id',async()=>{const before=process.env.STELLAR_BRIDGE_STAGING;process.env.STELLAR_BRIDGE_STAGING='true';try{await assert.rejects(reconcileOnce({...baseline,request:async()=>({ok:true,json:async()=>[{workflow_state:'COMPLETED',verified_case_id:null}]})}),/COMPLETION_NOT_VERIFIED/)}finally{if(before===undefined)delete process.env.STELLAR_BRIDGE_STAGING;else process.env.STELLAR_BRIDGE_STAGING=before}});

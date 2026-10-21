@@ -1,0 +1,5 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{authorized,terminal}=require('./dispatcher-terminal-acceptance.cjs');
+test('terminal tests require explicit isolated staging authorization',()=>{const old=process.env.STAGING_DISPATCH_TERMINAL_AUTHORIZED;delete process.env.STAGING_DISPATCH_TERMINAL_AUTHORIZED;assert.throws(authorized,/TERMINAL_ACCEPTANCE_AUTHORIZATION_REQUIRED/);if(old)process.env.STAGING_DISPATCH_TERMINAL_AUTHORIZED=old;});
+test('terminal state rejects remaining lease or scheduled retry',()=>{assert.throws(()=>terminal({event:{delivery_state:'FAILED',next_attempt_at:'later',lease_until:null},receipt:[],effect:[]},'FAILED',0),/TERMINAL_STATE_INVALID/);});
+test('quarantine evidence must match committed receipt and effect counts',()=>{assert.throws(()=>terminal({event:{delivery_state:'QUARANTINED',next_attempt_at:null,lease_until:null},receipt:[{}],effect:[]},'QUARANTINED',1),/TERMINAL_STATE_INVALID/);terminal({event:{delivery_state:'QUARANTINED',next_attempt_at:null,lease_until:null},receipt:[{}],effect:[{}]},'QUARANTINED',1);});

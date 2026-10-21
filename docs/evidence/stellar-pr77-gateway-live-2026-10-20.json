@@ -1,0 +1,612 @@
+{
+  "project": "hvzauakkhlivzeqatfqm",
+  "tenant": "5885a020-d363-4c27-910a-c035eda132f5",
+  "deployedCommit": "f0553ac7290cfe0ade53a2300f416f5b25fcdd37",
+  "deployId": "6ad73d3b43df9970ecf81146",
+  "overall": "PARTIAL_ACCEPTANCE",
+  "browser": {
+    "scope": "GATEWAY_BROWSER_OBSERVATIONS_ONLY",
+    "fixture": {
+      "runId": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242",
+      "operationId": "gateway:6a9f61c9-7041-4901-913c-690f1929d0fa",
+      "session": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+      "email": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid",
+      "intake": {
+        "name": "Fictional staging customer",
+        "email": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid",
+        "phone": "",
+        "product": "Synthetic staging router",
+        "purchaseDate": "2026-10-01",
+        "issue": "Fictional staging gateway acceptance; no real customer or notification.",
+        "steps": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242",
+        "impact": "No real business affected",
+        "priority": "NORMAL"
+      },
+      "expiresAt": "2026-10-20T10:29:39.000Z",
+      "submissionAttempted": true,
+      "caseId": "bbcdda13-1487-4565-981c-dcc002c68a26",
+      "contactId": "69e8e6d4-2f83-4c3a-b9ff-f614f392b9df"
+    },
+    "checks": [
+      {
+        "test": "G01 HTTP ticket result",
+        "result": "CONFIRMED_DATABASE_CHECK_PENDING",
+        "caseId": "bbcdda13-1487-4565-981c-dcc002c68a26"
+      },
+      {
+        "test": "status recovery",
+        "result": "HTTP_CONFIRMED",
+        "state": "COMPLETED"
+      },
+      {
+        "test": "G04 sequential duplicate HTTP result",
+        "result": "ORIGINAL_ID_RETURNED_DATABASE_COUNT_PENDING"
+      },
+      {
+        "test": "G03 HTTP negatives",
+        "result": "EXPECTED_REJECTIONS_OBSERVED",
+        "statuses": [
+          400,
+          409,
+          403
+        ]
+      },
+      {
+        "test": "G06 absent operation HTTP result",
+        "result": "UNKNOWN_WITHOUT_TICKET"
+      }
+    ],
+    "databaseVerified": false,
+    "cleanupVerified": false,
+    "pending": [
+      "G02 foreign/inactive real user",
+      "G03 real capability expiry",
+      "G04 two-process first-submit race",
+      "G05 committed interruption recovery",
+      "G06 invalid persisted association",
+      "G07 independent database evidence and cleanup"
+    ]
+  },
+  "baseline": [
+    {
+      "name": "cases",
+      "count": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "name": "contacts",
+      "count": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "name": "workflows",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "events",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "receipts",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "effects",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "persistedBeforeRepeat": [
+    {
+      "fixture": {
+        "cases": [
+          {
+            "id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "test_only": true,
+            "contact_id": "69e8e6d4-2f83-4c3a-b9ff-f614f392b9df",
+            "intake_session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557"
+          }
+        ],
+        "events": [
+          {
+            "case_id": null,
+            "attempts": 0,
+            "event_id": 127,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:56.843284+00:00",
+            "event_type": "ACCEPTED",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:56.843284+00:00"
+          },
+          {
+            "case_id": null,
+            "attempts": 0,
+            "event_id": 128,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:57.337892+00:00",
+            "event_type": "RUNNING",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:57.337892+00:00"
+          },
+          {
+            "case_id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+            "attempts": 0,
+            "event_id": 129,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:57.899252+00:00",
+            "event_type": "COMPLETED",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:57.899252+00:00"
+          }
+        ],
+        "contacts": [
+          {
+            "id": "69e8e6d4-2f83-4c3a-b9ff-f614f392b9df",
+            "email": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid",
+            "metadata": {
+              "source": "phone_staging_test",
+              "test_only": true,
+              "notifications_disabled": true
+            },
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5"
+          }
+        ],
+        "workflow": {
+          "state": "COMPLETED",
+          "call_id": "CAb82580b0bbab47f09877aa07b8c72557",
+          "case_id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+          "version": 3,
+          "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+          "created_at": "2026-10-20T10:14:56.843284+00:00",
+          "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+          "updated_at": "2026-10-20T10:14:57.899252+00:00",
+          "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+          "tool_call_id": "gateway:6a9f61c9-7041-4901-913c-690f1929d0fa",
+          "workflow_type": "support_ticket_creation"
+        }
+      }
+    }
+  ],
+  "persistedAfterRepeat": [
+    {
+      "fixture": {
+        "cases": [
+          {
+            "id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "test_only": true,
+            "contact_id": "69e8e6d4-2f83-4c3a-b9ff-f614f392b9df",
+            "intake_session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557"
+          }
+        ],
+        "events": [
+          {
+            "case_id": null,
+            "attempts": 0,
+            "event_id": 127,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:56.843284+00:00",
+            "event_type": "ACCEPTED",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:56.843284+00:00"
+          },
+          {
+            "case_id": null,
+            "attempts": 0,
+            "event_id": 128,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:57.337892+00:00",
+            "event_type": "RUNNING",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:57.337892+00:00"
+          },
+          {
+            "case_id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+            "attempts": 0,
+            "event_id": 129,
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+            "created_at": "2026-10-20T10:14:57.899252+00:00",
+            "event_type": "COMPLETED",
+            "last_error": null,
+            "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+            "claim_owner": null,
+            "claim_token": null,
+            "lease_until": null,
+            "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+            "delivered_at": null,
+            "delivery_state": "PENDING",
+            "payload_sha256": null,
+            "next_attempt_at": "2026-10-20T10:14:57.899252+00:00"
+          }
+        ],
+        "contacts": [
+          {
+            "id": "69e8e6d4-2f83-4c3a-b9ff-f614f392b9df",
+            "email": "gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid",
+            "metadata": {
+              "source": "phone_staging_test",
+              "test_only": true,
+              "notifications_disabled": true
+            },
+            "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5"
+          }
+        ],
+        "workflow": {
+          "state": "COMPLETED",
+          "call_id": "CAb82580b0bbab47f09877aa07b8c72557",
+          "case_id": "bbcdda13-1487-4565-981c-dcc002c68a26",
+          "version": 3,
+          "tenant_id": "5885a020-d363-4c27-910a-c035eda132f5",
+          "created_at": "2026-10-20T10:14:56.843284+00:00",
+          "session_id": "phone-staging:CAb82580b0bbab47f09877aa07b8c72557",
+          "updated_at": "2026-10-20T10:14:57.899252+00:00",
+          "workflow_id": "16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42",
+          "tool_call_id": "gateway:6a9f61c9-7041-4901-913c-690f1929d0fa",
+          "workflow_type": "support_ticket_creation"
+        }
+      }
+    }
+  ],
+  "cleanup": [
+    {
+      "result": "CLEANUP_COMMITTED",
+      "removed_events": 3,
+      "removed_workflow": 1,
+      "removed_case": 1,
+      "removed_contact": 1
+    }
+  ],
+  "final": [
+    {
+      "name": "cases",
+      "count": 20,
+      "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+    },
+    {
+      "name": "contacts",
+      "count": 13,
+      "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+    },
+    {
+      "name": "workflows",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "events",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "receipts",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "name": "effects",
+      "count": 0,
+      "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+    }
+  ],
+  "securityBefore": [
+    {
+      "security": {
+        "rls": [
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "relname": "ai4cc_contacts",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres}",
+            "relname": "stellar_dispatch_effects_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres}",
+            "relname": "stellar_dispatch_receipts_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "relname": "stellar_orchestrator_events_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "relname": "stellar_orchestrator_workflows_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}",
+            "relname": "stellar_support_cases",
+            "relrowsecurity": true
+          }
+        ],
+        "policies": [
+          {
+            "cmd": "DELETE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_delete",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_insert",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_select",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_update",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": "{authenticated}",
+            "tablename": "stellar_support_cases",
+            "policyname": "stellar_support_cases_member_read",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+            "roles": "{public}",
+            "tablename": "stellar_support_cases",
+            "policyname": "tenant_members_read_cases",
+            "with_check": null
+          }
+        ],
+        "functions": [
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_accept_staging",
+            "body_hash": "7851346eb2e1f346e597eca11c6dd7dd",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_lookup_staging",
+            "body_hash": "83b86abef8590434d473c32ee9284460",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_reconcile_case_staging",
+            "body_hash": "d545fd9855ecb1cb0ce6f1fb19c160c0",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_transition_staging",
+            "body_hash": "727b0626776743e19a99160ebd050ff9",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          }
+        ],
+        "workflowDirectWrites": {
+          "delete": false,
+          "insert": false,
+          "update": false
+        }
+      }
+    }
+  ],
+  "securityAfter": [
+    {
+      "security": {
+        "rls": [
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+            "relname": "ai4cc_contacts",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres}",
+            "relname": "stellar_dispatch_effects_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres}",
+            "relname": "stellar_dispatch_receipts_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "relname": "stellar_orchestrator_events_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+            "relname": "stellar_orchestrator_workflows_staging",
+            "relrowsecurity": true
+          },
+          {
+            "relacl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}",
+            "relname": "stellar_support_cases",
+            "relrowsecurity": true
+          }
+        ],
+        "policies": [
+          {
+            "cmd": "DELETE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_delete",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "qual": null,
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_insert",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_select",
+            "with_check": null
+          },
+          {
+            "cmd": "UPDATE",
+            "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+            "roles": "{authenticated}",
+            "tablename": "ai4cc_contacts",
+            "policyname": "ai4cc_contacts_member_update",
+            "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "private.is_tenant_member(tenant_id)",
+            "roles": "{authenticated}",
+            "tablename": "stellar_support_cases",
+            "policyname": "stellar_support_cases_member_read",
+            "with_check": null
+          },
+          {
+            "cmd": "SELECT",
+            "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+            "roles": "{public}",
+            "tablename": "stellar_support_cases",
+            "policyname": "tenant_members_read_cases",
+            "with_check": null
+          }
+        ],
+        "functions": [
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_accept_staging",
+            "body_hash": "7851346eb2e1f346e597eca11c6dd7dd",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_lookup_staging",
+            "body_hash": "83b86abef8590434d473c32ee9284460",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_reconcile_case_staging",
+            "body_hash": "d545fd9855ecb1cb0ce6f1fb19c160c0",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          },
+          {
+            "proacl": "{postgres=X/postgres,service_role=X/postgres}",
+            "proname": "stellar_orch_transition_staging",
+            "body_hash": "727b0626776743e19a99160ebd050ff9",
+            "prosecdef": true,
+            "anon_execute": false,
+            "service_execute": true,
+            "authenticated_execute": false
+          }
+        ],
+        "workflowDirectWrites": {
+          "delete": false,
+          "insert": false,
+          "update": false
+        }
+      }
+    }
+  ],
+  "verification": {
+    "sameCounts": true,
+    "sameSecurity": true
+  },
+  "sql": {
+    "baseline": "\nselect 'cases' as name,count(*)::int as count,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by id),'')) fingerprint from public.stellar_support_cases t\nunion all select 'contacts',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by id),'')) from public.ai4cc_contacts t\nunion all select 'workflows',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by workflow_id),'')) from public.stellar_orchestrator_workflows_staging t\nunion all select 'events',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_orchestrator_events_staging t\nunion all select 'receipts',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_dispatch_receipts_staging t\nunion all select 'effects',count(*)::int,md5(coalesce(string_agg(to_jsonb(t)::text,'' order by event_id),'')) from public.stellar_dispatch_effects_staging t;",
+    "fixture": "select jsonb_build_object('workflow',(select to_jsonb(w) from public.stellar_orchestrator_workflows_staging w where tenant_id='5885a020-d363-4c27-910a-c035eda132f5' and tool_call_id='gateway:6a9f61c9-7041-4901-913c-690f1929d0fa' and session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557'),'cases',(select jsonb_agg(jsonb_build_object('id',id,'tenant_id',tenant_id,'intake_session_id',intake_session_id,'contact_id',contact_id,'test_only',test_only)) from public.stellar_support_cases where tenant_id='5885a020-d363-4c27-910a-c035eda132f5' and intake_session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557'),'contacts',(select jsonb_agg(jsonb_build_object('id',id,'tenant_id',tenant_id,'email',email,'metadata',metadata)) from public.ai4cc_contacts where tenant_id='5885a020-d363-4c27-910a-c035eda132f5' and email='gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid'),'events',(select jsonb_agg(to_jsonb(e)) from public.stellar_orchestrator_events_staging e where tenant_id='5885a020-d363-4c27-910a-c035eda132f5' and session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557')) as fixture;",
+    "security": "select jsonb_build_object('rls',(select jsonb_agg(to_jsonb(x) order by relname) from (select relname,relrowsecurity,relacl::text from pg_class where oid=any(array['public.stellar_support_cases','public.ai4cc_contacts','public.stellar_orchestrator_workflows_staging','public.stellar_orchestrator_events_staging','public.stellar_dispatch_receipts_staging','public.stellar_dispatch_effects_staging']::regclass[]))x),'functions',(select jsonb_agg(to_jsonb(x) order by proname) from (select proname,md5(prosrc) body_hash,prosecdef,proacl::text,has_function_privilege('service_role',oid,'EXECUTE') service_execute,has_function_privilege('anon',oid,'EXECUTE') anon_execute,has_function_privilege('authenticated',oid,'EXECUTE') authenticated_execute from pg_proc where pronamespace='public'::regnamespace and proname in ('stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_orch_lookup_staging'))x),'policies',(select jsonb_agg(to_jsonb(x) order by tablename,policyname) from (select tablename,policyname,roles::text,cmd,qual,with_check from pg_policies where schemaname='public' and tablename in ('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging'))x),'workflowDirectWrites',jsonb_build_object('insert',has_table_privilege('service_role','public.stellar_orchestrator_workflows_staging','INSERT'),'update',has_table_privilege('service_role','public.stellar_orchestrator_workflows_staging','UPDATE'),'delete',has_table_privilege('service_role','public.stellar_orchestrator_workflows_staging','DELETE'))) as security;",
+    "cleanup": "BEGIN;\nSET LOCAL lock_timeout='3s';\nSET LOCAL statement_timeout='10s';\nDO $cleanup$\nDECLARE n integer;\nBEGIN\n PERFORM 1 FROM public.stellar_orchestrator_workflows_staging WHERE workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557' AND tool_call_id='gateway:6a9f61c9-7041-4901-913c-690f1929d0fa' AND state='COMPLETED' AND case_id='bbcdda13-1487-4565-981c-dcc002c68a26' FOR UPDATE;\n IF NOT FOUND THEN RAISE EXCEPTION 'CLEANUP_WORKFLOW_SCOPE_REJECTED'; END IF;\n SELECT count(*) INTO n FROM public.stellar_support_cases WHERE tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND intake_session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557';\n IF n<>1 THEN RAISE EXCEPTION 'CLEANUP_CASE_COUNT_REJECTED'; END IF;\n PERFORM 1 FROM public.stellar_support_cases WHERE id='bbcdda13-1487-4565-981c-dcc002c68a26' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND intake_session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557' AND test_only=true AND contact_id='69e8e6d4-2f83-4c3a-b9ff-f614f392b9df' FOR UPDATE;\n IF NOT FOUND THEN RAISE EXCEPTION 'CLEANUP_CASE_SCOPE_REJECTED'; END IF;\n PERFORM 1 FROM public.ai4cc_contacts WHERE id='69e8e6d4-2f83-4c3a-b9ff-f614f392b9df' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND email='gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid' AND metadata->>'test_only'='true' AND metadata->>'notifications_disabled'='true' FOR UPDATE;\n IF NOT FOUND THEN RAISE EXCEPTION 'CLEANUP_CONTACT_SCOPE_REJECTED'; END IF;\n SELECT count(*) INTO n FROM public.stellar_orchestrator_events_staging WHERE workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557' AND event_id IN (127,128,129) AND delivery_state='PENDING' AND attempts=0;\n IF n<>3 THEN RAISE EXCEPTION 'CLEANUP_EVENT_SCOPE_REJECTED'; END IF;\n IF (SELECT count(*) FROM public.stellar_orchestrator_events_staging WHERE workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42')<>3 OR (SELECT count(*) FROM public.stellar_orchestrator_events_staging WHERE workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42' AND event_type='COMPLETED' AND case_id='bbcdda13-1487-4565-981c-dcc002c68a26')<>1 THEN RAISE EXCEPTION 'CLEANUP_COMPLETION_COUNT_REJECTED'; END IF;\n IF EXISTS(SELECT 1 FROM public.stellar_dispatch_receipts_staging WHERE event_id IN(127,128,129)) OR EXISTS(SELECT 1 FROM public.stellar_dispatch_effects_staging WHERE event_id IN(127,128,129)) THEN RAISE EXCEPTION 'CLEANUP_DELIVERY_STATE_REJECTED'; END IF;\n DELETE FROM public.stellar_orchestrator_events_staging WHERE event_id IN(127,128,129) AND workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557';\n GET DIAGNOSTICS n=ROW_COUNT; IF n<>3 THEN RAISE EXCEPTION 'CLEANUP_EVENT_DELETE_COUNT'; END IF;\n DELETE FROM public.stellar_orchestrator_workflows_staging WHERE workflow_id='16bd5fc6-ce7e-4fc2-bb35-6284ce36fe42' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557' AND tool_call_id='gateway:6a9f61c9-7041-4901-913c-690f1929d0fa';\n GET DIAGNOSTICS n=ROW_COUNT; IF n<>1 THEN RAISE EXCEPTION 'CLEANUP_WORKFLOW_DELETE_COUNT'; END IF;\n DELETE FROM public.stellar_support_cases WHERE id='bbcdda13-1487-4565-981c-dcc002c68a26' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND intake_session_id='phone-staging:CAb82580b0bbab47f09877aa07b8c72557' AND test_only=true;\n GET DIAGNOSTICS n=ROW_COUNT; IF n<>1 THEN RAISE EXCEPTION 'CLEANUP_CASE_DELETE_COUNT'; END IF;\n DELETE FROM public.ai4cc_contacts WHERE id='69e8e6d4-2f83-4c3a-b9ff-f614f392b9df' AND tenant_id='5885a020-d363-4c27-910a-c035eda132f5' AND email='gateway-6e8ff34f-f6d6-4d72-93d3-b38224c16242@example.invalid' AND metadata->>'test_only'='true' AND metadata->>'notifications_disabled'='true';\n GET DIAGNOSTICS n=ROW_COUNT; IF n<>1 THEN RAISE EXCEPTION 'CLEANUP_CONTACT_DELETE_COUNT'; END IF;\nEND $cleanup$;\nCOMMIT;\nSELECT 'CLEANUP_COMMITTED' result,3 removed_events,1 removed_workflow,1 removed_case,1 removed_contact;"
+  },
+  "notes": [
+    "Browser-only flags remain false by design; coordinator independently verified database and cleanup.",
+    "No customer notification, voice call, production modification or merge.",
+    "Workflow SQL timestamps span ACCEPTED 10:14:56.843284Z to COMPLETED 10:14:57.899252Z; 1.056 seconds, not end-to-end voice latency."
+  ]
+}

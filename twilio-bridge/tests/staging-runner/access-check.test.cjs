@@ -1,0 +1,21 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {config,safeFailure,restProbe,PROJECT,TENANT,ENDPOINT}=require('./access-check.cjs');
+const {databaseErrorCode}=require('./access-check.cjs');
+const fixture=()=>({STELLAR_BRIDGE_STAGING:'true',CSS_TENANT_ID:TENANT,STAGING_SUPABASE_URL:ENDPOINT,
+ STAGING_DATABASE_URL:`postgresql://postgres:fictional-password@db.${PROJECT}.supabase.co:5432/postgres`,STAGING_SUPABASE_SERVICE_ROLE_KEY:'fictional-token'});
+test('rejects production target before any network activity',()=>{const e=fixture();e.STAGING_DATABASE_URL='postgresql://postgres:fictional@db.production.supabase.co/postgres';assert.throws(()=>config(e),/DATABASE_TARGET_REJECTED/);});
+test('requires explicit staging and tenant',()=>{const e=fixture();e.STELLAR_BRIDGE_STAGING='false';assert.throws(()=>config(e),/STAGING_ONLY_REQUIRED/);e.STELLAR_BRIDGE_STAGING='true';e.CSS_TENANT_ID='other';assert.throws(()=>config(e),/STAGING_TENANT_REQUIRED/);});
+test('rejects wrong pooler identity and transaction-pooler port',()=>{const e=fixture();e.STAGING_DATABASE_URL='postgresql://postgres.other:fictional@aws-0-us-west-1.pooler.supabase.com/postgres';assert.throws(()=>config(e),/DATABASE_TARGET_REJECTED/);e.STAGING_DATABASE_URL=`postgresql://postgres.${PROJECT}:fictional@aws-0-us-west-1.pooler.supabase.com:6543/postgres`;assert.throws(()=>config(e),/DATABASE_TARGET_REJECTED/);});
+test('TLS verification cannot be disabled by URL or environment',()=>{const e=fixture();e.STAGING_DATABASE_URL+='?sslmode=disable';assert.throws(()=>config(e),/DATABASE_TARGET_REJECTED/);e.STAGING_DATABASE_URL=fixture().STAGING_DATABASE_URL;e.NODE_TLS_REJECT_UNAUTHORIZED='0';assert.throws(()=>config(e),/TLS_VERIFICATION_REQUIRED/);assert.equal(config(fixture()).db.ssl.rejectUnauthorized,true);});
+test('missing credentials reports names only',()=>{const e=fixture();delete e.STAGING_DATABASE_URL;delete e.STAGING_SUPABASE_SERVICE_ROLE_KEY;let failure;try{config(e);}catch(x){failure=safeFailure(x);}assert.deepEqual(failure.missing,['STAGING_DATABASE_URL','STAGING_SUPABASE_SERVICE_ROLE_KEY']);assert.equal(failure.acceptanceExecuted,false);});
+test('raw URL/token errors are never printed',()=>{const secret=fixture().STAGING_DATABASE_URL+' '+fixture().STAGING_SUPABASE_SERVICE_ROLE_KEY;const r=JSON.stringify(safeFailure(new Error(secret)));assert.equal(r.includes(secret),false);assert.equal(JSON.parse(r).code,'ACCESS_PROBE_FAILED');});
+test('RPC probe uses non-writing NULL workflow and rejects redirects',async()=>{let observed;const r=await restProbe(config(fixture()),async(url,options)=>{observed={url,options};return {ok:false,status:400,json:async()=>({message:'STAGING_WORKFLOW_REJECTED',code:'P0001'})};});assert.equal(r.authenticatedRejectionVerified,true);assert.equal(observed.options.redirect,'error');assert.deepEqual(JSON.parse(observed.options.body),{p_workflow_id:null});});
+test('unexpected success is not authenticated access proof',async()=>{await assert.rejects(restProbe(config(fixture()),async()=>({ok:true,status:200,json:async()=>[]})),/RPC_ACCESS_NOT_VERIFIED/);});
+test('database diagnostics expose only whitelisted codes, never raw details',()=>{
+ for(const code of ['28P01','42501','ENOTFOUND','ETIMEDOUT','SELF_SIGNED_CERT_IN_CHAIN']){
+  assert.equal(databaseErrorCode({code,message:'private credential material'}),'DATABASE_'+code);
+ }
+ assert.equal(databaseErrorCode({code:'private-value',message:'private credential material'}),'DATABASE_PROBE_FAILED');
+ assert.equal(databaseErrorCode({message:'Connection terminated due to connection timeout'}),'DATABASE_CONNECTION_TIMEOUT');
+});

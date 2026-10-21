@@ -1,0 +1,243 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> ai4-contact-center@0.1.0 build
+> next build
+
+  ▲ Next.js 14.2.5
+
+   Linting and checking validity of types ...
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (106kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (253kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./node_modules/@supabase/supabase-js/dist/index.mjs
+A Node.js API is used (process.version at line: 27) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/index.mjs
+./node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+./utils/supabase/middleware.ts
+
+ ✓ Compiled successfully
+   Collecting page data ...
+   Generating static pages (0/65) ...
+   Generating static pages (16/65) 
+   Generating static pages (32/65) 
+   Generating static pages (48/65) 
+ ✓ Generating static pages (65/65)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (pages)                                 Size     First Load JS
+┌ ○ /                                         11 kB           167 kB
+├   /_app                                     0 B            80.9 kB
+├ ○ /404                                      183 B          81.1 kB
+├ ○ /about                                    3.26 kB         159 kB
+├ ○ /acquisition                              4.71 kB         161 kB
+├ ○ /agent-assist                             3.05 kB         159 kB
+├ ○ /agent-coaching                           4.07 kB         160 kB
+├ ○ /agent-skill-matrix                       3.13 kB         159 kB
+├ ○ /agent-workspace                          7.37 kB         163 kB
+├ ○ /analytics-engine                         3.44 kB         159 kB
+├ ƒ /api/analyze-data                         0 B            80.9 kB
+├ ƒ /api/analyze-script                       0 B            80.9 kB
+├ ƒ /api/assist/compliance                    0 B            80.9 kB
+├ ƒ /api/assist/guidance                      0 B            80.9 kB
+├ ƒ /api/assist/ingest                        0 B            80.9 kB
+├ ƒ /api/assist/kb                            0 B            80.9 kB
+├ ƒ /api/assist/state                         0 B            80.9 kB
+├ ƒ /api/chat/message                         0 B            80.9 kB
+├ ƒ /api/coaching/analyze                     0 B            80.9 kB
+├ ƒ /api/coaching/playbook                    0 B            80.9 kB
+├ ƒ /api/coaching/report                      0 B            80.9 kB
+├ ƒ /api/coaching/snippets                    0 B            80.9 kB
+├ ƒ /api/compliance/report                    0 B            80.9 kB
+├ ƒ /api/compliance/rules                     0 B            80.9 kB
+├ ƒ /api/compliance/scan                      0 B            80.9 kB
+├ ƒ /api/compliance/violations                0 B            80.9 kB
+├ ƒ /api/cost/analyze                         0 B            80.9 kB
+├ ƒ /api/cost/recommend                       0 B            80.9 kB
+├ ƒ /api/cost/report                          0 B            80.9 kB
+├ ƒ /api/cost/roi                             0 B            80.9 kB
+├ ƒ /api/customer-360                         0 B            80.9 kB
+├ ƒ /api/datalake/export                      0 B            80.9 kB
+├ ƒ /api/datalake/ingest                      0 B            80.9 kB
+├ ƒ /api/datalake/query                       0 B            80.9 kB
+├ ƒ /api/datalake/schema                      0 B            80.9 kB
+├ ƒ /api/delete-flow                          0 B            80.9 kB
+├ ƒ /api/deployment/deploy                    0 B            80.9 kB
+├ ƒ /api/deployment/diff                      0 B            80.9 kB
+├ ƒ /api/deployment/history                   0 B            80.9 kB
+├ ƒ /api/deployment/promote                   0 B            80.9 kB
+├ ƒ /api/deployment/rollback                  0 B            80.9 kB
+├ ƒ /api/deployment/validate                  0 B            80.9 kB
+├ ƒ /api/experimental-support-cases           0 B            80.9 kB
+├ ƒ /api/experimental-support-intake          0 B            80.9 kB
+├ ƒ /api/experimental-support-readiness       0 B            80.9 kB
+├ ƒ /api/experimental-support-voice-session   0 B            80.9 kB
+├ ƒ /api/experimental-voice-session           0 B            80.9 kB
+├ ƒ /api/experiments/create                   0 B            80.9 kB
+├ ƒ /api/experiments/report                   0 B            80.9 kB
+├ ƒ /api/experiments/results                  0 B            80.9 kB
+├ ƒ /api/experiments/run                      0 B            80.9 kB
+├ ƒ /api/flow-rewrite/diff                    0 B            80.9 kB
+├ ƒ /api/flow-rewrite/explain                 0 B            80.9 kB
+├ ƒ /api/flow-rewrite/export                  0 B            80.9 kB
+├ ƒ /api/flow-rewrite/generate                0 B            80.9 kB
+├ ƒ /api/get-flows                            0 B            80.9 kB
+├ ƒ /api/governance/access                    0 B            80.9 kB
+├ ƒ /api/governance/audit                     0 B            80.9 kB
+├ ƒ /api/governance/policies                  0 B            80.9 kB
+├ ƒ /api/governance/report                    0 B            80.9 kB
+├ ƒ /api/governance/scan                      0 B            80.9 kB
+├ ƒ /api/intake/webhook                       0 B            80.9 kB
+├ ƒ /api/integration/events                   0 B            80.9 kB
+├ ƒ /api/integration/execute                  0 B            80.9 kB
+├ ƒ /api/integration/export                   0 B            80.9 kB
+├ ƒ /api/integration/logs                     0 B            80.9 kB
+├ ƒ /api/integration/register                 0 B            80.9 kB
+├ ƒ /api/intents/delete                       0 B            80.9 kB
+├ ƒ /api/intents/export                       0 B            80.9 kB
+├ ƒ /api/intents/list                         0 B            80.9 kB
+├ ƒ /api/intents/routing-strategy             0 B            80.9 kB
+├ ƒ /api/intents/save                         0 B            80.9 kB
+├ ƒ /api/intents/validate                     0 B            80.9 kB
+├ ƒ /api/journey/analyze                      0 B            80.9 kB
+├ ƒ /api/journey/create                       0 B            80.9 kB
+├ ƒ /api/journey/report                       0 B            80.9 kB
+├ ƒ /api/journey/simulate                     0 B            80.9 kB
+├ ƒ /api/knowledge                            0 B            80.9 kB
+├ ƒ /api/lead-management                      0 B            80.9 kB
+├ ƒ /api/lead-operations                      0 B            80.9 kB
+├ ƒ /api/localization/batch                   0 B            80.9 kB
+├ ƒ /api/localization/export                  0 B            80.9 kB
+├ ƒ /api/localization/translate               0 B            80.9 kB
+├ ƒ /api/localization/validate                0 B            80.9 kB
+├ ƒ /api/mission-control/channels             0 B            80.9 kB
+├ ƒ /api/mission-control/status               0 B            80.9 kB
+├ ƒ /api/optimize-routing                     0 B            80.9 kB
+├ ƒ /api/parse-flow                           0 B            80.9 kB
+├ ƒ /api/parse-flow-ai                        0 B            80.9 kB
+├ ƒ /api/prompts                              0 B            80.9 kB
+├ ƒ /api/public/contacts                      0 B            80.9 kB
+├ ƒ /api/public/intake                        0 B            80.9 kB
+├ ƒ /api/public/latest-call                   0 B            80.9 kB
+├ ƒ /api/public/leads                         0 B            80.9 kB
+├ ƒ /api/qa/compliance                        0 B            80.9 kB
+├ ƒ /api/qa/export                            0 B            80.9 kB
+├ ƒ /api/qa/report                            0 B            80.9 kB
+├ ƒ /api/qa/score                             0 B            80.9 kB
+├ ƒ /api/repair-flow                          0 B            80.9 kB
+├ ƒ /api/run-simulation                       0 B            80.9 kB
+├ ƒ /api/runtime/acceptance                   0 B            80.9 kB
+├ ƒ /api/runtime/acknowledge                  0 B            80.9 kB
+├ ƒ /api/runtime/events                       0 B            80.9 kB
+├ ƒ /api/runtime/flow-authority               0 B            80.9 kB
+├ ƒ /api/runtime/incidents                    0 B            80.9 kB
+├ ƒ /api/runtime/interaction-operations       0 B            80.9 kB
+├ ƒ /api/runtime/interactions                 0 B            80.9 kB
+├ ƒ /api/runtime/mute                         0 B            80.9 kB
+├ ƒ /api/runtime/report                       0 B            80.9 kB
+├ ƒ /api/runtime/voice-analytics              0 B            80.9 kB
+├ ƒ /api/runtime/voicemails                   0 B            80.9 kB
+├ ƒ /api/save-flow                            0 B            80.9 kB
+├ ƒ /api/skills/analyze                       0 B            80.9 kB
+├ ƒ /api/skills/delete                        0 B            80.9 kB
+├ ƒ /api/skills/export                        0 B            80.9 kB
+├ ƒ /api/skills/list                          0 B            80.9 kB
+├ ƒ /api/skills/save                          0 B            80.9 kB
+├ ƒ /api/sms/webhook                          0 B            80.9 kB
+├ ƒ /api/staging-orchestration/[action]       0 B            80.9 kB
+├ ƒ /api/stellar-provisioning-inventory       0 B            80.9 kB
+├ ƒ /api/tenant/context                       0 B            80.9 kB
+├ ƒ /api/transcripts/analyze                  0 B            80.9 kB
+├ ƒ /api/transcripts/ingest                   0 B            80.9 kB
+├ ƒ /api/transcripts/live                     0 B            80.9 kB
+├ ƒ /api/transcripts/map-flow                 0 B            80.9 kB
+├ ƒ /api/transcripts/report                   0 B            80.9 kB
+├ ƒ /api/twilio/phone-support-intake          0 B            80.9 kB
+├ ƒ /api/twilio/twiml                         0 B            80.9 kB
+├ ƒ /api/twilio/twiml-staging                 0 B            80.9 kB
+├ ƒ /api/versioning/branch                    0 B            80.9 kB
+├ ƒ /api/versioning/diff                      0 B            80.9 kB
+├ ƒ /api/versioning/list                      0 B            80.9 kB
+├ ƒ /api/versioning/merge                     0 B            80.9 kB
+├ ƒ /api/versioning/rollback                  0 B            80.9 kB
+├ ƒ /api/versioning/save                      0 B            80.9 kB
+├ ƒ /api/voice-destinations                   0 B            80.9 kB
+├ ƒ /api/wfm/forecast                         0 B            80.9 kB
+├ ƒ /api/wfm/realtime                         0 B            80.9 kB
+├ ƒ /api/wfm/report                           0 B            80.9 kB
+├ ƒ /api/wfm/schedule                         0 B            80.9 kB
+├ ƒ /api/workspaces/resolve                   0 B            80.9 kB
+├ ○ /builder                                  3.56 kB         160 kB
+├ ƒ /business-estimate                        256 B          81.2 kB
+├ ○ /channels                                 3.91 kB         160 kB
+├ ○ /channels/[channel]                       4.76 kB         161 kB
+├ ○ /compliance-automation                    3.04 kB         159 kB
+├ ○ /cost-optimizer                           3.06 kB         159 kB
+├ ○ /customer-360                             6.23 kB         162 kB
+├ ○ /dashboard                                3.68 kB         160 kB
+├ ○ /data-lake                                3.26 kB         159 kB
+├ ○ /demo                                     6.35 kB         162 kB
+├ ○ /designer                                 51.6 kB         208 kB
+├   └ css/e6d0738af2432ad8.css                1.57 kB
+├ ƒ /experimental-staging-orchestration-test  3.15 kB        84.1 kB
+├ ○ /experimental-support-dashboard           3.87 kB         151 kB
+├ ○ /experimental-support-voice               6.2 kB          153 kB
+├ ○ /experimental-voice                       2.63 kB        83.5 kB
+├ ○ /experimentation                          2.99 kB         159 kB
+├ ○ /find-workspace                           1.25 kB        82.2 kB
+├ ○ /flow-auto-repair                         3.96 kB         160 kB
+├ ○ /flow-deployment                          5.34 kB         161 kB
+├ ○ /flow-governance                          3.13 kB         159 kB
+├ ○ /flow-rewrite                             3.09 kB         159 kB
+├ ○ /flow-runtime-monitor                     4.95 kB         161 kB
+├ ○ /flow-simulator                           5.37 kB         161 kB
+├ ○ /flow-versioning                          5.18 kB         161 kB
+├ ○ /intake                                   4.09 kB         160 kB
+├ ○ /integration-hub                          3 kB            159 kB
+├ ○ /intent-taxonomy                          4.74 kB         161 kB
+├ ○ /journey-designer                         3.24 kB         159 kB
+├ ○ /knowledge-vault                          4.93 kB         161 kB
+├ ○ /lead-management                          8.42 kB         164 kB
+├ ○ /lead-operations                          6.53 kB         163 kB
+├ ○ /live/contacts                            3.24 kB         159 kB
+├ ○ /live/leads                               3.29 kB         159 kB
+├ ○ /localization-engine                      3.05 kB         159 kB
+├ ○ /login                                    3.12 kB         159 kB
+├ ○ /logout                                   726 B           148 kB
+├ ○ /ops-console                              6 kB            162 kB
+├ ○ /partners                                 3.92 kB         160 kB
+├ ○ /platform                                 3.69 kB         160 kB
+├ ○ /platform/flow-authoring                  3.32 kB         159 kB
+├ ○ /platform/governance-platform             3.17 kB         159 kB
+├ ○ /platform/intelligence-qa                 3.18 kB         159 kB
+├ ○ /platform/live-operations                 3.24 kB         159 kB
+├ ○ /privacy                                  3.43 kB         159 kB
+├ ○ /prompt-manager                           4.48 kB         160 kB
+├ ○ /quality-assurance                        3.24 kB         159 kB
+├ ○ /routing-optimizer                        3.2 kB          159 kB
+├ ○ /sms-terms                                2.51 kB         158 kB
+├ ○ /templates                                3.56 kB         160 kB
+├ ○ /terms                                    2.96 kB         159 kB
+├ ○ /transcript-intelligence                  5.24 kB         161 kB
+├ ○ /troubleshooter                           3.16 kB         159 kB
+├ ○ /voice-attendant                          3.98 kB         160 kB
+├ ○ /voice-operations                         5.82 kB         162 kB
+├ ○ /voicemails                               4.48 kB         160 kB
+├ ○ /web-chat                                 3.61 kB         160 kB
+└ ○ /workforce-management                     4.43 kB         160 kB
++ First Load JS shared by all                 84.3 kB
+  ├ chunks/framework-0995a3e8436ddc4f.js      45.2 kB
+  ├ chunks/main-95c8335134f2938a.js           32.2 kB
+  └ other shared chunks (total)               6.95 kB
+
+ƒ Middleware                                  83.3 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

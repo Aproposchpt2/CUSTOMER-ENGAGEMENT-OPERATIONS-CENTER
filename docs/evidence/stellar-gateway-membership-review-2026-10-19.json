@@ -1,0 +1,59 @@
+{
+  "query": "BEGIN READ ONLY; SELECT jsonb_build_object('verifiedAt',clock_timestamp(),'project','hvzauakkhlivzeqatfqm','membershipRls',(SELECT relrowsecurity FROM pg_class WHERE oid='public.tenant_users'::regclass),'authenticatedSelect',has_table_privilege('authenticated','public.tenant_users','SELECT'),'membershipPolicies',(SELECT jsonb_agg(to_jsonb(p) ORDER BY policyname) FROM pg_policies p WHERE schemaname='public' AND tablename='tenant_users')) evidence; ROLLBACK;",
+  "result": {
+    "project": "hvzauakkhlivzeqatfqm",
+    "verifiedAt": "2026-10-20T02:04:04.235971+00:00",
+    "membershipRls": true,
+    "membershipPolicies": [
+      {
+        "cmd": "DELETE",
+        "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text])",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "tenant_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "tenant_users_delete_admin",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "tenant_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "tenant_users_insert_admin",
+        "schemaname": "public",
+        "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text])"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "private.is_tenant_member(tenant_id)",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "tenant_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "tenant_users_select_member",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text])",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "tenant_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "tenant_users_update_admin",
+        "schemaname": "public",
+        "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text])"
+      }
+    ],
+    "authenticatedSelect": true
+  }
+}

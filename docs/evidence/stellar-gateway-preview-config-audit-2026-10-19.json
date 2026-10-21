@@ -1,0 +1,57 @@
+{
+  "siteId": "a98fcd5a-893e-4eb7-835b-146f516ff47d",
+  "summary": [
+    {
+      "key": "SUPABASE_URL",
+      "present": true,
+      "previewConfigured": true,
+      "scopes": [
+        "builds",
+        "functions",
+        "runtime"
+      ],
+      "matchesApprovedStaging": null,
+      "verification": "Marked secret; preview value omitted by connector. Target remains unverified until runtime exact-target check."
+    },
+    {
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "present": true,
+      "previewConfigured": true,
+      "scopes": [
+        "builds",
+        "functions",
+        "runtime"
+      ]
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "present": true,
+      "previewConfigured": true,
+      "scopes": [
+        "builds",
+        "functions",
+        "runtime"
+      ],
+      "matchesApprovedStaging": true
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "present": true,
+      "previewConfigured": true,
+      "scopes": [
+        "builds",
+        "functions",
+        "runtime"
+      ]
+    }
+  ],
+  "missingNonsecretPreviewSettings": [
+    "STELLAR_BRIDGE_STAGING",
+    "CSS_TENANT_ID",
+    "STAGING_ORCHESTRATION_GATEWAY_ENABLED",
+    "STAGING_SUPPORT_WRITES_ENABLED",
+    "STAGING_ORCHESTRATION_SITE_ID",
+    "STAGING_ORCHESTRATION_ORIGIN"
+  ],
+  "note": "Metadata/presence audit only. NEXT_PUBLIC_SUPABASE_URL matches approved staging; private SUPABASE_URL is not readable. Credential authentication has not run. No credential values retained."
+}

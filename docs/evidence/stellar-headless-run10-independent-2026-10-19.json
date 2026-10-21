@@ -1,0 +1,258 @@
+{
+  "query": "BEGIN READ ONLY; SELECT jsonb_build_object('verifiedAt',clock_timestamp(),'project','hvzauakkhlivzeqatfqm','tables',jsonb_build_object('cases',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),''))) FROM public.stellar_support_cases t),'contacts',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY id),''))) FROM public.ai4cc_contacts t),'workflows',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY workflow_id),''))) FROM public.stellar_orchestrator_workflows_staging t),'events',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),''))) FROM public.stellar_orchestrator_events_staging t),'receipts',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),''))) FROM public.stellar_dispatch_receipts_staging t),'effects',(SELECT jsonb_build_object('count',count(*)::int,'fingerprint',md5(coalesce(string_agg(to_jsonb(t)::text,'' ORDER BY event_id),''))) FROM public.stellar_dispatch_effects_staging t)),'rls',(SELECT jsonb_agg(jsonb_build_object('table',relname,'enabled',relrowsecurity,'acl',relacl::text) ORDER BY relname) FROM pg_class WHERE oid IN ('public.stellar_support_cases'::regclass,'public.ai4cc_contacts'::regclass,'public.stellar_orchestrator_workflows_staging'::regclass,'public.stellar_orchestrator_events_staging'::regclass,'public.stellar_dispatch_receipts_staging'::regclass,'public.stellar_dispatch_effects_staging'::regclass)),'functions',(SELECT jsonb_agg(jsonb_build_object('name',proname,'hash',md5(prosrc),'securityDefiner',prosecdef,'volatility',provolatile,'config',proconfig,'acl',proacl::text,'service',has_function_privilege('service_role',oid,'EXECUTE'),'anon',has_function_privilege('anon',oid,'EXECUTE'),'authenticated',has_function_privilege('authenticated',oid,'EXECUTE')) ORDER BY proname) FROM pg_proc WHERE pronamespace='public'::regnamespace AND (proname LIKE 'stellar_dispatch_%_staging' OR proname IN ('stellar_orch_lookup_staging','stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging'))),'policies',(SELECT jsonb_agg(to_jsonb(p) ORDER BY tablename,policyname) FROM pg_policies p WHERE schemaname='public' AND tablename IN ('stellar_support_cases','ai4cc_contacts','stellar_orchestrator_workflows_staging','stellar_orchestrator_events_staging','stellar_dispatch_receipts_staging','stellar_dispatch_effects_staging'))) evidence; ROLLBACK;",
+  "result": {
+    "rls": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "table": "ai4cc_contacts",
+        "enabled": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "table": "stellar_dispatch_effects_staging",
+        "enabled": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "table": "stellar_dispatch_receipts_staging",
+        "enabled": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+        "table": "stellar_orchestrator_events_staging",
+        "enabled": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,service_role=Dxtm/postgres}",
+        "table": "stellar_orchestrator_workflows_staging",
+        "enabled": true
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,service_role=arDxtm/postgres,authenticated=r/postgres}",
+        "table": "stellar_support_cases",
+        "enabled": true
+      }
+    ],
+    "tables": {
+      "cases": {
+        "count": 20,
+        "fingerprint": "ddeb4729999cd8a90965ab2197b4355c"
+      },
+      "events": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "effects": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "contacts": {
+        "count": 13,
+        "fingerprint": "a67f355fc8bc1a3e258ab772b308c485"
+      },
+      "receipts": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      },
+      "workflows": {
+        "count": 0,
+        "fingerprint": "d41d8cd98f00b204e9800998ecf8427e"
+      }
+    },
+    "project": "hvzauakkhlivzeqatfqm",
+    "policies": [
+      {
+        "cmd": "DELETE",
+        "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text])",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "ai4cc_contacts",
+        "permissive": "PERMISSIVE",
+        "policyname": "ai4cc_contacts_member_delete",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "ai4cc_contacts",
+        "permissive": "PERMISSIVE",
+        "policyname": "ai4cc_contacts_member_insert",
+        "schemaname": "public",
+        "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "private.is_tenant_member(tenant_id)",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "ai4cc_contacts",
+        "permissive": "PERMISSIVE",
+        "policyname": "ai4cc_contacts_member_select",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "UPDATE",
+        "qual": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "ai4cc_contacts",
+        "permissive": "PERMISSIVE",
+        "policyname": "ai4cc_contacts_member_update",
+        "schemaname": "public",
+        "with_check": "private.has_tenant_role(tenant_id, ARRAY['OWNER'::text, 'ADMIN'::text, 'MANAGER'::text, 'AGENT'::text])"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "private.is_tenant_member(tenant_id)",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "stellar_support_cases",
+        "permissive": "PERMISSIVE",
+        "policyname": "stellar_support_cases_member_read",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(contact_id IN ( SELECT c.id\n   FROM ai4cc_contacts c\n  WHERE (c.tenant_id IN ( SELECT tenant_users.tenant_id\n           FROM tenant_users\n          WHERE ((tenant_users.user_id = auth.uid()) AND (tenant_users.status = 'ACTIVE'::text))))))",
+        "roles": [
+          "public"
+        ],
+        "tablename": "stellar_support_cases",
+        "permissive": "PERMISSIVE",
+        "policyname": "tenant_members_read_cases",
+        "schemaname": "public",
+        "with_check": null
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "eb1f229125dd1d28b0c1d61a7bab330c",
+        "name": "stellar_dispatch_ack_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "05aef8c84a393fadfe6eaee4c31de872",
+        "name": "stellar_dispatch_claim_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "84739cd391b2f7fc225ea0c4c8cb3a52",
+        "name": "stellar_dispatch_fail_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "900cdd600e0c47dade8870254f8acb7c",
+        "name": "stellar_dispatch_receive_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "7488901498cd8abbbf9934fdb787db32",
+        "name": "stellar_dispatch_verify_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "7851346eb2e1f346e597eca11c6dd7dd",
+        "name": "stellar_orch_accept_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "83b86abef8590434d473c32ee9284460",
+        "name": "stellar_orch_lookup_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "s",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "d545fd9855ecb1cb0ce6f1fb19c160c0",
+        "name": "stellar_orch_reconcile_case_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "anon": false,
+        "hash": "727b0626776743e19a99160ebd050ff9",
+        "name": "stellar_orch_transition_staging",
+        "config": [
+          "search_path=\"\""
+        ],
+        "service": true,
+        "volatility": "v",
+        "authenticated": false,
+        "securityDefiner": true
+      }
+    ],
+    "verifiedAt": "2026-10-20T01:14:12.036755+00:00"
+  }
+}

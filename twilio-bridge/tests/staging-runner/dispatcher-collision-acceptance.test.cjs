@@ -1,0 +1,6 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{authorized,overlap}=require('./dispatcher-collision-acceptance.cjs');
+test('collision test refuses missing explicit authorization before connecting',()=>{const old=process.env.STAGING_DISPATCH_COLLISION_AUTHORIZED;delete process.env.STAGING_DISPATCH_COLLISION_AUTHORIZED;assert.throws(authorized,/COLLISION_AUTHORIZATION_REQUIRED/);if(old)process.env.STAGING_DISPATCH_COLLISION_AUTHORIZED=old;});
+test('overlap rejects reused database backend',async()=>{await assert.rejects(overlap({query(){throw Error('MUST_NOT_QUERY');}},{pid:1,backend_pid:20},{pid:2,backend_pid:20}),/CONNECTIONS_NOT_DISTINCT/);});
+test('overlap requires both live transactions',async()=>{await assert.rejects(overlap({query:async()=>({rows:[{pid:20,state:'idle in transaction'}]})},{pid:1,backend_pid:20},{pid:2,backend_pid:21}),/TRANSACTION_OVERLAP_NOT_VERIFIED/);});
+test('overlap records actual independent transactions',async()=>{const evidence=await overlap({query:async()=>({rows:[{pid:20,state:'idle in transaction'},{pid:21,state:'idle in transaction'}]})},{pid:1,backend_pid:20},{pid:2,backend_pid:21});assert.equal(evidence.activeTransactions.length,2);});
