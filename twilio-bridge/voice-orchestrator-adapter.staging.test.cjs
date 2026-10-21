@@ -1,7 +1,7 @@
 'use strict';
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {createVoiceOrchestrationAdapter}=require('../orchestrator-voice-adapter.staging.cjs');
+const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
 const TENANT='5885a020-d363-4c27-910a-c035eda132f5';
 const ID='CA1234567890abcdef1234567890abcdef';
 const UUID='a98fcd5a-893e-4eb7-835b-146f516ff47d';
