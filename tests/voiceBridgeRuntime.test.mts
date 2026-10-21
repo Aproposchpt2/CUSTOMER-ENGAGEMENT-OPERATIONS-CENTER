@@ -65,6 +65,20 @@ test('delegated envelope executes once and rejects non-object arguments',async()
 const oai=(s:any,event:any)=>s.ws.emit('message',Buffer.from(JSON.stringify(event)));
 const phoneEvent=(s:any,event:any)=>s.phone.emit('message',Buffer.from(JSON.stringify(event)));
 const acknowledgeGreeting=(s:any)=>phoneEvent(s,{event:'mark',streamSid:'TEST_STREAM',mark:{name:'stellar-greeting-start'}});
+test('Sales mirrors the preferred calm Support Desk behavior without modifying support prompts or Live model',async()=>{
+ const sales=await session('sales',false,true);
+ const support=await session('support',false,true);
+ const s=sales.outbound.find(x=>x.type==='session.start').session;
+ const u=support.outbound.find(x=>x.type==='session.start').session;
+ assert.match(s.instructions,/PREFERRED AGENT CONVERSATIONAL BEHAVIOR/);
+ assert.match(s.instructions,/interruptions and smoothly resume/);
+ assert.match(s.delegation.responses.instructions,/PREFERRED AGENT CONVERSATIONAL BEHAVIOR/);
+ assert.equal(u.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
+ assert.equal(u.delegation.responses.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
+ assert.equal(s.model,u.model);
+ assert.deepEqual(s.audio,u.audio);
+});
+
 test('silent caller receives one proactive greeting request for each profile on warm or cold sessions',async()=>{
  for (const profile of ['support','sales'] as const) for(const warm of [false,true]){
  const s=await session(profile,false,warm);
