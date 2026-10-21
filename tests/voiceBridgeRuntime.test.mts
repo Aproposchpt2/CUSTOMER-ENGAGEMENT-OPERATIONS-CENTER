@@ -72,16 +72,11 @@ test('silent caller receives one proactive greeting request for each profile on 
  assert.equal(start.session.input,undefined,'no artificial developer turn should trigger greeting');
  oai(s,{type:'session.started'});oai(s,{type:'session.started'});
  assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1,'one response even on duplicate session.started');
- const intervals=s.timers.filter(x=>x.interval);
- assert.equal(intervals.length,profile==='support'?1:0,'Sales must not synthesize caller audio at startup');
- if(profile==='support'){
-   intervals[0].fn();
-   const input=s.outbound.filter(x=>x.type==='session.input_audio.append');
-   assert.equal(input.length,1);
-   assert.deepEqual(Buffer.from(input[0].audio,'base64'),Buffer.alloc(160,255));
- }else{
-   assert.equal(s.outbound.filter(x=>x.type==='session.input_audio.append').length,0);
- }
+ assert.equal(s.timers.filter(x=>x.interval).length,1);
+ s.timers.find(x=>x.interval).fn();
+ const input=s.outbound.filter(x=>x.type==='session.input_audio.append');
+ assert.equal(input.length,1);
+ assert.deepEqual(Buffer.from(input[0].audio,'base64'),Buffer.alloc(160,255));
  }
 });
 test('early caller speech cannot cancel greeting before playback; queued input survives',async()=>{
