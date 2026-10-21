@@ -29,6 +29,14 @@ const LIVE_GREETING_INSTRUCTION = `# MANDATORY FIRST SPOKEN UTTERANCE
 Your VERY FIRST audible words on this telephone call must be exactly: "${SUPPORT_GREETING}"
 No "hey", "hi", "hello there", "thanks for calling", "what's on your mind", or additional words before or during that sentence. Ask this question and STOP speaking. Do not answer your own question. After the caller says their name, respond "[Name], how can I help you today?" with their actual name. Subsequent turns follow the appropriate specialist's instructions.\n\n`;
 const SUPPORT_GREETING_INSTRUCTION = BRAND_GREETING_INSTRUCTION;
+// Mirror the owner-approved original Support Desk conversational disposition in Sales.
+// This is behavior only: do not change the Live model, transport, voice selection,
+// Sales tools, persistence, or the initial synthetic PCMU audio required at startup.
+const PREFERRED_SALES_BEHAVIOR = `# PREFERRED AGENT CONVERSATIONAL BEHAVIOR
+Be warm, calm, attentive, confident and professionally conversational, matching the preferred original Support Desk's natural turn-taking. Use short, clear responses and ask one relevant question at a time. Listen fully; do not rush, interrupt, talk over the caller, fill silence, or repeat a question that was already answered. Accept natural interruptions and smoothly resume from the caller's latest intent. Acknowledge what the caller says before asking the next useful question. Never recite lengthy scripts, narrate internal work, or use sales pressure. Do not use artificial filler such as "um", "uh", "mm", or "hey"; do not add breath sounds or verbal warm-up before speaking. Deliver the approved opening only once, then wait for the caller's reply. Be naturally helpful rather than theatrical or robotic. Keep the existing Sales qualifications, tool calls, compliance, pricing, and save-before-transfer requirements intact.
+
+`;
+
 // Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
 const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
 After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
@@ -424,7 +432,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         model: LIVE_MODEL,
         ...sessionInput,
         instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
-          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
+          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.\\n\\n' + PREFERRED_SALES_BEHAVIOR
           : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
@@ -432,7 +440,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + instructions,
+            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
