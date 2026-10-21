@@ -11,11 +11,11 @@ Voice, SMS and chat share the canonical transactional workflow. The voice adapte
 - The extended suite verifies tenant/property scope, unauthorized writes, resident/vendor/prospect permissions, relational integrity, maintenance lifecycle, atomic assignment/showing replay, knowledge visibility, audit, simulated notifications, all three canonical channel records/transcripts, exact dashboard counts, human conversion, rate limits and attachment path restrictions.
 - Existing Sales/Support regression tests and added PMA domain/transport tests are included in npm test. Voice runtime tests use mocked provider sockets and backend responses; no real telephone audio or SMS delivery is asserted.
 - TypeScript and optimized Next.js build are required. The PMA Browser Validation workflow additionally tests hydration, property creation/refresh, maintenance display, mobile overflow and screenshots using synthetic mocked sessions/API responses.
-- Local browser installation failed because the downloaded archive was invalid. No local visual QA pass is claimed. CI screenshots must be inspected when available.
+- Local browser installation failed because the downloaded archive was invalid. Browser validation instead runs in GitHub Actions with synthetic mocked sessions and responses. The first screenshot review found inherited global-theme contrast defects; the workspace now scopes its theme colors and the browser check asserts readable dashboard metric color.
 - Supabase security advisor after private-wrapper hardening reported no PMA-specific findings. Unrelated existing support-test-function and leaked-password-protection warnings remain outside this change.
 
 ## Release gates still requiring evidence
-1. Inspect CI browser screenshots and resolve any UI failures.
+1. Browser screenshot gate passed for implementation commit 738865330cbe941b5d612d137d49d0084d9dcac8: GitHub Actions run 39695554781 completed successfully. Owner desktop and maintenance desktop/mobile screenshots were inspected after the contrast fix. This verifies mocked interface behavior only.
 2. Validate a separate staging release commit with real Supabase authentication and private storage operations. The available off-platform Netlify connection masks the service-role secret; it has not been exported or reconstructed.
 3. Configure the dedicated staging voice profile, gateway HMAC, synthetic property/contact/actor bindings and a dedicated test DID/caller allowlist. Do not change the Sales DID, Support DID or main IVR.
 4. Run real inbound voice and SMS acceptance and confirm persisted IDs, interruption/reconnect behavior and signed webhook handling. No production outbound messages are permitted in staging.
@@ -33,3 +33,6 @@ Implementation and staging authorization remain valid. Continue failed checks an
 
 ## Upstream integration
 During implementation main advanced to 891f194c583467616b868e82d2a535fa65ab5f45 with a Support voice behavior promotion. The PMA branch incorporates that commit, preserves its support prompts/tools/save behavior, and adds the separately gated PMA profile. The persona regression comparison permits the explicit call-context prefix introduced upstream while still requiring the unchanged approved persona and workflow suffix.
+
+## Final automated evidence
+Implementation commit 738865330cbe941b5d612d137d49d0084d9dcac8 passed standard CI (39695554800) and browser validation (39695554781), including TypeScript, 124 tests, optimized build, form save/refresh and desktop/mobile layout checks. Twelve PMA migrations are applied to the staging project; read-only policy inspection confirmed four explicit command policies on each of the thirteen domain/shared-knowledge tables. No staging web release, real provider delivery or production release is claimed.
