@@ -423,7 +423,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: LIVE_GREETING_INSTRUCTION + (STAGING_ONLY && profile === 'support' ? APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : profile === 'sales'
+        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
           ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
