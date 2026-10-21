@@ -212,10 +212,10 @@ At the start of this call, the system already ran intake and will tell you: INTE
 - Support is included up to two hours/month; larger projects at $125/hour.
 - Multiple callers at once; after-hours, no-answer, overflow coverage.
 
-# Support-ticket capability boundary (critical)
-You are the SALES Specialist. You do NOT have access to submit_support_intake, cannot create or submit a support ticket, cannot check its status, and cannot generate a ticket number. Never suggest that you are creating, submitting, checking, or waiting for a support ticket. Do not say "one moment while I create/check your ticket." Never keep the caller waiting for a tool or process you cannot execute.
-If the caller requests a support ticket or technical support, immediately say: "I can help with Sales questions, but ticket creation is handled by our Support Specialist at 702-710-2622. I cannot submit a support ticket from this line." Give the number once and ask whether they need any additional Sales assistance. Do not claim a direct transfer to Support: the transfer_to_specialist tool is for an authorized human Sales specialist and is NOT a Support-line transfer. Do not collect detailed support-case information under the guise of saving a ticket. If the caller asks again, clearly repeat the limitation without delay.
-If the caller requests a sales follow-up, use submit_business_profile under the existing confirmation and save rules. Only confirm the lead was saved if that tool explicitly succeeded. A Sales lead is NOT a support ticket.
+# Real support ticket creation from this Sales line (owner-required)
+When a caller requests technical support or a ticket, switch naturally from Sales discovery into support intake, keeping the same calm conversational style. You HAVE the submit_support_intake tool. Ask one question at a time for the caller's full name, contact phone/email, product, detailed issue, what has been tried, business impact and urgency. Do not force purchase date if unknown. Repeat the details succinctly and obtain the caller's confirmation before calling submit_support_intake once.
+Before executing, say "Please give me a moment while I create your support ticket." Invoke the REAL submit_support_intake tool, not submit_business_profile. Wait for its actual result; never treat a Sales lead as a support ticket. After success with both customerId and caseId, say "Your support ticket has been created. Are you ready to take down the ticket number?" Wait for readiness, then read the EXACT returned caseId clearly and offer to repeat it. Ask "Is there anything further I can help you with?" Do not invent a ticket number, pretend to create a ticket, or claim a successful submission without those verified IDs. If the tool returns an error or no caseId, promptly tell the caller the ticket was NOT confirmed and offer the direct Support number 702-710-2622. Never remain silent indefinitely.
+If the caller only needs Sales service, continue with submit_business_profile as originally designed; that is a separate workflow.
 
 # Scope limits
 - Never book appointments directly. Never promise integrations. Never state dollar amounts.
@@ -253,6 +253,27 @@ Never ask for passwords or payment information. Never promise specific fix timel
 // transfer_to_specialist always present; bridge enforces transferAllowed at execution time
 function salesTools(interactionId) {
   return [
+    {
+      type: 'function',
+      name: 'submit_support_intake',
+      description: 'Create a REAL support ticket in the database after confirming customer information and issue. Wait for verified customerId and caseId; never invent a ticket.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          email: { type: 'string' },
+          phone: { type: 'string' },
+          product: { type: 'string' },
+          purchaseDate: { type: 'string' },
+          issue: { type: 'string' },
+          steps: { type: 'string' },
+          impact: { type: 'string' },
+          priority: { type: 'string', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] },
+        },
+        required: ['name','phone','product','issue','steps','impact','priority'],
+        additionalProperties: false,
+      },
+    },
     {
       type: 'function',
       name: 'submit_business_profile',
@@ -476,7 +497,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           } finally { leadSubmissionPending = false; }
         }
       } else if (name === 'submit_support_intake') {
-        if (!STAGING_ONLY) output = await callSupportIntake({ ...args, callSid });
+        if (!STAGING_ONLY) {
+          const started = Date.now();
+          logEvent(`[${callSid}] support ticket submission started profile=${profile}`);
+          const result = await callSupportIntake({ ...args, callSid });
+          if (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
+            || typeof result.caseId !== 'string' || !result.caseId.trim())
+            throw new Error('Support ticket database confirmation missing');
+          output = { success: true, customerId: result.customerId, caseId: result.caseId };
+          logEvent(`[${callSid}] support ticket confirmed profile=${profile} elapsedMs=${Date.now() - started}`);
+          sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+            content:`Support ticket database write CONFIRMED. Exact caseId: ${result.caseId}. Tell caller the ticket was created, ask whether ready for number, and read EXACT value only when ready. Never guess.`});
+        }
         else {
           const started = Date.now();
           supportSavePending = true;
