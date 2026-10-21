@@ -9,6 +9,7 @@ const PAGE_CSS = `
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 .heroIdentity{margin:0 0 48px;padding:0 0 34px;border-bottom:1px solid rgba(200,168,75,.27)}.heroCompany{font-family:"Cormorant Garamond",Georgia,serif!important;color:var(--ivory);font-weight:400!important;font-size:clamp(44px,6.1vw,90px)!important;line-height:.97!important;letter-spacing:-.025em!important;overflow-wrap:break-word}.heroOperator{font-family:"DM Sans",Arial,sans-serif;font-size:12px;color:var(--muted);margin-top:16px;letter-spacing:.07em}.hero .overline{margin-bottom:22px}.hero h1{font-size:clamp(44px,6.1vw,90px)}@media(max-width:580px){.heroIdentity{margin-bottom:36px;padding-bottom:25px}.heroCompany{font-size:clamp(36px,8vw,52px)}.hero h1{font-size:clamp(42px,9vw,58px)}}
 
+.directCallLinks{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:26px auto 0;max-width:700px}.directCallLinks a{flex:1 1 260px;display:flex;flex-direction:column;gap:8px;align-items:center;border:1px solid rgba(200,168,75,.45);background:#101010;padding:18px 20px;color:var(--ivory);transition:background .2s,border-color .2s}.directCallLinks a:hover,.directCallLinks a:focus-visible{background:#211b10;border-color:var(--goldLight)}.directCallLinks span{font:9px 'Syncopate',Arial,sans-serif;letter-spacing:.07em;color:var(--goldLight)}.directCallLinks strong{font:400 clamp(24px,3vw,31px) 'Cormorant Garamond',Georgia,serif}.directCallNotice{font:12px 'DM Sans',Arial,sans-serif;color:var(--muted);margin:13px auto 0}
 /* Brand typography: homepage phrases specified in the October 20 typestyle review.
    Reuse established fonts and palette; no copy, spacing, or layout changes. */
 .stellar-branded-wordmark .wordmarkPrimary{font-family:'Cormorant Garamond',Georgia,serif}
@@ -295,6 +296,11 @@ export default function Home() {
           <h2>A more responsive business begins with <em className="stellar-branded-display">a different approach to work.</em></h2>
           <p>Explore how intelligent customer engagement, sales, and support systems can complement the people who drive your business forward.</p>
           <a className="primary" href="/intake">Learn About Stellar&apos;s Approach <span>↗</span></a>
+          <div className="directCallLinks" aria-label="Call a live specialist">
+            <a href="tel:+17253305102" aria-label="Call Sales Specialist at 725 330 5102"><span>SALES SPECIALIST</span><strong>(725) 330-5102 ↗</strong></a>
+            <a href="tel:+17027102622" aria-label="Call Support Specialist at 702 710 2622"><span>SUPPORT SPECIALIST</span><strong>(702) 710-2622 ↗</strong></a>
+          </div>
+          <p className="directCallNotice">Live telephone demonstrations may be recorded.</p>
         </section>
       </main>
 
