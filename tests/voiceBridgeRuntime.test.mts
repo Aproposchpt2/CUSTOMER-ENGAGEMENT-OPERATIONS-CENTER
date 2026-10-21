@@ -85,7 +85,7 @@ test('Sales and Support can submit verified support tickets while preserving Sal
  const s=sales.outbound.find(x=>x.type==='session.start').session;
  const u=support.outbound.find(x=>x.type==='session.start').session;
  assert.match(s.delegation.responses.instructions,/You HAVE the submit_support_intake tool/);
- assert.match(s.delegation.responses.instructions,/actual returned caseId/);
+ assert.match(s.delegation.responses.instructions,/EXACT returned caseId/);
  assert.match(s.delegation.responses.instructions,/ticket was NOT confirmed/);
  assert.doesNotMatch(s.delegation.responses.instructions,/Start with: "Hello, you have reached Stellar Unified Communications/);
  assert.equal(s.delegation.responses.tools.some(x=>x.name==='submit_support_intake'),true);
