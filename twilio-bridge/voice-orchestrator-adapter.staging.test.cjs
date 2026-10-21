@@ -10,7 +10,7 @@ const CUSTOMER='bbcdda13-1487-4565-981c-dcc002c68a26';
 const call={authenticated:true,staging:true,profile:'support',tenantId:TENANT,callSid:ID};
 const details={name:'Synthetic Test',email:'synthetic@example.invalid',phone:'',product:'Synthetic Device',purchaseDate:'2026-10-20',issue:'A fictional hardware support issue',steps:'Tested once',impact:'Fictional',priority:'NORMAL'};
 test('rejects unauthenticated or non-staging invocation before RPC',async()=>{
- let calls=0;const a=createVoiceOrchestrationAdapter({rpc:async()=>{calls++;}});
+ let calls=0;const a=createVoiceOrchestrationAdapter({rpc:async()=>{calls++;},staging:true});
  await assert.rejects(a.submit({trustedCall:{...call,authenticated:false},toolCallId:'tool-1',confirmed:true,intake:details}),/TRUSTED_VOICE_CALL_REQUIRED/);
  await assert.rejects(a.submit({trustedCall:call,toolCallId:'tool-1',confirmed:false,intake:details}),/INTAKE_NOT_CONFIRMED/);
  assert.equal(calls,0);
