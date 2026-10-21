@@ -65,14 +65,13 @@ test('delegated envelope executes once and rejects non-object arguments',async()
 const oai=(s:any,event:any)=>s.ws.emit('message',Buffer.from(JSON.stringify(event)));
 const phoneEvent=(s:any,event:any)=>s.phone.emit('message',Buffer.from(JSON.stringify(event)));
 const acknowledgeGreeting=(s:any)=>phoneEvent(s,{event:'mark',streamSid:'TEST_STREAM',mark:{name:'stellar-greeting-start'}});
-test('silent caller gets seeded greeting context without starting backend work',async()=>{
- for(const warm of [false,true]){
- const s=await session('support',false,warm);
- oai(s,{type:'session.started'});oai(s,{type:'session.started'});
- assert.equal(s.outbound.filter(x=>x.type==='response.create').length,0);
+test('silent caller receives one proactive greeting request for each profile on warm or cold sessions',async()=>{
+ for (const profile of ['support','sales'] as const) for(const warm of [false,true]){
+ const s=await session(profile,false,warm);
  const start=s.outbound.find(x=>x.type==='session.start');
- assert.equal(start.session.input[0].role,'developer');
- assert.match(start.session.input[0].content[0].text,/immediately/);
+ assert.equal(start.session.input,undefined,'no artificial developer turn should trigger greeting');
+ oai(s,{type:'session.started'});oai(s,{type:'session.started'});
+ assert.equal(s.outbound.filter(x=>x.type==='response.create').length,1,'one response even on duplicate session.started');
  assert.equal(s.timers.filter(x=>x.interval).length,1);
  s.timers.find(x=>x.interval).fn();
  const input=s.outbound.filter(x=>x.type==='session.input_audio.append');
@@ -149,8 +148,8 @@ test('staging Support adds the fixed opening while preserving the approved model
  const approved=JSON.parse(readFileSync(new URL('./fixtures/approved-support-persona.json',import.meta.url),'utf8'));
  assert.equal(start.model,'gpt-live-1');
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
- const greeting = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
- const prefix = `At the start of this telephone call, say exactly: "${greeting}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+ const greeting = 'Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?';
+ const prefix = `At the start of the call say exactly: "${greeting}" Then pause and WAIT for the caller's name. Only after the caller gives their name say "[Name], how can I help you today?" using the actual name. Do not speak both sentences before the caller answers; never invent a name. Never repeat the opening once it has been delivered.\n\n`;
  // Frozen original persona remains intact; owner-approved workflow is a separate suffix.
  assert.ok(start.instructions.startsWith(prefix+approved.brief));
  assert.ok(start.delegation.responses.instructions.startsWith(prefix+approved.instructions));

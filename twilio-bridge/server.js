@@ -409,13 +409,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   // ── Send session.start to configure the Live API session ──────────────────
   // Called once: after WS is open AND intake is complete
   function startSession(instructions, tools) {
-    // Staging support: omit session.input — the brief gpt-live-1 direct-audio path produces
-    // inaudible output. Greeting fires via response.create in session.started handler instead,
-    // which routes through delegation (gpt-5.6-terra) and produces audible session.output_transcript.
-    const sessionInput = !(STAGING_ONLY && profile === 'support')
-      ? { input: [{ role: 'developer', content: [{ type: 'input_text', text: BRAND_GREETING_INSTRUCTION
-        }] }] }
-      : {};
+    // An inbound telephone call must be greeted without caller speech.
+    // Initialize the session without a developer input turn; issue exactly one
+    // response.create once the OpenAI Live session reports session.started.
+    // Keep the original WebRTC browser agent and the staging support persona untouched.
+    const sessionInput = {};
     sendToOpenAI({
       type: 'session.start',
       session: {
@@ -564,13 +562,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
           logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
-          // For staging support: session.input alone only produces brief gpt-live-1 direct audio
-          // (no transcript events, inaudible on a real call). Force the greeting through the
-          // delegation path (gpt-5.6-terra) with response.create — produces session.output_transcript.delta
-          // and audible speech.
-          if (STAGING_ONLY && profile === 'support') {
-            sendToOpenAI({ type: 'response.create' });
-          }
+          // Production and staging: ask the agent to speak as soon as the call
+          // session is ready. This does not wait for caller VAD or a transcript.
+          // sessionStarted ensures duplicate startup events cannot double-greet.
+          logEvent(`[${callSid}] greeting response requested streamElapsedMs=${Date.now() - streamStartedAt}`);
+          sendToOpenAI({ type: 'response.create' });
           // Hold early caller speech until greeting mark echo; keep Live audio clock with PCMU silence.
           const silence = Buffer.alloc(160, 0xff).toString('base64');
           startupSilence = setInterval(() => {
