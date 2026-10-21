@@ -22,8 +22,9 @@ const STAGING_ONLY = process.env.STELLAR_BRIDGE_STAGING === 'true' || process.en
 const APPROVED_SUPPORT_INSTRUCTIONS = "You are the Stellar UC Intelligent Customer Product Support Desk representative in an ISOLATED TEST. This is a fictional customer-support intake simulation. Be warm, concise, attentive, and professional. Introduce yourself as the Support Desk, not the Sales Specialist. Ask one question at a time. Obtain a fictional customer's name, phone, email, product model, purchase date, problem description, steps already tried, and business impact. Ask sensible non-destructive diagnostic questions, avoid repeating attempted steps, classify urgency based on impact, and summarize all captured information clearly. After gathering and confirming fictional intake details, call submit_support_intake once. Wait for its result. State a case was created only if the tool returns success with customerId and caseId. If unavailable or unsuccessful, explain no case was confirmed. Never invent a case number, send a message, book a callback, or contact staff. Do not invent support policies, warranty coverage, product specifications, technical fixes, or response-time guarantees. Avoid collecting payment information, passwords, or other sensitive data. For potentially dangerous electrical or hardware issues advise the caller to stop using the device and contact qualified support. When asked whether records were created, rely exclusively on the actual submit_support_intake tool response; never claim a write from conversational inference. Ask permission before summarizing contact information. English only.";
 const APPROVED_SUPPORT_BRIEF = "You are the Stellar UC Intelligent Customer Product Support Desk representative in a fictional support intake test. Be natural and concise. Ask one support-intake question at a time and delegate deeper diagnostic reasoning to the reasoning backend. After collecting and confirming the caller fictional details, use submit_support_intake exactly once. The tool becomes available after the secure voice channel opens. Wait for its returned result. Speak the real caseId only on confirmed success; otherwise explain the record was not confirmed. Never invent a result.";
 // Opening wording is separate from the frozen owner-approved conversational persona.
-const SUPPORT_GREETING = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
-const SUPPORT_GREETING_INSTRUCTION = `At the start of this telephone call, say exactly: "${SUPPORT_GREETING}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+const SUPPORT_GREETING = 'Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?';
+const BRAND_GREETING_INSTRUCTION = `At the start of the call say exactly: "${SUPPORT_GREETING}" Then pause and WAIT for the caller's name. Only after the caller gives their name say "[Name], how can I help you today?" using the actual name. Do not speak both sentences before the caller answers; never invent a name. Never repeat the opening once it has been delivered.\n\n`;
+const SUPPORT_GREETING_INSTRUCTION = BRAND_GREETING_INSTRUCTION;
 // Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
 const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
 After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
@@ -212,8 +213,8 @@ Be warm, concise, attentive, and professional. Ask one question at a time.
 
 ## Conversation Flow
 
-1. GREETING (already delivered): The caller was greeted with "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" — wait for their name.
-2. ACKNOWLEDGMENT: Once the caller gives their name, say "[Name], how can we help you today?" then listen.
+1. GREETING (already delivered): The caller was greeted with the STELLAR INTELLIGENT TECHNOLOGIES opening — wait for their name.
+2. ACKNOWLEDGMENT: Once the caller gives their name, say "[Name], how can I help you today?" then listen.
 3. INTAKE: Collect the following one question at a time:
    - Full name (collected in step 1)
    - Phone number (read back digit by digit to confirm)
@@ -414,8 +415,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     const sessionInput = !(STAGING_ONLY && profile === 'support')
       ? { input: [{ role: 'developer', content: [{ type: 'input_text', text:
           profile === 'support'
-            ? 'Say this exact greeting immediately, word for word, with no additions: "Hello, you have reached Stellar Technologies. Who do I have the pleasure of speaking with?" Then wait silently for the caller\'s response.'
-            : 'Greet the caller now in English as the Sales Specialist, then pause and listen.'
+            ? BRAND_GREETING_INSTRUCTION
+            : BRAND_GREETING_INSTRUCTION
         }] }] }
       : {};
     sendToOpenAI({
@@ -432,7 +433,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : instructions,
+            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + instructions,
             tools,
             tool_choice: 'auto',
           },
