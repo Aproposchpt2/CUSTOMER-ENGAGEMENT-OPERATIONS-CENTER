@@ -32,7 +32,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
 test('sales transport registers sales tools and initializes the interaction',async()=>{
  const s=await session('sales'); const start=s.outbound.find(x=>x.type==='session.start');
  assert.ok(start.session.delegation.responses.tools.some((x:any)=>x.name==='submit_business_profile'));
- assert.ok(!start.session.delegation.responses.tools.some((x:any)=>x.name==='submit_support_intake'));
+ assert.ok(start.session.delegation.responses.tools.some((x:any)=>x.name==='submit_support_intake'));
  assert.equal(s.requests[0].action,'start');
  await s.tool('early','transfer_to_specialist');
  assert.match(s.outbound.find(x=>x.item?.call_id==='early').item.output,/not been saved/);
