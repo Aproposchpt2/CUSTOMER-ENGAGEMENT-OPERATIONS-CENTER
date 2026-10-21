@@ -79,6 +79,19 @@ test('Sales mirrors the preferred calm Support Desk behavior without modifying s
  assert.deepEqual(s.audio,u.audio);
 });
 
+test('Sales cannot promise support ticket submission and retains only lead tools',async()=>{
+ const sales=await session('sales',false,true);
+ const support=await session('support',false,true);
+ const s=sales.outbound.find(x=>x.type==='session.start').session;
+ const u=support.outbound.find(x=>x.type==='session.start').session;
+ assert.match(s.delegation.responses.instructions,/cannot create or submit a support ticket/);
+ assert.match(s.delegation.responses.instructions,/702-710-2622/);
+ assert.match(s.delegation.responses.instructions,/Sales lead is NOT a support ticket/);
+ assert.doesNotMatch(s.delegation.responses.instructions,/Start with: "Hello, you have reached Stellar Unified Communications/);
+ assert.equal(s.delegation.responses.tools.some(x=>x.name==='submit_support_intake'),false);
+ assert.equal(s.delegation.responses.tools.some(x=>x.name==='submit_business_profile'),true);
+ assert.equal(u.delegation.responses.tools.some(x=>x.name==='submit_support_intake'),true);
+});
 test('silent caller receives one proactive greeting request for each profile on warm or cold sessions',async()=>{
  for (const profile of ['support','sales'] as const) for(const warm of [false,true]){
  const s=await session(profile,false,warm);
