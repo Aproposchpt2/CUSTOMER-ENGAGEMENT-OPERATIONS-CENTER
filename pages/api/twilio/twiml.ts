@@ -65,6 +65,20 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).send(makeSay('Invalid profile.'));
   }
 
+  // Temporary, number-scoped orchestration acceptance route. Disabled by default.
+  // To restore normal Sales immediately, unset SALES_ORCHESTRATION_TEST_ROUTE.
+  const to = parseBody(req.body).To || '';
+  const stagingTest = profile === 'sales' && to.replace(/[^+0-9]/g,'') === '+17253305102'
+    && process.env.SALES_ORCHESTRATION_TEST_ROUTE === 'true';
+  if (stagingTest) {
+    const stagingSecret = process.env.BRIDGE_HMAC_SECRET_STAGING;
+    if (!stagingSecret) return res.status(200).send(makeSay('The staging test line is temporarily unavailable. Please try again shortly.'));
+    const stagingWs = 'wss://stellaruc-voice-bridge-staging-staging.up.railway.app/ws';
+    const token = mintToken('support', stagingSecret);
+    return res.status(200).send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response><Connect><Stream url="${stagingWs}/support"><Parameter name="bridge_token" value="${token}"/></Stream></Connect><Hangup/></Response>`);
+  }
+
   const bridgeWsUrl = process.env.TWILIO_BRIDGE_WS_URL;
   const isStaging = typeof bridgeWsUrl === 'string' && bridgeWsUrl.includes('staging');
   const hmacSecret = (isStaging && process.env.BRIDGE_HMAC_SECRET_STAGING) || process.env.BRIDGE_HMAC_SECRET;
