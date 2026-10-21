@@ -432,7 +432,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         model: LIVE_MODEL,
         ...sessionInput,
         instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
-          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.\\n\\n' + PREFERRED_SALES_BEHAVIOR
+          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
           : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
