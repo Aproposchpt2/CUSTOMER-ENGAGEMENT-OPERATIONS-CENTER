@@ -5,6 +5,21 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
+const ORCH_STAGING_URL='https://hvzauakkhlivzeqatfqm.supabase.co';
+const ORCH_STAGING_TENANT='5885a020-d363-4c27-910a-c035eda132f5';
+const ORCH_RPC_ALLOW=new Set(['stellar_orch_lookup_staging','stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_create_phone_support_test_intake']);
+function buildStagingOrchestrator(env=process.env,request=fetch){
+  if(env.STELLAR_BRIDGE_STAGING!=='true'||env.STAGING_VOICE_ORCHESTRATION_ENABLED!=='true'||env.STAGING_SUPPORT_WRITES_ENABLED!=='true'||env.STAGING_SUPABASE_URL!==ORCH_STAGING_URL||env.CSS_TENANT_ID!==ORCH_STAGING_TENANT||!env.STAGING_SUPABASE_SERVICE_ROLE_KEY)return null;
+  const rpc=async(name,args)=>{
+    if(!ORCH_RPC_ALLOW.has(name))throw Error('ORCHESTRATOR_RPC_REJECTED');
+    const response=await request(ORCH_STAGING_URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{'content-type':'application/json',apikey:env.STAGING_SUPABASE_SERVICE_ROLE_KEY,authorization:'Bearer '+env.STAGING_SUPABASE_SERVICE_ROLE_KEY},body:JSON.stringify(args),signal:AbortSignal.timeout(6000)});
+    if(!response.ok)throw Error('ORCHESTRATOR_RPC_UNAVAILABLE');
+    return response.json();
+  };
+  return createVoiceOrchestrationAdapter({rpc,staging:true,deadlineMs:6500});
+}
+
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -360,6 +375,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let supportReviewedVersion = 0;
   let supportBackendActive = false;
   let supportSavePending = false;
+  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?buildStagingOrchestrator():null;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -485,7 +501,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           }, 4000);
           supportProgressTimers.add(timer);
           try {
-            output = await submitStagingSupport(args, callSid);
+            output = stagingOrchestrator
+              ? await stagingOrchestrator.submit({trustedCall:{authenticated:true,staging:true,profile:'support',tenantId:ORCH_STAGING_TENANT,callSid},toolCallId:callId,confirmed:true,intake:args})
+              : await submitStagingSupport(args,callSid);
+            if(output?.success!==true||!output.caseId||!output.customerId)throw Error('TICKET_NOT_CONFIRMED_'+(output?.state||'UNKNOWN'));
             lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'confirmed'};
             // Give the speaking Live model verified facts directly, before backend continuation.
             sendToOpenAI({type:'session.thinking.append',delegation_id:null,
