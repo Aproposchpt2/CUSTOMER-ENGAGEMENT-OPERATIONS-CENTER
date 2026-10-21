@@ -24,6 +24,10 @@ const APPROVED_SUPPORT_BRIEF = "You are the Stellar UC Intelligent Customer Prod
 // Opening wording is separate from the frozen owner-approved conversational persona.
 const SUPPORT_GREETING = 'Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?';
 const BRAND_GREETING_INSTRUCTION = `At the start of the call say exactly: "${SUPPORT_GREETING}" Then pause and WAIT for the caller's name. Only after the caller gives their name say "[Name], how can I help you today?" using the actual name. Do not speak both sentences before the caller answers; never invent a name. Never repeat the opening once it has been delivered.\n\n`;
+// This opening instruction is delivered to the Live speech model itself.
+const LIVE_GREETING_INSTRUCTION = `# MANDATORY FIRST SPOKEN UTTERANCE
+Your VERY FIRST audible words on this telephone call must be exactly: "${SUPPORT_GREETING}"
+No "hey", "hi", "hello there", "thanks for calling", "what's on your mind", or additional words before or during that sentence. Ask this question and STOP speaking. Do not answer your own question. After the caller says their name, respond "[Name], how can I help you today?" with their actual name. Subsequent turns follow the appropriate specialist's instructions.\n\n`;
 const SUPPORT_GREETING_INSTRUCTION = BRAND_GREETING_INSTRUCTION;
 // Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
 const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
@@ -419,9 +423,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : profile === 'sales'
-          ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
-          : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
+        instructions: LIVE_GREETING_INSTRUCTION + (STAGING_ONLY && profile === 'support' ? APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : profile === 'sales'
+          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
+          : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
@@ -652,8 +656,15 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       logEvent(`[${callSid}] stream started sid=${streamSid}`);
 
       // Resolve sales context before exposing sales tools; support keeps its own intake.
+      const intakeStartedAt = Date.now();
       const intakeP = profile === 'sales'
-        ? callSalesIntakeStart(callSid, callerPhone)
+        ? callSalesIntakeStart(callSid, callerPhone).then(result => {
+            logEvent(`[${callSid}] sales intake/start complete elapsedMs=${Date.now() - intakeStartedAt}`);
+            return result;
+          }, err => {
+            logEvent(`[${callSid}] sales intake/start failed elapsedMs=${Date.now() - intakeStartedAt} reason=${err.message}`);
+            throw err;
+          })
         : Promise.resolve(null);
 
       openaiWs = claimPooled();
