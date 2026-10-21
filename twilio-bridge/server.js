@@ -427,14 +427,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           ? 'You are the Stellar UC Intelligent Sales Specialist on a phone call. Be natural, professional, and concise.'
           : 'You are the Stellar UC Intelligent Support Specialist on a phone call. Be warm, clear, and professional.',
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
-        // The owner-approved browser Support session used provider-default turn behavior.
-        ...(STAGING_ONLY && profile === 'support' ? {} : { turn_detection: {
-          type: 'server_vad',
-          threshold: 0.6,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 700,
-          interrupt_response: false,
-        } }),
+        // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
           responses: {
