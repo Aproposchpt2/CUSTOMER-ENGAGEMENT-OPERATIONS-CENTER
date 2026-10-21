@@ -5,7 +5,9 @@ insert into auth.users(id,email) values
  ('10000000-0000-4000-8000-000000000002','pma-owner-b@example.invalid'),
  ('10000000-0000-4000-8000-000000000003','pma-staff@example.invalid'),
  ('10000000-0000-4000-8000-000000000004','pma-resident@example.invalid'),
- ('10000000-0000-4000-8000-000000000005','pma-vendor@example.invalid');
+ ('10000000-0000-4000-8000-000000000005','pma-vendor@example.invalid'),
+ ('10000000-0000-4000-8000-000000000006','pma-prospect@example.invalid');
+update auth.users set email_confirmed_at=now() where email like 'pma-%@example.invalid';
 insert into public.tenants(id,business_name,tenant_slug,status) values
  ('20000000-0000-4000-8000-000000000001','Synthetic PMA A','pma-synthetic-a','ACTIVE'),
  ('20000000-0000-4000-8000-000000000002','Synthetic PMA B','pma-synthetic-b','ACTIVE');
@@ -24,7 +26,8 @@ insert into public.pm_properties(id,tenant_id,name) values
 insert into public.pm_property_staff(tenant_id,property_id,user_id,can_write) values
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000003',true);
 insert into public.pm_units(id,tenant_id,property_id,label) values
- ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','1');
+ ('50000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','1'),
+ ('50000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','2');
 insert into public.pm_occupancies(tenant_id,property_id,unit_id,contact_id,auth_user_id) values
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000004');
 insert into public.pm_vendors(id,tenant_id,contact_id,auth_user_id,trade) values
@@ -95,6 +98,44 @@ do $$ declare a uuid; begin
  perform public.pm_vendor_response(a,'completed','Synthetic completion');
  if exists(select 1 from public.ai4cc_contacts) then raise exception 'Vendor sees CRM'; end if;
 end $$;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
+do $$ declare ch text; a jsonb; b jsonb; counts jsonb; begin
+ foreach ch in array array['voice','sms','chat'] loop
+ a=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
+ b=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
+ if a->>'requestId' is null or a->>'requestId'<>b->>'requestId' or b->>'replayed'<>'true' then raise exception 'Channel persistence/replay failed'; end if;
+ end loop;
+ if (select count(*) from public.ai4cc_transcripts where tenant_id='20000000-0000-4000-8000-000000000001')<>6 then raise exception 'Channel transcripts mismatch'; end if;
+ counts=public.pm_dashboard_counts('20000000-0000-4000-8000-000000000001');
+ if counts->>'Communications'<>'3' or counts->>'Open Requests'<>'3' then raise exception 'Dashboard reconciliation failed: %',counts; end if;
+end $$;
+update public.pm_properties set accepts_inquiries=true where id='40000000-0000-4000-8000-000000000002';
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated"}',true);
+do $$ declare a jsonb;b jsonb; begin
+ if jsonb_array_length(public.pm_available_properties())<>1 then raise exception 'Unpublished property disclosure'; end if;
+ a=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
+ b=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
+ if a->>'leadId'<>b->>'leadId' or a->>'showingId'<>b->>'showingId' or a->>'housingDecisionMade'<>'false' then raise exception 'Prospect replay/housing restriction failed'; end if;
+ if (select count(*) from public.pm_showings)<>1 then raise exception 'Prospect showing visibility failed'; end if;
+ if exists(select 1 from public.ai4cc_contacts) then raise exception 'Prospect sees CRM'; end if;
+ begin
+ perform public.pm_convert_prospect('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002',(a->>'leadId')::uuid,'50000000-0000-4000-8000-000000000002',current_date);
+ raise exception 'Prospect made housing decision'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
+do $$ declare l uuid;v jsonb;n integer;begin
+ select lead_id into l from public.pm_prospect_interests where auth_user_id='10000000-0000-4000-8000-000000000006';
+ v=public.pm_convert_prospect('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002',l,'50000000-0000-4000-8000-000000000002',current_date);
+ if v->>'occupancyId' is null then raise exception 'Human conversion failed'; end if;
+ v=public.pm_dashboard_counts('20000000-0000-4000-8000-000000000001');
+ if v->>'Leads'<>'2' then raise exception 'Prospect lead metrics mismatch: %',v; end if;
+ for n in 1..90 loop if not public.pm_rate_limit() then raise exception 'Rate limit early rejection'; end if; end loop;
+ if public.pm_rate_limit() then raise exception 'Rate limit failed'; end if;
+ begin
+ insert into public.pm_attachments(tenant_id,property_id,request_id,object_path,file_name,mime_type,size_bytes)
+ values('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','70000000-0000-4000-8000-000000000001','other-owner/file','synthetic.pdf','application/pdf',5);
+ raise exception 'Unscoped attachment allowed'; exception when check_violation then null; end;
+end $$;
 reset role;
 do $$ declare t uuid; r jsonb; begin
  if not exists(select 1 from public.audit_log where tenant_id='20000000-0000-4000-8000-000000000001' and action='pma.insert') then raise exception 'Audit missing'; end if;
@@ -103,5 +144,5 @@ do $$ declare t uuid; r jsonb; begin
  r=public.pm_test_notification('20000000-0000-4000-8000-000000000001',t,'10000000-0000-4000-8000-000000000001');
  if r->>'delivery_state'<>'SIMULATED' then raise exception 'Sandbox notification failed'; end if;
 end $$;
-select 'PASS: workspace/property isolation, role restrictions, relationships, resident/vendor scope, maintenance lifecycle, assignment/showing replay, knowledge, audit and simulated notification' as result;
+select 'PASS: workspace/property isolation, role restrictions, relationships, resident/vendor scope, maintenance lifecycle, assignment/showing replay, knowledge, audit, canonical voice/SMS/chat workflow records, exact dashboard metrics, prospective resident access, human conversion, rate limits, attachment scope and simulated notification' as result;
 rollback;

@@ -1,0 +1,68 @@
+begin;
+-- One transaction across the canonical channel history, CRM and PMA workflow.
+-- The caller is an authenticated property operator under existing membership + RLS.
+create function public.pm_record_channel_turn(t uuid,p uuid,c uuid,u uuid,k text,ch text,msg text,intent text,category text,priority text,show_at timestamptz default null,request_id uuid default null)
+returns jsonb language plpgsql security invoker set search_path='' as $$
+declare i public.ai4cc_interactions; req public.pm_maintenance_requests; showing public.pm_showings; lead uuid; answer text; kb public.ai4cc_knowledge_entries; outcome jsonb; q text;
+begin
+ if not private.pm_staff(t,p,true) then raise exception 'Forbidden' using errcode='42501'; end if;
+ if ch not in ('voice','sms','chat') or length(k) not between 8 and 160 or length(msg) not between 1 and 4000 then raise exception 'Invalid channel input' using errcode='23514'; end if;
+ if intent not in ('leasing_inquiry','showing_request','maintenance_request','maintenance_status','policy_question','tenant_question','vendor_response','emergency_event','unknown_question') then raise exception 'Invalid intent' using errcode='23514'; end if;
+ if not exists(select 1 from public.ai4cc_contacts where tenant_id=t and id=c) then raise exception 'Contact not found' using errcode='23503'; end if;
+ if not exists(select 1 from public.pm_properties where tenant_id=t and id=p and status='active') then raise exception 'Property unavailable' using errcode='23514'; end if;
+ if u is not null and not exists(select 1 from public.pm_units where tenant_id=t and property_id=p and id=u) then raise exception 'Invalid property unit' using errcode='23503'; end if;
+ perform pg_advisory_xact_lock(hashtextextended(t::text||':pma-channel:'||k,0));
+ select * into i from public.ai4cc_interactions where tenant_id=t and external_id='pma:'||ch||':'||k;
+ if found then
+   if i.metadata->>'property_id'<>p::text or i.metadata->>'contact_id'<>c::text or i.metadata->>'message_hash'<>md5(msg) then raise exception 'Channel operation key conflict' using errcode='23514'; end if;
+   return (i.metadata->'outcome')||jsonb_build_object('replayed',true);
+ end if;
+ insert into public.ai4cc_interactions(tenant_id,channel,direction,external_id,customer_identifier,status,ended_at,metadata)
+ values(t,ch,'inbound','pma:'||ch||':'||k,c::text,'completed',now(),jsonb_build_object('source','pma','property_id',p,'contact_id',c,'intent',intent,'sandbox',true,'message_hash',md5(msg))) returning * into i;
+ answer='Please clarify your question so the property team can assist.';
+ outcome=jsonb_build_object('intent',intent,'interactionId',i.id,'persisted',true,'notificationSent',false,'emergencyServicesContacted',false,'vendorArrivalConfirmed',false,'issueResolved',false,'requiresHumanReview',false);
+ if intent in ('maintenance_request','emergency_event') then
+   insert into public.pm_maintenance_requests(tenant_id,property_id,unit_id,contact_id,interaction_id,summary,description,category,priority,source_channel,idempotency_key)
+   values(t,p,u,c,i.id,left(msg,500),msg,category,case when intent='emergency_event' then 'emergency' else priority end,ch,'channel:'||ch||':'||k) returning * into req;
+   answer='Your request has been recorded. Reference: '||req.id::text||'. Status: New. The property team will review it.';
+   if intent='emergency_event' then answer='If you are in immediate danger, move to a safe location and contact local emergency services. I cannot confirm emergency dispatch. '||answer; end if;
+   outcome=outcome||jsonb_build_object('requestId',req.id,'status',req.status,'requiresHumanReview',intent='emergency_event');
+ elsif intent in ('leasing_inquiry','showing_request') then
+   if intent='showing_request' and show_at is not null then
+     showing=public.pm_request_showing(t,p,u,c,show_at,msg,'channel:'||ch||':'||k);
+     lead=showing.lead_id;
+     outcome=outcome||jsonb_build_object('showingId',showing.id,'showingStatus','requested');
+   else
+     insert into public.ai4cc_leads(tenant_id,contact_id,originating_interaction_id,originating_channel,title,service_interest,description,metadata)
+     values(t,c,i.id,ch,'Property leasing inquiry','Property leasing',msg,jsonb_build_object('source','pma','property_id',p)) returning id into lead;
+   end if;
+   update public.ai4cc_leads set originating_interaction_id=i.id,originating_channel=ch where tenant_id=t and id=lead;
+   answer='Your leasing inquiry has been recorded. The property team must confirm current availability and any showing time. No application or housing decision has been made.';
+   outcome=outcome||jsonb_build_object('leadId',lead,'availabilityGuaranteed',false,'requiresClarification',intent='showing_request' and show_at is null);
+ elsif intent='maintenance_status' then
+   if request_id is not null then
+     select * into req from public.pm_maintenance_requests where tenant_id=t and property_id=p and id=request_id and contact_id=c;
+     if found then answer='Request '||req.id::text||' has status '||req.status||'.'; outcome=outcome||jsonb_build_object('requestId',req.id,'status',req.status);
+     else answer='I could not verify that request for this contact and property.'; end if;
+   else answer='Please provide your request reference so its status can be verified.'; end if;
+ elsif intent in ('policy_question','tenant_question') then
+   select * into kb from public.ai4cc_knowledge_entries where tenant_id=t and property_id=p and approved and visibility in ('public','resident')
+   and to_tsvector('english',title||' '||content)@@plainto_tsquery('english',msg)
+   order by updated_at desc limit 1;
+   if found then answer=kb.content; outcome=outcome||jsonb_build_object('knowledgeId',kb.id);
+   else answer='I do not have an approved answer for this property. The property team needs to review your question.'; outcome=outcome||jsonb_build_object('requiresHumanReview',true); end if;
+ elsif intent='vendor_response' then
+   answer='Please use your authenticated vendor assignment to accept, decline or report completed work.';
+ else outcome=outcome||jsonb_build_object('requiresHumanReview',true);
+ end if;
+ outcome=outcome||jsonb_build_object('reply',answer);
+ insert into public.ai4cc_transcripts(tenant_id,interaction_id,speaker,sequence_no,content,metadata) values
+ (t,i.id,'customer',1,msg,jsonb_build_object('source','pma','sandbox',true)),
+ (t,i.id,'agent',2,answer,jsonb_build_object('source','pma','sandbox',true));
+ update public.ai4cc_interactions set metadata=i.metadata||jsonb_build_object('outcome',outcome) where tenant_id=t and id=i.id;
+ return outcome;
+end;
+$$;
+revoke all on function public.pm_record_channel_turn(uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,uuid) from public,anon;
+grant execute on function public.pm_record_channel_turn(uuid,uuid,uuid,uuid,text,text,text,text,text,text,timestamptz,uuid) to authenticated;
+commit;
