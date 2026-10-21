@@ -30,3 +30,6 @@ Private SECURITY DEFINER functions have explicit verified-user checks and narrow
 
 ## Continuation authority
 Implementation and staging authorization remain valid. Continue failed checks and staging configuration within that scope without asking for implementation approval again. Never merge to main, change production routing or publish a production release under this authorization.
+
+## Upstream integration
+During implementation main advanced to 891f194c583467616b868e82d2a535fa65ab5f45 with a Support voice behavior promotion. The PMA branch incorporates that commit, preserves its support prompts/tools/save behavior, and adds the separately gated PMA profile. The persona regression comparison permits the explicit call-context prefix introduced upstream while still requiring the unchanged approved persona and workflow suffix.

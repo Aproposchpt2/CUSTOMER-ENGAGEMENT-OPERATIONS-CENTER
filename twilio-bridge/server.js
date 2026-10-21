@@ -314,7 +314,7 @@ const supportTools = [
   {
     type: 'function',
     name: 'submit_support_intake',
-    description: 'Submit the support case after confirming all details.',
+    description: 'Submit the support case after collecting and confirming all nine fields with the caller. Call exactly once, then wait for the real database result before speaking a case ID.',
     parameters: {
       type: 'object',
       properties: {
@@ -322,13 +322,13 @@ const supportTools = [
         email: { type: 'string' },
         phone: { type: 'string' },
         product: { type: 'string' },
-        purchaseDate: { type: 'string' },
+        purchaseDate: { type: 'string', description: 'YYYY-MM-DD' },
         issue: { type: 'string' },
         steps: { type: 'string' },
         impact: { type: 'string' },
         priority: { type: 'string', enum: ['LOW', 'NORMAL', 'HIGH', 'URGENT'] },
       },
-      required: ['name', 'phone', 'product', 'issue', 'steps', 'impact', 'priority'],
+      required: ['name', 'email', 'phone', 'product', 'purchaseDate', 'issue', 'steps', 'impact', 'priority'],
       additionalProperties: false,
     },
   },
@@ -452,23 +452,23 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     // An inbound telephone call must be greeted without caller speech.
     // Initialize the session without a developer input turn; issue exactly one
     // response.create once the OpenAI Live session reports session.started.
-    // Keep the original WebRTC browser agent and the staging support persona untouched.
     const sessionInput = {};
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: profile === 'pma' ? pmaAdapter.instructions : STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
-          ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
-          : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
+        instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+          : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
+            ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
+            : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'pma' ? pmaAdapter.instructions : STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -501,51 +501,40 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           } finally { leadSubmissionPending = false; }
         }
       } else if (name === 'submit_support_intake') {
-        if (!STAGING_ONLY) {
-          const started = Date.now();
-          logEvent(`[${callSid}] support ticket submission started profile=${profile}`);
-          const result = await callSupportIntake({ ...args, callSid });
-          if (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
-            || typeof result.caseId !== 'string' || !result.caseId.trim())
+        const started = Date.now();
+        supportSavePending = true;
+        let pending = true;
+        logEvent(`[${callSid}] support save started profile=${profile}`);
+        sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+          content:'The application is now submitting the support ticket. Please give me a moment while I create your support ticket. Creation is not confirmed yet.'});
+        const timer = setTimeout(() => {
+          supportProgressTimers.delete(timer);
+          if (pending && !callEnded) sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+            content:'The application is still waiting for the ticket save result. Thank you for your patience; I am still here. Do not announce success yet.'});
+        }, 4000);
+        supportProgressTimers.add(timer);
+        try {
+          const result = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          if (!STAGING_ONLY && (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
+            || typeof result.caseId !== 'string' || !result.caseId.trim()))
             throw new Error('Support ticket database confirmation missing');
-          output = { success: true, customerId: result.customerId, caseId: result.caseId };
-          logEvent(`[${callSid}] support ticket confirmed profile=${profile} elapsedMs=${Date.now() - started}`);
+          output = result;
+          lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'confirmed'};
+          sendToOpenAI({type:'session.thinking.append',delegation_id:null,
+            content:`Verified database save: support ticket created. The exact caseId is ${output.caseId}. Use only this identifier, never an invented substitute.`});
           sendToOpenAI({type:'session.instructions.append',delegation_id:null,
-            content:`Support ticket database write CONFIRMED. Exact caseId: ${result.caseId}. Tell caller the ticket was created, ask whether ready for number, and read EXACT value only when ready. Never guess.`});
-        }
-        else {
-          const started = Date.now();
-          supportSavePending = true;
-          let pending = true;
-          logEvent(`[${callSid}] support save started`);
-          sendToOpenAI({type:'session.commentary.append',delegation_id:null,
-            content:'The application is now submitting the support ticket. Please give me a moment while I create your support ticket. Creation is not confirmed yet.'});
-          const timer = setTimeout(() => {
-            supportProgressTimers.delete(timer);
-            if (pending && !callEnded) sendToOpenAI({type:'session.commentary.append',delegation_id:null,
-              content:'The application is still waiting for the ticket save result. Thank you for your patience; I am still here. Do not announce success yet.'});
-          }, 4000);
-          supportProgressTimers.add(timer);
-          try {
-            output = await submitStagingSupport(args, callSid);
-            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'confirmed'};
-            // Give the speaking Live model verified facts directly, before backend continuation.
-            sendToOpenAI({type:'session.thinking.append',delegation_id:null,
-              content:`Verified database save: support ticket created. The exact caseId is ${output.caseId}. Use only this identifier, never an invented substitute. Notifications and technician follow-up are disabled.`});
-            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
-              content:`The database has confirmed ticket ${output.caseId}. Promptly tell the caller their support ticket is created and ask whether they are ready to take down the number. Wait for readiness. When ready, read exactly ${output.caseId} in character groups; never invent or shorten it.`});
-          } catch (error) {
-            lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'not_confirmed'};
-            sendToOpenAI({type:'session.instructions.append',delegation_id:null,
-              content:'The application could not confirm ticket creation. Tell the caller no ticket was confirmed. Do not provide a ticket number or promise technician contact. Offer further help.'});
-            throw error;
-          } finally {
-            pending = false;
-            supportSavePending = false;
-            clearTimeout(timer);
-            supportProgressTimers.delete(timer);
-            logEvent(`[${callSid}] support save ${lastStagingSupportSave.status} elapsedMs=${lastStagingSupportSave.elapsedMs}`);
-          }
+            content:`The database has confirmed ticket ${output.caseId}. Promptly tell the caller their support ticket is created and ask whether they are ready to take down the number. Wait for readiness. When ready, read exactly ${output.caseId} in character groups; never invent or shorten it.`});
+        } catch (error) {
+          lastStagingSupportSave = {elapsedMs:Date.now()-started,status:'not_confirmed'};
+          sendToOpenAI({type:'session.instructions.append',delegation_id:null,
+            content:'The application could not confirm ticket creation. Tell the caller no ticket was confirmed. Do not provide a ticket number or promise technician contact. Offer further help.'});
+          throw error;
+        } finally {
+          pending = false;
+          supportSavePending = false;
+          clearTimeout(timer);
+          supportProgressTimers.delete(timer);
+          logEvent(`[${callSid}] support save ${lastStagingSupportSave.status} elapsedMs=${lastStagingSupportSave.elapsedMs}`);
         }
       } else if (name === 'end_call') {
         output = { success: true };
@@ -748,10 +737,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
           tools = salesTools(interactionId);
         } else {
-          instructions = STAGING_ONLY ? APPROVED_SUPPORT_INSTRUCTIONS : SUPPORT_SYSTEM_PROMPT
+          instructions = APPROVED_SUPPORT_INSTRUCTIONS
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
-          // Staging uses the approved-baseline tool schema; production uses the production schema.
-          tools = STAGING_ONLY ? stagingSupportTools : supportTools;
+          tools = supportTools;
         }
 
         startSession(instructions, tools);
