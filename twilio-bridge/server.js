@@ -413,10 +413,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     // inaudible output. Greeting fires via response.create in session.started handler instead,
     // which routes through delegation (gpt-5.6-terra) and produces audible session.output_transcript.
     const sessionInput = !(STAGING_ONLY && profile === 'support')
-      ? { input: [{ role: 'developer', content: [{ type: 'input_text', text:
-          profile === 'support'
-            ? BRAND_GREETING_INSTRUCTION
-            : BRAND_GREETING_INSTRUCTION
+      ? { input: [{ role: 'developer', content: [{ type: 'input_text', text: BRAND_GREETING_INSTRUCTION
         }] }] }
       : {};
     sendToOpenAI({
