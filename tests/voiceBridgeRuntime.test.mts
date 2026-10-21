@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
-const require = createRequire(import.meta.url);
+const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
 async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
@@ -15,18 +15,18 @@ async function session(profile, failSave = false, warm = false, staging = false,
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
-    return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
+    return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:{persisted:true,interactionId:'10000000-0000-4000-8000-000000000001',requestId:'20000000-0000-4000-8000-000000000001',notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199','TEST_CALL');
+  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL');
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
-  const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event=staging && profile==='support'?{type:'response.output_item.done',item:{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}}:{type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
+  const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event=(staging && profile==='support')||profile==='pma'?{type:'response.output_item.done',item:{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}}:{type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
   return {outbound,requests,phone,ws,tool,timers,phoneOutbound};
 }
 test('sales transport registers sales tools and initializes the interaction',async()=>{
@@ -290,4 +290,17 @@ test('Support review does not duplicate active backend work or run after disconn
  phoneEvent(s,{event:'stop'});
  const after=s.outbound.length;s.timers.filter(x=>x.ms===15000).at(-1).fn();
  assert.equal(s.outbound.length,after);
+});
+
+test('PMA staging profile uses the existing voice engine and correlated structured workflow tool',async()=>{
+ const s=await session('pma',false,true,true);
+ const start=s.outbound.find(x=>x.type==='session.start');
+ assert.match(start.session.instructions,/Property Management Assistant/);
+ assert.equal(start.session.delegation.responses.tools[0].name,'pma_property_workflow');
+ assert.equal(s.requests.length,0);
+ await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
+ const output=JSON.parse(s.outbound.find(x=>x.item?.call_id==='pma-1').item.output);
+ assert.equal(output.success,true);assert.equal(output.notificationSent,false);assert.equal(output.requestId,'20000000-0000-4000-8000-000000000001');
+ await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
+ assert.equal(s.requests.length,1);
 });

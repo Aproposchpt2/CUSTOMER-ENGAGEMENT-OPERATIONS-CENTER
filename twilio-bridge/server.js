@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const { createPmaAdapter } = require('./pma-adapter.cjs');
+const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, options));
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -109,7 +111,7 @@ function validateBridgeToken(token) {
   try {
     if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expected, 'hex'))) return null;
   } catch { return null; }
-  if (profile !== 'sales' && profile !== 'support') return null;
+  if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled)) return null;
   return profile;
 }
 
@@ -457,7 +459,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
+        instructions: profile === 'pma' ? pmaAdapter.instructions : STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
           ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
           : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
@@ -466,7 +468,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: profile === 'pma' ? pmaAdapter.instructions : STAGING_ONLY && profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -483,7 +485,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'submit_business_profile') {
+      if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+        output = await pmaAdapter.submit(args, { callSid, callId });
+      } else if (name === 'submit_business_profile') {
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
@@ -654,18 +658,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         // Startup speech must not erase the greeting before any audio has played.
         // GPT-Live manages full-duplex speech itself, as in the approved browser.
         // Speech detection alone is not a request to cancel delegated support work.
-        if (greetingPlayed && !(STAGING_ONLY && profile === 'support')) {
+        if (greetingPlayed && !(STAGING_ONLY && profile === 'support') && profile !== 'pma') {
           clearTwilioAudio();
           sendToOpenAI({ type: 'response.cancel' });
         }
-      } else if (STAGING_ONLY && profile === 'support' && t === 'response.output_item.done'
+      } else if (((STAGING_ONLY && profile === 'support') || profile === 'pma') && t === 'response.output_item.done'
         && msg.item?.type === 'function_call') {
         const { call_id: id, name, arguments: args } = msg.item;
         if (typeof id !== 'string' || !id.trim() || completedToolCalls.has(id)) return;
         completedToolCalls.add(id);
         delete toolCallBuffers[id];
         executeTool(id, name, args || '{}');
-      } else if (STAGING_ONLY && profile === 'support'
+      } else if (((STAGING_ONLY && profile === 'support') || profile === 'pma')
         && (t === 'response.function_call_arguments.delta' || t === 'response.function_call_arguments.done')) {
         // Arguments fragments may lack name/call correlation. Wait for the finished item.
         return;
@@ -733,7 +737,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
         let instructions;
         let tools;
-        if (profile === 'sales') {
+        if (profile === 'pma' && pmaAdapter.enabled) {
+          instructions = pmaAdapter.instructions;
+          tools = pmaAdapter.tools;
+        } else if (profile === 'sales') {
           if (!intake || typeof intake.interactionId !== 'string' || !intake.interactionId.trim())
             throw new Error('Sales intake did not return an interaction ID');
           interactionId = intake.interactionId;
@@ -839,7 +846,7 @@ function start() {
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
     if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
-    if (profile !== 'sales' && profile !== 'support') { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
+    if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
     logEvent(`[upgrade] accepted profile=${profile}`);
     wss.handleUpgrade(req, socket, head, (ws) => {

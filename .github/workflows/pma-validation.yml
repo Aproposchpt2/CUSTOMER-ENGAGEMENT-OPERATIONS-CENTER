@@ -1,0 +1,51 @@
+name: PMA Browser Validation
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'components/property-management/**'
+      - 'lib/propertyManagement/**'
+      - 'pages/property-management/**'
+      - 'pages/api/property-management/**'
+      - 'scripts/pma-browser-smoke.cjs'
+      - '.github/workflows/pma-validation.yml'
+  push:
+    branches: [feature/property-management-assistant-mvp]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://hvzauakkhlivzeqatfqm.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: synthetic-browser-test-key
+      NEXT_PUBLIC_PMA_ENABLED: 'true'
+      AI4CC_SCHEMA_MODEL: stellar
+      PMA_ENABLED: 'true'
+      PMA_ENVIRONMENT: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium --only-shell
+      - name: Start isolated application
+        run: |
+          npm run start -- --port 3033 > /tmp/pma-server.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:3033/favicon.svg > /dev/null && break
+            sleep 1
+          done
+      - name: Verify interface with synthetic mocked sessions and responses
+        run: node scripts/pma-browser-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pma-browser-review
+          path: artifacts/pma-qa/
