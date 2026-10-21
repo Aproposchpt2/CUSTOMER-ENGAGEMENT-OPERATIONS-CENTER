@@ -571,12 +571,17 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           // sessionStarted ensures duplicate startup events cannot double-greet.
           logEvent(`[${callSid}] greeting response requested streamElapsedMs=${Date.now() - streamStartedAt}`);
           sendToOpenAI({ type: 'response.create' });
-          // Hold early caller speech until greeting mark echo; keep Live audio clock with PCMU silence.
-          const silence = Buffer.alloc(160, 0xff).toString('base64');
-          startupSilence = setInterval(() => {
-            if (!callEnded && !greetingPlayed)
-              sendToOpenAI({ type: 'session.input_audio.append', audio: silence });
-          }, 20);
+          // Sales: never feed synthetic caller audio while the greeting is being
+          // generated. Real caller audio is already buffered until the greeting
+          // mark returns; zero-input startup avoids synthetic VAD/turn side effects.
+          // Preserve the existing approved Support transport until separately tested.
+          if (profile === 'support') {
+            const silence = Buffer.alloc(160, 0xff).toString('base64');
+            startupSilence = setInterval(() => {
+              if (!callEnded && !greetingPlayed)
+                sendToOpenAI({ type: 'session.input_audio.append', audio: silence });
+            }, 20);
+          }
         }
       } else if (t === 'response.created' || t === 'response.done') {
         logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
