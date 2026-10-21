@@ -148,8 +148,8 @@ test('staging Support adds the fixed opening while preserving the approved model
  const approved=JSON.parse(readFileSync(new URL('./fixtures/approved-support-persona.json',import.meta.url),'utf8'));
  assert.equal(start.model,'gpt-live-1');
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
- const greeting = 'Hello, you have reached Stellar Technologies Support Desk. Who do I have the pleasure of speaking with?';
- const prefix = `At the start of this telephone call, say exactly: "${greeting}" Then pause and wait for the caller's name. Do not repeat this opening later in the call. After the caller responds, continue naturally using the support instructions below.\n\n`;
+ const greeting = 'Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?';
+ const prefix = `At the start of the call say exactly: "${greeting}" Then pause and WAIT for the caller's name. Only after the caller gives their name say "[Name], how can I help you today?" using the actual name. Do not speak both sentences before the caller answers; never invent a name. Never repeat the opening once it has been delivered.\\n\\n`;
  // Frozen original persona remains intact; owner-approved workflow is a separate suffix.
  assert.ok(start.instructions.startsWith(prefix+approved.brief));
  assert.ok(start.delegation.responses.instructions.startsWith(prefix+approved.instructions));
