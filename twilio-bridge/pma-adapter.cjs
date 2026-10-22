@@ -1,12 +1,13 @@
 'use strict';
 const crypto=require('crypto');
 const profile=require('./pma-profile.json');
+const knowledgeModel=require('./pma-knowledge-v1.json');
 const BASE='https://pma-validation--ai4cc-staging.netlify.app';
 function enabled(env){return env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_CHANNELS_ENABLED==='true'&&env.PMA_STAGING_BASE_URL===BASE&&!!env.BRIDGE_HMAC_SECRET;}
 function createPmaAdapter(env,fetchImpl=fetch){
  return {
   enabled:enabled(env),
-  instructions:'You are in an isolated fictional property-management demonstration. Start by saying: "Hello, this is the AI4Businesses Property Management Assistant staging demonstration. How can I help with your property today?"\n'+profile.instructions,
+  instructions:'You are in an isolated fictional property-management demonstration. Start by saying: "Hello, this is the AI4Businesses Property Management Assistant staging demonstration. How can I help with your property today?"\n'+profile.instructions+'\n'+knowledgeModel.runtimeInstructions,
   tools:[profile.tool],
   async submit(args,context){
    if(!enabled(env))return {success:false,state:'DISABLED',persisted:false};

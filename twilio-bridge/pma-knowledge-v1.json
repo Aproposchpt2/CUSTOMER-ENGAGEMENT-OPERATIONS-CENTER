@@ -1,0 +1,417 @@
+{
+  "id": "ai4businesses.pma.agent-knowledge",
+  "version": "1.0",
+  "scopeHierarchy": [
+    "platform",
+    "owner",
+    "property",
+    "unit"
+  ],
+  "missingValuePolicy": "Null, blank, expired, unapproved, ambiguous and unverified values are not facts. Ask for clarification or escalate. Never invent property policies, pricing or availability.",
+  "sections": [
+    {
+      "number": 1,
+      "key": "property_profile",
+      "title": "Property Profile",
+      "defaultScope": "property",
+      "fields": [
+        "property_id",
+        "property_name",
+        "property_type",
+        "property_status",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "year_built",
+        "unit_count",
+        "office_phone",
+        "office_email",
+        "website",
+        "emergency_contact",
+        "office_hours",
+        "timezone",
+        "leasing_contact",
+        "maintenance_contact",
+        "after_hours_contact"
+      ]
+    },
+    {
+      "number": 2,
+      "key": "amenities",
+      "title": "Property Amenities",
+      "defaultScope": "property",
+      "fields": [
+        "amenities",
+        "pool",
+        "fitness_center",
+        "clubhouse",
+        "dog_park",
+        "playground",
+        "laundry",
+        "covered_parking",
+        "assigned_parking",
+        "storage_units",
+        "business_center",
+        "gated_access",
+        "amenity_hours.pool",
+        "amenity_hours.fitness_center",
+        "amenity_hours.clubhouse"
+      ]
+    },
+    {
+      "number": 3,
+      "key": "leasing",
+      "title": "Leasing Knowledge",
+      "defaultScope": "property",
+      "fields": [
+        "accepting_applications",
+        "available_units",
+        "minimum_lease_term",
+        "application_fee",
+        "security_deposit",
+        "pet_deposit",
+        "pet_fee",
+        "income_requirement",
+        "occupancy_limits",
+        "move_in_fee",
+        "administration_fee"
+      ]
+    },
+    {
+      "number": 4,
+      "key": "pet_policy",
+      "title": "Pet Policy",
+      "defaultScope": "property",
+      "fields": [
+        "pets_allowed",
+        "maximum_pets",
+        "breed_restrictions",
+        "weight_limit",
+        "pet_deposit",
+        "pet_fee",
+        "monthly_pet_rent",
+        "service_animal_policy"
+      ]
+    },
+    {
+      "number": 5,
+      "key": "parking",
+      "title": "Parking Policy",
+      "defaultScope": "property",
+      "fields": [
+        "parking_type",
+        "visitor_parking",
+        "assigned_parking",
+        "garage",
+        "reserved_spaces",
+        "towing_policy",
+        "parking_permits",
+        "overnight_parking"
+      ]
+    },
+    {
+      "number": 6,
+      "key": "move_in",
+      "title": "Move-In Procedures",
+      "defaultScope": "property",
+      "fields": [
+        "utility_setup",
+        "required_documents",
+        "move_in_inspection",
+        "key_pickup",
+        "elevator_reservation",
+        "move_in_hours"
+      ]
+    },
+    {
+      "number": 7,
+      "key": "move_out",
+      "title": "Move-Out Procedures",
+      "defaultScope": "property",
+      "fields": [
+        "required_notice",
+        "cleaning_requirements",
+        "key_return",
+        "forwarding_address",
+        "inspection_process",
+        "deposit_return"
+      ]
+    },
+    {
+      "number": 8,
+      "key": "property_policy",
+      "title": "General Property Policies",
+      "defaultScope": "property",
+      "fields": [
+        "quiet_hours",
+        "guest_policy",
+        "smoking_policy",
+        "grill_policy",
+        "balcony_policy",
+        "trash_policy",
+        "holiday_decorations",
+        "common_area_rules",
+        "community_access_rules"
+      ]
+    },
+    {
+      "number": 9,
+      "key": "maintenance",
+      "title": "Maintenance Knowledge",
+      "defaultScope": "property",
+      "fields": [
+        "categories.plumbing",
+        "categories.electrical",
+        "categories.hvac",
+        "categories.appliance",
+        "categories.pest_control",
+        "categories.structural",
+        "categories.locks",
+        "categories.internet",
+        "categories.common_area",
+        "priority.emergency",
+        "priority.high",
+        "priority.medium",
+        "priority.low"
+      ]
+    },
+    {
+      "number": 10,
+      "key": "emergency",
+      "title": "Emergency Procedures",
+      "defaultScope": "property",
+      "fields": [
+        "fire",
+        "smoke",
+        "gas_leak",
+        "flooding",
+        "electrical_hazard",
+        "security_threat",
+        "structural_threat"
+      ]
+    },
+    {
+      "number": 11,
+      "key": "vendors",
+      "title": "Vendor Knowledge",
+      "defaultScope": "owner",
+      "fields": [
+        "hvac.company",
+        "hvac.contact",
+        "hvac.phone",
+        "plumbing.company",
+        "plumbing.contact",
+        "plumbing.phone",
+        "electrical.company",
+        "electrical.contact",
+        "electrical.phone",
+        "locksmith.company",
+        "locksmith.contact",
+        "locksmith.phone",
+        "emergency_vendor.company",
+        "emergency_vendor.contact",
+        "emergency_vendor.phone"
+      ]
+    },
+    {
+      "number": 12,
+      "key": "leasing_agent",
+      "title": "Leasing Agent Knowledge Model",
+      "defaultScope": "platform",
+      "fields": []
+    },
+    {
+      "number": 13,
+      "key": "tenant_assistant",
+      "title": "Tenant Assistant Knowledge Model",
+      "defaultScope": "platform",
+      "fields": []
+    },
+    {
+      "number": 14,
+      "key": "maintenance_agent",
+      "title": "Maintenance Intake Agent Knowledge Model",
+      "defaultScope": "platform",
+      "fields": [
+        "property",
+        "unit",
+        "resident",
+        "phone",
+        "issue_type",
+        "issue_description",
+        "severity",
+        "photos",
+        "preferred_contact_method"
+      ]
+    },
+    {
+      "number": 15,
+      "key": "owner_preferences",
+      "title": "Property Owner Knowledge",
+      "defaultScope": "owner",
+      "fields": [
+        "notification_preferences",
+        "escalation_level",
+        "vendor_preferences",
+        "after_hours_rules",
+        "emergency_vendor_rules",
+        "approval_requirements"
+      ]
+    },
+    {
+      "number": 16,
+      "key": "intent_library",
+      "title": "Property Management Intent Library",
+      "defaultScope": "platform",
+      "fields": []
+    },
+    {
+      "number": 17,
+      "key": "response_principles",
+      "title": "Response Principles",
+      "defaultScope": "platform",
+      "fields": []
+    },
+    {
+      "number": 18,
+      "key": "foundation_mapping",
+      "title": "AI4Businesses Foundation Mapping",
+      "defaultScope": "platform",
+      "fields": []
+    }
+  ],
+  "intentMap": {
+    "LEASING_INQUIRY": "leasing_inquiry",
+    "SHOWING_REQUEST": "showing_request",
+    "APPLICATION_QUESTION": "policy_question",
+    "PET_POLICY": "policy_question",
+    "PARKING_QUESTION": "policy_question",
+    "MOVE_IN": "policy_question",
+    "MOVE_OUT": "policy_question",
+    "PROPERTY_POLICY": "policy_question",
+    "MAINTENANCE_REQUEST": "maintenance_request",
+    "MAINTENANCE_STATUS": "maintenance_status",
+    "VENDOR_RESPONSE": "vendor_response",
+    "EMERGENCY": "emergency_event",
+    "OWNER_REQUEST": "unknown_question",
+    "UNKNOWN": "unknown_question"
+  },
+  "agents": {
+    "leasing": {
+      "mission": "Convert inquiries to showing requests.",
+      "allowed": [
+        "Property information",
+        "Verified availability information",
+        "Showing requests",
+        "Lead creation",
+        "Contact collection"
+      ],
+      "prohibited": [
+        "Approve applicants",
+        "Reject applicants",
+        "Make housing decisions",
+        "Guarantee availability",
+        "Quote unverified pricing"
+      ]
+    },
+    "tenant": {
+      "mission": "Resolve tenant questions.",
+      "allowed": [
+        "Approved property policies",
+        "Maintenance requests",
+        "Verified request status",
+        "Move-in support",
+        "Move-out support"
+      ],
+      "prohibited": [
+        "Lease interpretation",
+        "Legal advice",
+        "Policy exceptions",
+        "Financial decisions"
+      ]
+    },
+    "maintenance": {
+      "mission": "Create accurate maintenance requests; collect required data and identify missing information.",
+      "required": [
+        "property",
+        "unit",
+        "resident",
+        "phone",
+        "issue_type",
+        "issue_description",
+        "severity",
+        "photos",
+        "preferred_contact_method"
+      ],
+      "optionalEvidence": [
+        "photos"
+      ],
+      "outcome": "Complete maintenance request; mark missing details for follow-up. Never delay emergency guidance for data collection."
+    },
+    "emergency": {
+      "mission": "Prioritize safety and escalate without claiming unverified action.",
+      "prohibited": [
+        "Claim emergency services contacted",
+        "Claim help is on the way",
+        "Claim issue resolved",
+        "Guarantee vendor arrival"
+      ]
+    },
+    "vendor": {
+      "mission": "Coordinate authorized vendor assignments and record responses.",
+      "prohibited": [
+        "Reveal private resident data outside an authorized assignment",
+        "Close a request without property staff verification",
+        "Guarantee arrival or repairs"
+      ]
+    },
+    "owner": {
+      "mission": "Assist authorized owners with scoped operations and preferences.",
+      "prohibited": [
+        "Access another owner\u2019s information",
+        "Bypass approval requirements",
+        "Make financial or housing decisions"
+      ]
+    }
+  },
+  "principles": [
+    "Be accurate",
+    "Never guess",
+    "Never invent policies",
+    "Never invent availability",
+    "Never promise repairs",
+    "Never give legal advice",
+    "Never reveal private tenant data",
+    "Escalate when information is missing",
+    "Log every interaction",
+    "Prioritize safety"
+  ],
+  "emergencyGasLeakResponse": "If you believe there is a gas leak, leave the area immediately and contact emergency services or your utility provider from a safe location. Once safe, I can record an escalation for property management. I cannot confirm that emergency services or property management have been contacted.",
+  "samples": {
+    "availability": "I can check the latest verified property records. Availability must be confirmed by the property team. Would you like to request a showing?",
+    "application": "I can provide approved application instructions and connect you with the leasing workflow."
+  },
+  "foundation": [
+    "Voice Engine",
+    "SMS Engine",
+    "Web Chat Engine",
+    "Customer 360",
+    "Lead Management",
+    "Knowledge Vault",
+    "Workflow Engine",
+    "Mission Control",
+    "Analytics",
+    "Authentication",
+    "Authorization",
+    "Supabase",
+    "Netlify"
+  ],
+  "compatibility": {
+    "priority": {
+      "medium": "normal"
+    },
+    "note": "Knowledge intents are classified separately and mapped to the existing transactional workflow enum. The medium knowledge priority maps to existing normal. Knowledge never overrides identity, permissions, safety or workflow results."
+  },
+  "runtimeInstructions": "Knowledge Base v1.0 \u2014 Null, blank, expired, unapproved, ambiguous and unverified values are not facts. Ask for clarification or escalate. Never invent property policies, pricing or availability.\nPrinciples: Be accurate; Never guess; Never invent policies; Never invent availability; Never promise repairs; Never give legal advice; Never reveal private tenant data; Escalate when information is missing; Log every interaction; Prioritize safety.\nLeasing agent: Convert inquiries to showing requests. Prohibited: Approve applicants; Reject applicants; Make housing decisions; Guarantee availability; Quote unverified pricing.\nTenant agent: Resolve tenant questions. Prohibited: Lease interpretation; Legal advice; Policy exceptions; Financial decisions.\nMaintenance agent: Create accurate maintenance requests; collect required data and identify missing information. Prohibited: .\nEmergency agent: Prioritize safety and escalate without claiming unverified action. Prohibited: Claim emergency services contacted; Claim help is on the way; Claim issue resolved; Guarantee vendor arrival.\nVendor agent: Coordinate authorized vendor assignments and record responses. Prohibited: Reveal private resident data outside an authorized assignment; Close a request without property staff verification; Guarantee arrival or repairs.\nOwner agent: Assist authorized owners with scoped operations and preferences. Prohibited: Access another owner\u2019s information; Bypass approval requirements; Make financial or housing decisions."
+}

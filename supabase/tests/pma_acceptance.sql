@@ -144,5 +144,52 @@ do $$ declare t uuid; r jsonb; begin
  r=public.pm_test_notification('20000000-0000-4000-8000-000000000001',t,'10000000-0000-4000-8000-000000000001');
  if r->>'delivery_state'<>'SIMULATED' then raise exception 'Sandbox notification failed'; end if;
 end $$;
+-- Knowledge hierarchy and disclosure acceptance, using the existing synthetic fixtures.
+reset role;
+insert into public.pm_units(id,tenant_id,property_id,label) values('50000000-0000-4000-8000-000000000004','20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','4');
+insert into public.ai4cc_knowledge_entries(tenant_id,property_id,unit_id,title,content,visibility,approved,valid_until) values
+ ('20000000-0000-4000-8000-000000000001',null,null,'scopeprobe','Owner default scopeprobe','public',true,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'scopeprobe','Property scopeprobe','resident',true,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','scopeprobe','Unit scopeprobe','resident',true,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000004','unitprivateprobe','Other unit private answer','public',true,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'expiredprobe','Expired answer','public',true,now()-interval '1 day'),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'draftprobe','Draft answer','public',false,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','First conflicting answer','public',true,null),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','Second conflicting answer','public',true,null),
+ ('20000000-0000-4000-8000-000000000001',null,null,'staffonlyprobe','Owner preferences private','staff',false,null);
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
+do $$ declare v jsonb;begin
+ v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','knowledge-unit-01','chat','scopeprobe','policy_question','other','normal');
+ if v->>'reply'<>'Unit scopeprobe' or v->>'knowledgeScope'<>'unit' then raise exception 'Unit precedence failed: %',v;end if;
+ v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-property-01','chat','scopeprobe','policy_question','other','normal');
+ if v->>'reply'<>'Property scopeprobe' then raise exception 'Property precedence failed: %',v;end if;
+ v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002',null,'knowledge-audience-01','sms','scopeprobe','policy_question','other','normal');
+ if v->>'reply'<>'Owner default scopeprobe' then raise exception 'Resident answer leaked to nonresident: %',v;end if;
+ v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-conflict-01','voice','conflictprobe','policy_question','other','normal');
+ if v->>'knowledgeConflict'<>'true' or v->>'requiresHumanReview'<>'true' then raise exception 'Conflict not escalated';end if;
+ v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-expired-01','chat','expiredprobe','policy_question','other','normal');
+ if v->>'knowledgeId' is not null or v->>'requiresHumanReview'<>'true' then raise exception 'Expired knowledge used';end if;
+ begin
+ insert into public.ai4cc_knowledge_entries(tenant_id,property_id,unit_id,title,content)values('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000001','bad','bad');
+ raise exception 'Cross-property unit accepted';exception when foreign_key_violation then null;end;
+ begin
+ insert into public.ai4cc_knowledge_entries(tenant_id,title,content,category,approved)values('20000000-0000-4000-8000-000000000001','bad','bad','pma_template',true);
+ raise exception 'Template approved';exception when check_violation then null;end;
+ begin
+ insert into public.ai4cc_knowledge_entries(tenant_id,title,content,model_section,visibility)values('20000000-0000-4000-8000-000000000001','bad','bad','owner_preferences','public');
+ raise exception 'Owner preferences public';exception when check_violation then null;end;
+end $$;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated"}',true);
+do $$ begin
+ if exists(select 1 from public.ai4cc_knowledge_entries where title in ('unitprivateprobe','expiredprobe','draftprobe','staffonlyprobe')) then raise exception 'Resident knowledge scope leak';end if;
+ if not exists(select 1 from public.ai4cc_knowledge_entries where content='Unit scopeprobe')then raise exception 'Resident lost own unit knowledge';end if;
+end $$;
+select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated"}',true);
+do $$ declare v jsonb;begin
+ v=public.pm_available_properties();
+ if v::text like '%Other unit private answer%' or v::text like '%Expired answer%' then raise exception 'Prospect listing exposed unit/expired knowledge';end if;
+end $$;
+reset role;
 select 'PASS: workspace/property isolation, role restrictions, relationships, resident/vendor scope, maintenance lifecycle, assignment/showing replay, knowledge, audit, canonical voice/SMS/chat workflow records, exact dashboard metrics, prospective resident access, human conversion, rate limits, attachment scope and simulated notification' as result;
 rollback;
