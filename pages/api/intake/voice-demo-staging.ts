@@ -23,7 +23,7 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
       .eq('source_status','VERIFIED');
     if(agentRoute==='property-management-assistant'){
       if(!process.env.PMA_STAGING_PROPERTY_ID)throw new PmaError('Property binding unavailable',503);
-      return result(await query.eq('property_id',process.env.PMA_STAGING_PROPERTY_ID).limit(12))??[];
+      return result(await query.eq('property_id',process.env.PMA_STAGING_PROPERTY_ID).order('title',{ascending:true}).limit(64))??[];
     }
     return result(await query.is('property_id',null).contains('tags',['agent:'+agentRoute]).limit(12))??[];
   };
