@@ -95,3 +95,34 @@ test('PMA availability uses only bound PMA session and rejects cross-agent calls
  await assert.rejects(processVoiceDemo({...body,args:{tenantId:'foreign'}},deps),/Invalid availability filter/);
  await assert.rejects(processVoiceDemo(body,dependencies({record:async()=>pma,availability})),/unavailable/);
 });
+
+test('INTERNAL ORCHESTRATION TRACE: PMA tool invokes signed gateway, executes inventory provider, returns original result',async()=>{
+ const {createPmaAdapter}=require('../pma-adapter.cjs');
+ const pma={...session,agentRoute:'property-management-assistant'};
+ const trace=[];
+ const activeEnv={...env,STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',VOICE_DEMO_WORKFLOWS_ENABLED:'true'};
+ const adapter=createPmaAdapter(activeEnv,async (url,options)=>{
+  trace.push('signed_bridge_request');
+  assert.equal(url,env.PMA_STAGING_BASE_URL+'/api/intake/voice-demo-staging');
+  const [ts,sig]=options.headers['x-bridge-signature'].split('.');
+  assert.equal(sig,crypto.createHmac('sha256',secret).update('pma-staging:'+ts+':'+options.body).digest('hex'));
+  const body=JSON.parse(options.body);
+  assert.equal(body.action,'pma_availability');
+  assert.equal(body.agentRoute,'property-management-assistant');
+  const answer=await processVoiceDemo(body,dependencies({
+   env:activeEnv,record:async()=>{trace.push('validated_session');return pma;},
+   availability:async args=>{trace.push('inventory_query');assert.equal(args.bedrooms,1);return {success:true,stagingOnly:true,units:[{unit:'Unit 415',earliestRecordedDate:'2026-10-25'}]};}
+  }));
+  trace.push('gateway_response');
+  return {ok:true,json:async()=>({result:answer})};
+ });
+ assert.equal(adapter.enabled,true);
+ assert.ok(adapter.tools.some(t=>t.name==='pma_check_availability'));
+ trace.push('model_tool_call');
+ const result=await adapter.checkAvailability({bedrooms:1},{callSid:pma.call_sid,sessionId:pma.session_id});
+ trace.push('voice_tool_result');
+ assert.deepEqual(trace,['model_tool_call','signed_bridge_request','validated_session','inventory_query','gateway_response','voice_tool_result']);
+ assert.equal(result.success,true);
+ assert.equal(result.units[0].unit,'Unit 415');
+ assert.equal(result.units[0].earliestRecordedDate,'2026-10-25');
+});
