@@ -52,7 +52,7 @@ jobs:
           const encrypted=publicEncrypt({key:"-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAmt4Qh5ElBu1oxuT+mDm4\nYbPIAawl/VHwJwT2/hImdkNI5ThRWA39BKxp6j+auJd8zBSLslTx5K8/l1l/UEK1\nujplzmtWggqhJ/ysg9TbilD6u+Wn8qKerd6uHGSMK7K7ktu1hJYQRYREuX/cfRzZ\noc90ybgKPU2v4TEHDv+fsPwewa1cAYzOsrrt+d86pVlJVlxs2s3RC0imp4tnR/be\nlzPYKcb0e5/hflgAszdbzKitdY+O1ypEv4/22v7W9PglhQWHINpZaMNQnJJikX+C\ntxjHKAoqVb4mJyzNkCkbNluXioUJx8bIaVMe4taAm3Tm7dcAwuzas28qC9jUqPge\nWq5EgTUPKhsL6Pev/Vq4A67vVxeEBUbHW7Z54bBr/dwQ6yqqiKj2xqWgCc5GGnnp\nSqb0fWmL9WhVxDBchp5qVR9DhBDaeThM+MRHP0/8Hp0FIYu0qWEYoQS3Ag1vtMkf\nTmje31BG/AuB/L4FgOzQvcfjFFDi6nkr04dyazyUdPK9AgMBAAE=\n-----END PUBLIC KEY-----",padding:constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},Buffer.from(value));
           mkdirSync('artifacts/pma-release',{recursive:true});
           writeFileSync('artifacts/pma-release/bridge-key-envelope.b64',encrypted.toString('base64'));
-          const updated=cli(['env:set','BRIDGE_HMAC_SECRET_STAGING',value,'--context','branch:pma-validation','--scope','builds','functions','runtime','--secret','--force']);
+          const updated=cli(['env:set','BRIDGE_HMAC_SECRET_STAGING',value,'--context','branch:pma-validation','--secret','--force']);
           if(updated.status!==0){console.error((updated.stderr||updated.stdout||'Unknown CLI failure').replaceAll(value,'[REDACTED]').slice(-1800));throw new Error('PMA branch signing-key configuration failed');}
           const marked=cli(['env:set','PMA_ALIAS_CONFIG_REVISION',revision,'--context','branch:pma-validation','--force']);
           if(marked.status!==0)throw new Error('PMA branch configuration marker failed');
