@@ -1,44 +1,43 @@
-# Property Management Assistant — current staging status
+# Property Management Assistant — continuation
 
-> 2026-10-22 Fly migration update: read PROPERTY-MANAGEMENT-FLY-STAGING.md first. It supersedes the older Railway/preview configuration notes below.
->
-> Fly app ai4-pma-bridge-staging is deployed and healthy on reviewed source 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e. Authenticated synthetic audio probe received OpenAI audio. KB v1 and 25-intent catalog are installed; synthetic resident binding was repaired with a separate test unit.
->
-> Latest real call CA00ee4da0280cd6234cd3ed1cd52e311c at 16:36:11 UTC failed Twilio 11200 / HTTP 404 at the old private-voice-poc URL. Dedicated DID (702) 935-1414 Voice POST URL has now been corrected and saved to https://pma-validation--ai4cc-staging.netlify.app/api/twilio/pma-voice-staging.
->
-> BLOCKER: preview channel flag true is configured, but gateway rebuild run 39814792785 (release commit c0b5336eb8c0a07cd8e3a035d11da0662c4f5dd3) is queued without a runner; pending environment approvals are empty. Current gateway still responds 503 channels disabled. GitHub Status reports Actions degraded performance. Do not trigger duplicate releases or weaken guards.
->
-> Next: check this run, verify gateway signature/HMAC guards after release, test synthetic bridge-to-Supabase persistence, then request a real inbound call. No successful phone call is claimed. PR #91 remains draft/unmerged; production, SMS and existing bridges unchanged.
+Updated 2026-10-22. This file supersedes older queued-release, disabled-channel and Railway-only blocker notes. Implementation and synthetic staging testing are authorized; production release remains separate.
 
-## Earlier notes (historical; use current status above)
+## Architecture and scope
 
-# Property Management Assistant — remaining environment work
+Reuse the existing OpenAI audio engine, Fly Node bridge, Netlify signed gateway, Supabase tenant/auth/RBAC, Customer 360, CRM, Knowledge Vault and durable workflows. No ElevenLabs integration or replacement platform. The staging entry IVR is 1 Support / 2 Sales / 3 PMA, with frozen session.agentRoute and persisted call lifecycle. The implementation branch is feature/property-management-assistant-mvp; deployments use reviewed release branches.
 
-> Latest call diagnosis: PROPERTY-MANAGEMENT-CALL-FAILURE-20261022.md supersedes the preview-deployment blocker below. The web release succeeded on a later attempt. Both PMA voice POST endpoints return 503 because channels remain disabled; the Railway PMA integration and exact Twilio call/routing evidence remain outstanding.
+## Verified deployment and activation — 2026-10-22
 
-> Current configuration audit: read PROPERTY-MANAGEMENT-CONFIG-AUDIT-20261022.md before continuing. The owner confirms OpenAI/Twilio/Railway is the approved voice stack; ElevenLabs is not used. Railway access is restored. There are 66 loaded property-scoped knowledge entries, with publication-state consistency and a synthetic resident-binding mismatch still to resolve. The PMA preview remains undeployed. This audit supersedes older assumptions about missing content or Railway authentication.
+Dedicated test number **(702) 935-1414** now has Voice HTTP POST saved to **https://ai4-pma-bridge-staging.fly.dev/api/ivr/main**. Twilio Configure was re-read after save; the URL persisted and Save configuration was disabled. Only this dedicated test number was changed. Caller allowlisting remains active. A real inbound telephone test through each choice is still pending.
 
-Owner authorization covers implementation and staging. Production requires separate authorization. Keep PR #91 draft and unmerged. Do not deploy the implementation branch.
+- Application source: e71cdad546caef323c7d0dadca772ce5c6a49b3d.
+- Fly release branch: release/voice-demo-ivr-staging-20261022; app ai4-pma-bridge-staging; machine 83d3d6f733d658, shared CPU / 512 MB; health passing.
+- Netlify release branch: release/pma-staging-validation; workflow 39826603537 succeeded; ready deploy 6ada4dc0dcdaf74ec21786a8 at https://pma-validation--ai4cc-staging.netlify.app.
+- Runtime alias uses branch:pma-validation. Earlier channels-disabled/503 configuration is resolved.
+- CI 39826604575 and browser validation 39826596618 succeeded. Protected release passed 18 focused tests (15 routing/security, two actual Twilio SDK, one concurrent operation-context), TypeScript/full CI and optimized Next build.
+- Unsigned Fly main/router returned 403; unsigned gateway/status returned 401/403.
+- Authenticated synthetic streams returned real OpenAI audio for Support (two media packets), Sales (one), PMA (two). SQL independently verified selected-agent persistence and end timestamps for all three.
+- Support loaded two approved public KB entries and 46 catalog intents; Sales loaded four approved public entries and 58 intents; PMA loaded its 25-intent catalog and uses authorized property/unit knowledge retrieval. Catalog membership is not proof every action is executable.
+- Support case eff2fe1c-2810-4eca-b472-d3a96b3c3bf5 persisted through the existing orchestrator; replay returned the same case and COMPLETED state.
+- Sales lead 229b42a8-13b7-454c-b4cd-b7d79124cf57 persisted through the canonical CRM RPC; replay deduplicated to the same lead without ending its parent call.
+- PMA routine request db02c623-dd03-4a4d-8013-b3eee33cb9da persisted with normal/plumbing classification; replay reused interaction 4d163e9f-fcee-4d3d-ad34-8996be96ff54.
+- No provider notifications, technician follow-up, production SMS/email or emergency dispatch are claimed.
 
-Repository: Aproposchpt2/ai4-contact-center
-Branch: feature/property-management-assistant-mvp
-Staging Supabase: hvzauakkhlivzeqatfqm
-PR: https://github.com/Aproposchpt2/ai4-contact-center/pull/91
+Support permission repair uses the existing stellar_orch_lookup_staging RPC with exact session/workflow/operation checks. No direct grant on the protected orchestration table or RLS relaxation was introduced. The earlier failed synthetic Support workflow 1ecedbdb-b4df-4dc9-9993-fd1182f654c8 remains an ACCEPTED failure fixture, separate from the successful replay test.
 
-## Resume only the unresolved work
-1. Read PROPERTY-MANAGEMENT-STAGING-ACTIVATION-20261022.md and PROPERTY-MANAGEMENT-STAGING-RUNBOOK.md. Both Knowledge Base v1.0 and the full 25-intent catalog are now installed and verified on staging. Do not reapply them or duplicate the platform.
-2. Verify current migration history before any new schema work. The connector recorded `pma_knowledge_model_v1` as 20261022055747 and `pma_intent_catalog_v1` as 20261022055803; these correspond to the repository migration files ending 20261021235624 and 20261022053315. Existing structures from another staging update were reconciled; no unrelated columns were removed.
-3. Live rolled-back SQL acceptance passed for tenant/property isolation, knowledge visibility, maintenance, resident/vendor/prospect permissions and all 25 catalog routes. Isolated validation passed 195 tests. Local/PGlite results are separate from real browser/provider evidence.
-4. Prepare a separate staging web release using existing protected credentials. Validate actual sign-in, resident/vendor/prospect access, private file upload/download and knowledge draft/review/publication. Real property facts have not been supplied; blank templates must remain unapproved. Do not deploy the implementation branch directly.
-5. Configure a dedicated staging voice bridge, HMAC, synthetic actor/property/contact bindings and a dedicated inbound test DID/caller allowlist. The existing OpenAI/Twilio bridge is reused; no ElevenLabs agent was provisioned. Never alter production Sales +17253305102, Support +17027102622 or the main IVR.
-6. Verify real inbound voice/SMS persistence, replay/reconnect and sandbox-provider notification receipts. Notification delivery remains blocked/simulated until safe provider validation is completed. No production outbound calls/SMS/emails during testing.
-7. Review emergency escalation procedures and human access with the owner. Record exact commits/deployed IDs and remaining blockers. Keep PR #91 draft and unmerged. Production release still requires separate authorization.
+## Remaining acceptance and limitations
 
-## Knowledge behavior to preserve
-Platform → existing owner tenant_id → property_id → unit_id. The compiled platform safety rules cannot be overridden by retrieved content. Private owner/vendor content stays internal. Only approved, current, authorized answer content is quoted. Equally specific multiple matches escalate; timestamps do not resolve policy conflict. Structured template values are reference fields; the owner-reviewed answer is the spoken/text reply. Null fields are unknown. All channels use canonical transactional workflow logs. No applicant/housing/financial decisions, legal advice, availability/repair promises or fabricated emergency/provider delivery claims.
+1. Call the dedicated test number from the approved caller and verify 0 repeat plus 1/2/3 audio, conversation and hangup logging. Positive real Twilio ingress is not established by the synthetic stream probe.
+2. Verify real authenticated web roles, private attachments, knowledge review/publication, channel reconnect and sandbox notification receipts before wider staging acceptance.
+3. Emergency classification matched the phrase "no flooding" as MAJOR_FLOODING in an earlier synthetic test. Negation-aware classification needs review and regression coverage while preserving safety escalation.
+4. Draft/research/HVAC knowledge remains withheld. Four already published VERIFIED business entries were reviewed and explicitly scoped; this is not blanket publication of the full Vault. PMA property-fact publication-state consistency still needs review.
+5. Existing production Sales/Support DIDs and their Railway dependencies have not been migrated. Railway staging was offline/trial expired and its health URL returned 404. The shared staging IVR provides a separate test path.
+6. PR #91 remains draft/unmerged. Production release requires separate authorization.
 
-## Saved implementation evidence
-Knowledge implementation commit: `2d0cadaa64567c5b952e9738c46708a79f8afcd8`.
-Standard CI: https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39700448994 (success).
-Browser/build validation: https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39700449022 (success; mocked sessions/API).
-All 127 tests, TypeScript and optimized build passed. The mobile knowledge screenshot was inspected. An earlier browser failure identifying the scope selector was fixed with explicit accessible labels and the full workflow then passed. That earlier inspection is superseded by the staging activation record dated 2026-10-22: both migrations are now applied and live rolled-back SQL acceptance passed. Actual web/provider acceptance remains outstanding.
+Repository ID 1296163902 is now named Aproposchpt2/CUSTOMER-ENGAGEMENT_OPERATIONS-CENTER (formerly ai4-contact-center); this is the same repository, not a parallel implementation.
+
+## Resume safely
+
+Read VOICE-DEMO-IVR-STAGING.md for endpoint/security details and PROPERTY-MANAGEMENT-STAGING-RUNBOOK.md for broader PMA acceptance. Do not replay migrations or republish blank knowledge templates. Staging project is hvzauakkhlivzeqatfqm. Existing PMA knowledge v1 and intent migrations are already applied, as are voice_demo_entry_and_workflows_staging (20261022173611) and trusted private-schema USAGE repair (20261022171622). No production voice/SMS/email during testing.
+
+Knowledge hierarchy remains Platform → existing owner tenant_id → property_id → unit_id. Unknown fields remain unknown; platform safety cannot be overridden by retrieved content. No housing decisions, legal/financial advice, invented availability or guaranteed repairs/vendor arrival. Emergency/provider claims require actual verified results.
