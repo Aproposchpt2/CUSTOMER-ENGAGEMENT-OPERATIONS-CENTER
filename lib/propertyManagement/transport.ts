@@ -9,7 +9,7 @@ export function stagingTransportGate(){
  stagingGate();
  if(process.env.PMA_CHANNELS_ENABLED!=='true')throw new PmaError('PMA staging channels are disabled',503);
  const base=new URL(process.env.PMA_STAGING_BASE_URL??'');
- if(base.protocol!=='https:'||base.hostname!=='pma-validation--ai4cc-staging.netlify.app')throw new PmaError('Unapproved staging transport host',503);
+ if(base.protocol!=='https:'||base.hostname!=='pma-validation--stellaruc-private-voice-poc.netlify.app')throw new PmaError('Unapproved staging transport host',503);
  return base;
 }
 export function verifyPmaBridge(req:NextApiRequest){
