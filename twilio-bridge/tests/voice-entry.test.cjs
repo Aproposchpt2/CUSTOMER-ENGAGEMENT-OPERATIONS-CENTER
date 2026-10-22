@@ -82,3 +82,16 @@ test('PMA with no published knowledge reports unavailable and cannot improvise p
  assert.deepEqual(result.assets.knowledgeEntries,[]);
  assert.match(boundInstructions('PMA prompt',pma,result.assets),/cannot verify the answer/);
 });
+
+test('PMA availability uses only bound PMA session and rejects cross-agent calls',async()=>{
+ const pma={...session,agentRoute:'property-management-assistant'};
+ const body={action:'pma_availability',call_sid:pma.call_sid,session_id:pma.session_id,agentRoute:pma.agentRoute,args:{bedrooms:1}};
+ const availability=async args=>{assert.equal(args.bedrooms,1);return {success:true,units:[{unit:'Synthetic 415',earliestRecordedDate:'2026-10-25'}]};};
+ const deps=dependencies({env:{...env,VOICE_DEMO_WORKFLOWS_ENABLED:'true'},record:async()=>pma,availability});
+ const ok=await processVoiceDemo(body,deps);
+ assert.equal(ok.availability.units[0].unit,'Synthetic 415');
+ await assert.rejects(processVoiceDemo({...body,agentRoute:'sales-specialist'},deps),/unavailable/);
+ await assert.rejects(processVoiceDemo({...body,args:{bedrooms:-1}},deps),/Invalid availability filter/);
+ await assert.rejects(processVoiceDemo({...body,args:{tenantId:'foreign'}},deps),/Invalid availability filter/);
+ await assert.rejects(processVoiceDemo(body,dependencies({record:async()=>pma,availability})),/unavailable/);
+});
