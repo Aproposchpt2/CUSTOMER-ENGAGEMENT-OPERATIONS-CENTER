@@ -1,5 +1,22 @@
 # PMA Fly.io staging migration
 
+> CURRENT VERIFIED UPDATE — 2026-10-22 17:18 UTC
+>
+> Gateway deploy `6ada43ee6848a79fdbe7273e` is ready; protected workflow run `39820498345` succeeded on release branch commit `387081bc8e098729ad16a4e6d6b7cfc2342de658`, app source still pinned to reviewed `5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e`.
+>
+> The root cause of the remaining 503 was context mismatch: Netlify CLI alias creates runtime `branch-deploy` / branch `pma-validation`, although the previous build used deploy-preview. Branch-specific flag, Fly WebSocket URL, synthetic unit and dedicated signing key are now configured. Build uses `--context branch:pma-validation`; production and other branch defaults were preserved. Gateway probes: dashboard 401, unsigned voice 403, unsigned intake 401, PMA page 200.
+>
+> Signing key was generated privately in the protected workflow, masked, set only for the PMA alias, encrypted to a task RSA public key in the evidence artifact, decrypted directly into Fly staged secrets without printing, then applied by updating the existing PMA machine. No extra machine created.
+>
+> First authenticated backend call then exposed missing private-schema USAGE for service_role. Narrow staging migration `20261022171622_pma_trusted_service_schema_usage.sql` grants schema USAGE only; existing function execution grants unchanged. Verified: backend USAGE true, backend CREATE false, anon USAGE false, authenticated execute on trusted RPC false. No new SECURITY DEFINER wrapper or RLS bypass introduced.
+>
+> REAL signed Fly -> gateway -> Supabase greeting succeeded, interaction `dff6c18d-6908-4ad7-ae10-751c8a46b437`. Routine maintenance succeeded with intent MAINTENANCE_REQUEST, interaction `4d163e9f-fcee-4d3d-ad34-8996be96ff54`, request `db02c623-dd03-4a4d-8013-b3eee33cb9da`. Replaying identical operation returned the same interaction; notifications false.
+>
+> Known conservative classification limitation: synthetic wording containing "no flooding" matched MAJOR_FLOODING safety regex; this produced synthetic emergency request `f4dd7892-35f8-43eb-9e3b-dc0071394ab4`. It was not a normal-maintenance classification pass. Track negation-aware safety review; do not silently weaken emergency matching.
+>
+> Remaining PMA phone acceptance: owner calls the dedicated direct staging route and verifies greeting, conversation and real tool result. Three-option IVR mapping is documented in VOICE-DEMO-ROUTING-20261022.md, NOT activated. Sales/Support staging Railway service is offline; Railway UI displays trial expired plus platform outage. Existing Fly stellar-twilio-bridge /health is healthy, but its complete Sales/Support workflow readiness is not established. No production route release performed.
+
+
 Target app: `ai4-pma-bridge-staging` (deployed).
 Gateway: `https://pma-validation--ai4cc-staging.netlify.app`.
 Bridge: `wss://ai4-pma-bridge-staging.fly.dev/ws/pma`.
