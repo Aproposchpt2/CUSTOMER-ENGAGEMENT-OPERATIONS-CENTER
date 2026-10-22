@@ -1,3 +1,4 @@
+# Rebuild after preview-only PMA channel activation; Fly runtime verified healthy.
 name: PMA protected staging release
 on:
   push:
