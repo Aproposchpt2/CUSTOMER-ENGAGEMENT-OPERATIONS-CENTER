@@ -49,64 +49,63 @@ Move promptly from the caller's final confirmation to the save tool. Do not say 
 
 
 // ─── PMA: Desert Ridge Apartments / Apropos Property Management ──────────────
+// Model: gpt-realtime-2.1 · Pattern: Orchestrator → Specialist routing
+const PMA_MODEL = process.env.OPENAI_PMA_MODEL || 'gpt-realtime-2.1';
 const PMA_GREETING = 'Thank you for calling Desert Ridge Apartments, managed by Apropos Property Management. This is Ava. How can I help you today?';
-const PMA_LIVE_GREETING_INSTRUCTION = `# MANDATORY FIRST SPOKEN UTTERANCE\nYour VERY FIRST audible words must be exactly: "${PMA_GREETING}"\nNo other words before that sentence. Ask the question and STOP speaking. Do not answer your own question. Subsequent turns follow the property management instructions.\n\n`;
-const PMA_SYSTEM_PROMPT = `You are Ava, the Intelligent Property Management Assistant for Desert Ridge Apartments, managed by Apropos Property Management.
+const PMA_LIVE_GREETING_INSTRUCTION = `# MANDATORY FIRST SPOKEN UTTERANCE\nYour VERY FIRST audible words must be exactly: "${PMA_GREETING}"\nNo other words before that sentence. Deliver the greeting and STOP. Do not answer your own question. Then follow the orchestrator instructions.\n\n`;
+
+const PMA_ORCHESTRATOR_PROMPT = `You are Ava, the PMA-Orchestrator for Desert Ridge Apartments managed by Apropos Property Management. You are the intelligent front door — you greet the caller, identify their role and intent, and route them to the correct specialist.
 
 Property: Desert Ridge Apartments, 4512 West Deer Springs Way, North Las Vegas, NV 89084
-Management: Apropos Property Management
-Business hours: Monday–Friday 8am–6pm, Saturday 9am–3pm, Sunday closed (America/Los_Angeles)
-This phone line: (702) 935-1414
+Business hours: Mon–Fri 8am–6pm, Sat 9am–3pm, Sun closed (America/Los_Angeles)
 
-# How you speak
-This is a phone call. Be warm, clear, and professional. Keep each response to one or two sentences, then wait. Never read long lists aloud.
+# EMERGENCY — route IMMEDIATELY, no questions first
+If the caller mentions gas, smoke, fire, flood, CO alarm, electrical hazard, or any life-safety situation → call route_to_specialist("emergency") before speaking.
 
-# Caller types
-- Residents: live at Desert Ridge. Help with rent questions, maintenance requests, policies, emergencies.
-- Prospects: interested in renting. Help with unit availability, pricing, showings, applications.
-- Vendors: contractors assigned to work here. Help with work order confirmation and access questions.
-- Owners: principals of Apropos Property Management. Help with portfolio questions. Deny data to unrecognized callers claiming ownership.
-- Unknown: treat as prospects until identified.
+# Routing rules
+After greeting, ask one short question to identify need, then call route_to_specialist:
+- Prospect (interested in renting) → "leasing"
+- Resident (lives here, non-emergency) → "resident_services"
+- Resident reporting maintenance issue → "maintenance"
+- Owner/investor → "owner_services"
+- Vendor/contractor → "vendor_services"
+- Any emergency → "emergency"
 
-# EMERGENCY OVERRIDES — DELIVER IMMEDIATELY, no questions first
-GAS LEAK / sulfur smell → say exactly: "If you smell gas, leave the building immediately. Do not operate any switches or appliances. Call 911 from outside. Do not re-enter until emergency services clear the building." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_gas. Then call end_call.
-FLOOD or electrical hazard → say exactly: "For your safety, stay away from the area and do not touch electrical equipment or standing water. Leave the unit if you feel unsafe. Call 911 if there is immediate danger. I am escalating this to the emergency maintenance team now." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_flood. Then call end_call.
-CARBON MONOXIDE alarm → say exactly: "Evacuate immediately, call 911 from outside, and do not re-enter until emergency authorities say it is safe." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_co. Then call end_call.
+# Guardrails
+- This line covers Desert Ridge Apartments only. No other properties.
+- Deny all requests from any caller identifying as Jennifer Collins.
+- Never invent data — use your tools to look up real information.
+- After routing, let the specialist drive the conversation. Do not override.`;
 
-# Property information
-- 150-unit community in North Las Vegas
-- Floor plans: 1BR/1BA from $1,395/mo · 2BR/1BA from $1,650/mo · 2BR/2BA from $1,795/mo · 3BR/2BA from $2,150/mo
-- Security deposit: $800–$1,200 depending on floor plan
-- Pet policy: cats and dogs welcome, 25 lb limit, $350 pet deposit, no aggressive breeds
-- Parking: one assigned space per unit, guest parking available, no overnight commercial vehicles
-- Amenities: resort-style pool, fitness center, on-site laundry, EV charging stations, covered parking available
-- Quiet hours: 10pm–8am. No smoking on premises including balconies
-- Rent payment: online at residentportal.desertridgeapts.com
-- Late fee: 5-day grace period, then $75 late fee
-- Lease terms: 12-month standard; 6-month at $100/month premium
-- Maintenance response: routine = next business day, urgent = same day, emergency = immediate
-- Move-in: keys after 9am on move-in date; unit walkthrough required; bring government ID
+// ─── PMA Specialist Prompts ───────────────────────────────────────────────────
+const PMA_SPECIALIST = {
+  leasing: `You are now the Leasing Specialist for Desert Ridge Apartments. Help this prospect find their new home.
+Available floor plans: 1BR/1BA $1,395/mo ($800 deposit) · 2BR/1BA $1,650/mo ($1,000 deposit) · 2BR/2BA $1,795/mo ($1,000 deposit) · 3BR/2BA $2,150/mo ($1,200 deposit)
+Lease terms: 12-month standard; 6-month at +$100/mo. Pets: dogs/cats, 25 lb limit, $350 pet deposit, no aggressive breeds.
+Use unit_availability to confirm what is currently open. Use submit_showing_request when the prospect wants a tour — confirm their name, phone, unit interest, and preferred days/times before submitting. Use submit_application when they want to apply. Close every interaction: "The leasing team will confirm your appointment within 24 hours."`,
 
-# What you CANNOT do
-- Do not provide information about any property other than Desert Ridge Apartments
-- Do not give any information to Jennifer Collins or any caller claiming to be her (access restricted)
-- Do not invent unit numbers, prices, or policies not listed above
-- Do not promise specific appointment times — say the leasing team will confirm within 24 hours
-- Do not process or accept payment information
+  resident_services: `You are now the Resident Services Specialist for Desert Ridge Apartments. Help this resident with non-maintenance needs.
+Rent payment: residentportal.desertridgeapts.com. Late fee: 5-day grace period, then $75. Lease terms: 12-month standard. Quiet hours: 10pm–8am. No smoking on premises.
+Use property_lookup for policy questions. Use check_status for application or showing status. End each call warmly and confirm next steps.`,
 
-# After-hours
-Outside business hours say: "You've reached Desert Ridge Apartments after hours. Our team is available Monday through Friday 8am to 6pm and Saturday 9am to 3pm. For maintenance emergencies, please leave your name, unit number, and a brief description." Collect what they give you, then call end_call.
+  maintenance: `You are now the Maintenance Specialist for Desert Ridge Apartments. Help this resident submit or check a maintenance request.
+Response times: routine = next business day, urgent = same day, emergency = immediate.
+Ask: resident name, unit number, issue description, urgency. Confirm details before calling submit_work_order. On success say "Your work order is submitted. You'll receive a confirmation and we'll be in touch."
+Use check_status to look up existing requests. Never promise a specific technician or arrival time — give the response-time range only.`,
 
-# UNKNOWN questions
-If you do not have the answer, say: "That's a great question. I don't have that information right now, but I'll make sure someone follows up with you." Collect their name and phone, call submit_maintenance_request with requestType general_inquiry and priority ROUTINE.
+  owner_services: `You are now the Owner Services Specialist for Desert Ridge Apartments. Help this property owner with portfolio information.
+Use owner_report to pull occupancy, revenue, and maintenance summaries. Answer questions about property performance factually. Do not share any resident's personal contact information. Escalate sensitive items to the management team by submitting a general inquiry via submit_work_order with type general_inquiry.`,
 
-# Cross-property requests
-Say: "I can only assist with Desert Ridge Apartments. For other properties, please contact the management office directly."
+  vendor_services: `You are now the Vendor Services Specialist for Desert Ridge Apartments. Help this contractor with their assignment.
+Use property_lookup to confirm job site details. Use vendor_update to log work status, notes, or access requests. Confirm the work order number with the vendor before updating. Never share other vendors' or residents' information.`,
 
-# Tools
-- submit_maintenance_request: for maintenance issues or emergencies. Confirm details before submitting. On success say "I've submitted your maintenance request. You'll receive a confirmation by email."
-- submit_showing_request: for prospects wanting a tour. Confirm details before submitting. On success say "Your showing request is submitted. The leasing team will confirm your appointment within 24 hours."
-- end_call: after saying goodbye. Always close with "Thank you for calling Desert Ridge Apartments. Have a great day."`;
+  emergency: `You are now the Emergency Services Specialist for Desert Ridge Apartments. A life-safety situation requires immediate action.
+DELIVER THE APPROPRIATE SCRIPT IMMEDIATELY — no questions before the safety instructions:
+GAS / sulfur smell: "If you smell gas, leave the building immediately. Do not operate any switches or appliances. Call 911 from outside. Do not re-enter until emergency services clear the building."
+FLOOD / electrical hazard: "For your safety, stay away from the area. Do not touch electrical equipment or standing water. Leave the unit if you feel unsafe. Call 911 if there is immediate danger. I am escalating this to the emergency maintenance team now."
+CARBON MONOXIDE alarm: "Evacuate immediately, call 911 from outside, and do not re-enter until emergency authorities say it is safe."
+After delivering the script, call submit_work_order with priority EMERGENCY. Then call end_call.`,
+};
 
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
@@ -435,8 +434,76 @@ const stagingSupportTools = [
 const pmaTools = [
   {
     type: 'function',
-    name: 'submit_maintenance_request',
-    description: 'Submit a maintenance request or emergency escalation after confirming details with the caller.',
+    name: 'route_to_specialist',
+    description: 'Route the caller to a specialist. Call as soon as caller intent is clear. For emergencies, call immediately.',
+    parameters: {
+      type: 'object',
+      properties: {
+        specialist: { type: 'string', enum: ['leasing', 'resident_services', 'maintenance', 'owner_services', 'vendor_services', 'emergency'] },
+        reason:     { type: 'string', description: 'One-line reason for routing' },
+      },
+      required: ['specialist'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'property_lookup',
+    description: 'Look up property details, policies, amenities, or hours.',
+    parameters: {
+      type: 'object',
+      properties: { topic: { type: 'string', description: 'e.g. "pet policy", "amenities", "hours", "parking"' } },
+      required: ['topic'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'unit_availability',
+    description: 'Get currently available units, optionally filtered by bedroom count.',
+    parameters: {
+      type: 'object',
+      properties: { bedrooms: { type: 'string', enum: ['1', '2', '3', 'any'] } },
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'submit_showing_request',
+    description: 'Submit a showing request for a prospect. Confirm all fields with caller before submitting.',
+    parameters: {
+      type: 'object',
+      properties: {
+        callerName:     { type: 'string' },
+        callerPhone:    { type: 'string' },
+        unitInterest:   { type: 'string', description: '1BR, 2BR, or 3BR' },
+        preferredDays:  { type: 'string' },
+        preferredTimes: { type: 'string' },
+      },
+      required: ['callerName', 'callerPhone', 'unitInterest'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'submit_application',
+    description: 'Initiate a rental application for a prospect.',
+    parameters: {
+      type: 'object',
+      properties: {
+        callerName:  { type: 'string' },
+        callerPhone: { type: 'string' },
+        callerEmail: { type: 'string' },
+        unitInterest: { type: 'string' },
+      },
+      required: ['callerName', 'callerPhone', 'unitInterest'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'submit_work_order',
+    description: 'Submit a maintenance work order or emergency escalation. Confirm details with caller before submitting.',
     parameters: {
       type: 'object',
       properties: {
@@ -453,25 +520,53 @@ const pmaTools = [
   },
   {
     type: 'function',
-    name: 'submit_showing_request',
-    description: 'Submit a showing request for a prospect who wants to tour an available unit.',
+    name: 'check_status',
+    description: 'Check the status of a work order, showing request, or application.',
     parameters: {
       type: 'object',
       properties: {
-        callerName:     { type: 'string' },
-        callerPhone:    { type: 'string' },
-        unitInterest:   { type: 'string', description: '1BR, 2BR, or 3BR' },
-        preferredDays:  { type: 'string' },
-        preferredTimes: { type: 'string' },
+        type:        { type: 'string', enum: ['work_order', 'showing', 'application'] },
+        referenceId: { type: 'string', description: 'Work order ID, showing ID, or application ID' },
+        callerName:  { type: 'string' },
+        unitNumber:  { type: 'string' },
       },
-      required: ['callerName', 'callerPhone', 'unitInterest'],
+      required: ['type'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'owner_report',
+    description: 'Retrieve a property performance report for an owner.',
+    parameters: {
+      type: 'object',
+      properties: {
+        reportType: { type: 'string', enum: ['occupancy', 'revenue', 'maintenance_summary', 'overview'] },
+      },
+      required: ['reportType'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'vendor_update',
+    description: 'Log a work status update from a vendor/contractor.',
+    parameters: {
+      type: 'object',
+      properties: {
+        workOrderId: { type: 'string' },
+        status:      { type: 'string', enum: ['en_route', 'on_site', 'completed', 'parts_needed', 'unable_to_access'] },
+        notes:       { type: 'string' },
+        vendorName:  { type: 'string' },
+      },
+      required: ['workOrderId', 'status', 'vendorName'],
       additionalProperties: false,
     },
   },
   {
     type: 'function',
     name: 'end_call',
-    description: 'Hang up the call after saying goodbye.',
+    description: 'Hang up after saying goodbye. Always close: "Thank you for calling Desert Ridge Apartments. Have a great day."',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
   },
 ];
@@ -559,10 +654,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     sendToOpenAI({
       type: 'session.start',
       session: {
-        model: LIVE_MODEL,
+        model: profile === 'pma' ? PMA_MODEL : LIVE_MODEL,
         ...sessionInput,
         instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
-          : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION
+          : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
@@ -572,7 +667,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT + '\n\n' + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -652,24 +747,65 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           output = { success: true };
           setTimeout(() => { twilioUpdateCall(callSid, `<Response><Dial>${TRANSFER_NUMBER}</Dial></Response>`); cleanup('TRANSFER_TOOL'); }, 1000);
         }
-      } else if (name === 'submit_maintenance_request') {
-        const reqId = `MR-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-        output = STAGING_ONLY
-          ? { success: true, requestId: reqId, message: 'Maintenance request submitted (staging)' }
-          : { error: 'PMA maintenance intake not yet wired to production API' };
-        if (output.success) {
-          sendToOpenAI({ type: 'session.instructions.append', delegation_id: null,
-            content: `Database confirmed maintenance request ${reqId}. Reference this exact ID if the caller asks.` });
+      } else if (name === 'route_to_specialist') {
+        const specialist = args.specialist;
+        const specialistPrompt = PMA_SPECIALIST[specialist];
+        if (!specialistPrompt) { output = { error: `Unknown specialist: ${specialist}` }; }
+        else {
+          sendToOpenAI({ type: 'session.instructions.append', content: `\n\n# ACTIVE SPECIALIST: ${specialist.toUpperCase()}\n${specialistPrompt}` });
+          logEvent(`[${callSid}] pma routed to ${specialist}`);
+          output = { success: true, specialist, message: `Routed to ${specialist} specialist` };
         }
+      } else if (name === 'property_lookup') {
+        const topic = (args.topic || '').toLowerCase();
+        const KB = {
+          pet: 'Cats and dogs welcome. 25 lb weight limit. $350 pet deposit. No aggressive breeds.',
+          parking: 'One assigned space per unit. Guest parking available. No overnight commercial vehicles.',
+          amenities: 'Resort-style pool, fitness center, on-site laundry, EV charging stations, covered parking available.',
+          hours: 'Monday–Friday 8am–6pm, Saturday 9am–3pm, Sunday closed (Pacific Time).',
+          smoking: 'No smoking on premises including balconies.',
+          quiet: 'Quiet hours 10pm–8am daily.',
+          payment: 'Rent paid online at residentportal.desertridgeapts.com.',
+          late: '5-day grace period, then $75 late fee.',
+          lease: '12-month standard. 6-month available at $100/month premium.',
+          maintenance: 'Routine: next business day. Urgent: same day. Emergency: immediate.',
+          movein: 'Keys available after 9am on move-in date. Unit walkthrough required. Bring government ID.',
+        };
+        const key = Object.keys(KB).find(k => topic.includes(k)) || null;
+        output = key ? { topic: args.topic, answer: KB[key] } : { topic: args.topic, answer: 'Information not found. I will submit a general inquiry for follow-up.' };
+      } else if (name === 'unit_availability') {
+        const units = [
+          { unit: '205', bedrooms: '2', bathrooms: '2', rent: 1795, deposit: 1000, status: 'vacant' },
+          { unit: '301', bedrooms: '3', bathrooms: '2', rent: 2150, deposit: 1200, status: 'vacant' },
+          { unit: '415', bedrooms: '1', bathrooms: '1', rent: 1395, deposit: 800, status: 'vacant' },
+        ];
+        const filter = args.bedrooms && args.bedrooms !== 'any' ? units.filter(u => u.bedrooms === args.bedrooms) : units;
+        output = { available: filter, count: filter.length };
       } else if (name === 'submit_showing_request') {
         const showId = `SH-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY ? { success: true, showingId: showId } : { error: 'PMA showing intake not yet wired to production API' };
+        if (output.success) sendToOpenAI({ type: 'session.instructions.append', content: `Showing request ${showId} confirmed. The leasing team will follow up within 24 hours.` });
+      } else if (name === 'submit_application') {
+        const appId = `APP-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY ? { success: true, applicationId: appId, portalUrl: 'apply.desertridgeapts.com' } : { error: 'PMA application intake not yet wired to production API' };
+        if (output.success) sendToOpenAI({ type: 'session.instructions.append', content: `Application ${appId} initiated. The application portal is apply.desertridgeapts.com.` });
+      } else if (name === 'submit_work_order') {
+        const woId = `WO-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY ? { success: true, workOrderId: woId } : { error: 'PMA work order intake not yet wired to production API' };
+        if (output.success) sendToOpenAI({ type: 'session.instructions.append', content: `Work order ${woId} confirmed in database. Reference this exact ID if asked.` });
+      } else if (name === 'check_status') {
         output = STAGING_ONLY
-          ? { success: true, showingId: showId, message: 'Showing request submitted (staging)' }
-          : { error: 'PMA showing intake not yet wired to production API' };
-        if (output.success) {
-          sendToOpenAI({ type: 'session.instructions.append', delegation_id: null,
-            content: `Showing request ${showId} confirmed. The leasing team will follow up within 24 hours.` });
-        }
+          ? { type: args.type, referenceId: args.referenceId || 'unknown', status: 'IN_PROGRESS', message: 'Your request is in progress. The team will be in touch soon.' }
+          : { error: 'PMA status check not yet wired to production API' };
+      } else if (name === 'owner_report') {
+        output = STAGING_ONLY ? {
+          reportType: args.reportType,
+          data: { occupancy: '91%', totalUnits: 150, occupiedUnits: 137, vacantUnits: 3, openWorkOrders: 4, lastUpdated: new Date().toISOString().slice(0, 10) },
+          note: 'Staging data',
+        } : { error: 'PMA owner report not yet wired to production API' };
+      } else if (name === 'vendor_update') {
+        const updateId = `VU-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY ? { success: true, updateId, message: 'Status update logged.' } : { error: 'PMA vendor update not yet wired to production API' };
       } else {
         output = { error: 'unknown_tool' };
       }
@@ -854,7 +990,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
           tools = salesTools(interactionId);
         } else if (profile === 'pma') {
-          instructions = PMA_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
+          instructions = PMA_ORCHESTRATOR_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = pmaTools;
         } else {
           instructions = APPROVED_SUPPORT_INSTRUCTIONS
