@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Voice repair: 198 regression tests, three Support orchestration tests and TypeScript passed.
-          ref: 5626f35abac3c36d7d47f675e5da94de529d4347
+          # Fly staging: 199 regression tests, TypeScript and production build passed; exact staging host only.
+          ref: 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NETLIFY_AUTH_TOKEN" || { echo 'BLOCKED: protected NETLIFY_AUTH_TOKEN is unavailable'; exit 1; }
-          npx --yes netlify-cli@23.11.0 deploy --build --context deploy-preview --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation 5626f35abac3c36d7d47f675e5da94de529d4347' --json > /tmp/pma-deploy.json
+          npx --yes netlify-cli@23.11.0 deploy --build --context deploy-preview --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e' --json > /tmp/pma-deploy.json
           python3 - <<'PY'
           import json,os
           data=json.load(open('/tmp/pma-deploy.json'))
@@ -47,7 +47,7 @@ jobs:
           if not evidence['deploy_id'] or not evidence['deploy_url']:
               raise SystemExit('Deployment did not return a deploy ID and URL')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('PMA staging preview only. Reviewed source: 5626f35abac3c36d7d47f675e5da94de529d4347\n\n')
+              f.write('PMA staging preview only. Reviewed source: 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e\n\n')
               f.write(json.dumps(evidence,indent=2)+'\n')
           os.makedirs('artifacts/pma-release',exist_ok=True)
           json.dump(evidence,open('artifacts/pma-release/deployment.json','w'),indent=2)
