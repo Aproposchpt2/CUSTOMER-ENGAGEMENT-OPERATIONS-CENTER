@@ -14,7 +14,7 @@ function load(path:string,deps:Record<string,unknown>,env:Record<string,string>)
  return module.exports as any;
 }
 function fixture(){
- const env={PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:base,BRIDGE_HMAC_SECRET_STAGING:'synthetic-hmac',PMA_STAGING_BRIDGE_WS_URL:'wss://synthetic-staging.up.railway.app',TWILIO_AUTH_TOKEN:'synthetic-twilio',TWILIO_ACCOUNT_SID:'AC'+'1'.repeat(32),PMA_STAGING_DID:'+17029351414',PMA_STAGING_TEST_CALLER:'+12025550199'};
+ const env={PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:base,BRIDGE_HMAC_SECRET_STAGING:'synthetic-hmac',PMA_STAGING_BRIDGE_WS_URL:'wss://stellaruc-voice-bridge-staging-staging.up.railway.app',TWILIO_AUTH_TOKEN:'synthetic-twilio',TWILIO_ACCOUNT_SID:'AC'+'1'.repeat(32),PMA_STAGING_DID:'+17029351414',PMA_STAGING_TEST_CALLER:'+12025550199'};
  const server={stagingGate(){},result:(x:any)=>x,privateResponse(){},fail:(res:any,e:any)=>res.status(e.status??500).send(e.message)};
  const transport=load('lib/propertyManagement/transport.ts',{'@supabase/supabase-js':{},crypto,twilio,'./server':server,'./domain':domain,'./intentCatalog':{}},env);
  const handler=load('pages/api/twilio/pma-voice-staging.ts',{crypto,'@/lib/propertyManagement/transport':transport,'@/lib/propertyManagement/server':server,'@/lib/propertyManagement/domain':domain},env).default;
@@ -39,4 +39,11 @@ test('unsigned, foreign caller, production DID and foreign account never receive
 });
 test('disabled staging channels fail closed before emitting a token',()=>{
  const {env,request}=fixture();env.PMA_CHANNELS_ENABLED='false';const res=request();assert.equal(res.statusCode,503);assert.doesNotMatch(res.body,/<Stream/);
+});
+test('Fly staging emits the same signed stream and rejects foreign or modified destinations',()=>{
+ const {env,request}=fixture();env.PMA_STAGING_BRIDGE_WS_URL='wss://ai4-pma-bridge-staging.fly.dev';
+ const res=request();assert.equal(res.statusCode,200);assert.match(res.body,/url="wss:\/\/ai4-pma-bridge-staging\.fly\.dev\/ws\/pma"/);
+ for(const url of ['wss://other-staging.fly.dev','wss://other-staging.up.railway.app','ws://ai4-pma-bridge-staging.fly.dev','wss://ai4-pma-bridge-staging.fly.dev:8443','wss://user@ai4-pma-bridge-staging.fly.dev','wss://ai4-pma-bridge-staging.fly.dev/unexpected','wss://ai4-pma-bridge-staging.fly.dev?token=x']){
+  env.PMA_STAGING_BRIDGE_WS_URL=url;const blocked=request();assert.equal(blocked.statusCode,503,url);assert.doesNotMatch(blocked.body,/<Stream/);
+ }
 });

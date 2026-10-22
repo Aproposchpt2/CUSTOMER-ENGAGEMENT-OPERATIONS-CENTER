@@ -807,7 +807,7 @@ function start() {
   fillPool();
 
   const app = express();
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
     pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
