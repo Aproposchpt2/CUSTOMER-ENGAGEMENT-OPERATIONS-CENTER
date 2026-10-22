@@ -1,0 +1,75 @@
+name: PMA protected staging release
+on:
+  push:
+    branches: [release/pma-staging-validation]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pma-staging-validation-release
+  cancel-in-progress: false
+jobs:
+  deploy-preview:
+    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/release/pma-staging-validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Reuse the existing protected Netlify credential; do not relax its rules.
+    environment: stellaruc-voice-poc
+    env:
+      NETLIFY_SITE_ID: 06deb5c7-83b8-401c-bdc5-745d802e3f26
+      NEXT_TELEMETRY_DISABLED: '1'
+      NETLIFY_TELEMETRY_DISABLED: '1'
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Reviewed source: 195 tests, build/browser and live staging SQL passed.
+          ref: c23b58349af7018e7e0497ae8ec083d3eeb32ada
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install reviewed dependencies without deployment credentials
+        run: npm ci --no-audit --no-fund
+      - name: Build and deploy isolated preview
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo 'BLOCKED: protected NETLIFY_AUTH_TOKEN is unavailable'; exit 1; }
+          npx --yes netlify-cli@23.11.0 deploy --build --context deploy-preview --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation c23b58349af7018e7e0497ae8ec083d3eeb32ada' --json > /tmp/pma-deploy.json
+          python3 - <<'PY'
+          import json,os
+          data=json.load(open('/tmp/pma-deploy.json'))
+          evidence={key:data.get(key) for key in ('deploy_id','deploy_url','site_id')}
+          if not evidence['deploy_id'] or not evidence['deploy_url']:
+              raise SystemExit('Deployment did not return a deploy ID and URL')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('PMA staging preview only. Reviewed source: c23b58349af7018e7e0497ae8ec083d3eeb32ada\n\n')
+              f.write(json.dumps(evidence,indent=2)+'\n')
+          os.makedirs('artifacts/pma-release',exist_ok=True)
+          json.dump(evidence,open('artifacts/pma-release/deployment.json','w'),indent=2)
+          PY
+      - name: Check preview route and anonymous authorization
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,urllib.request,urllib.error
+          base='https://pma-validation--ai4cc-staging.netlify.app'
+          checks=[]
+          for path,allowed in [('/property-management',{200}),('/api/property-management/dashboard',{401,403})]:
+              try:
+                  with urllib.request.urlopen(base+path,timeout=30) as r: status=r.status
+              except urllib.error.HTTPError as e: status=e.code
+              checks.append({'path':path,'status':status})
+              if status not in allowed: raise SystemExit('Unexpected preview status: '+json.dumps(checks))
+          json.dump(checks,open('artifacts/pma-release/http-checks.json','w'),indent=2)
+          print(json.dumps(checks))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pma-staging-release-evidence
+          path: artifacts/pma-release/
