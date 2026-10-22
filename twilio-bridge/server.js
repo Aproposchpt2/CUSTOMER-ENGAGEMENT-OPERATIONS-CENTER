@@ -26,6 +26,7 @@ const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, op
 const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./voice-entry.cjs');
 const voiceEntry=createVoiceEntry(process.env);
 const voicePrompts=require('./voice-system-prompts.json');
+const {startReceptionist}=require('./voice-receptionist.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -774,6 +775,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         if(session)instructions=boundInstructions(instructions,session,assets);
+        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
@@ -825,7 +827,7 @@ function start() {
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
     pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
-    voiceDemo: {enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
+    voiceDemo: {receptionist:'openai-live-marin',enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
@@ -867,12 +869,13 @@ function start() {
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathParts = url.pathname.split('/').filter(Boolean);
-    const aliasRoute=byPath[url.pathname];
+    const receptionPath=url.pathname==='/ivr-stream'&&voiceEntry.enabled;
+    const aliasRoute=receptionPath?{profile:'ivr'}:byPath[url.pathname];
     const profile = aliasRoute?.profile || pathParts[1] || url.searchParams.get('profile');
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
     if ((!aliasRoute&&pathParts[0] !== 'ws')||(aliasRoute&&!voiceEntry.enabled)) { logEvent('[upgrade] rejected: wrong or disabled path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
-    if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
+    if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled) && !(profile === 'ivr' && receptionPath)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
     logEvent(`[upgrade] accepted profile=${profile}`);
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -888,7 +891,7 @@ function start() {
 
         const params = msg.start?.customParameters || {};
         const tokenStr = params.bridge_token || params.token;
-        const session=typeof tokenStr==='string'&&tokenStr.startsWith('ivr1.')?verifyRouteToken(tokenStr,BRIDGE_HMAC_SECRET,profile,msg.start||{}):null;
+        const session=typeof tokenStr==='string'&&/^ivr[01]\./.test(tokenStr)?verifyRouteToken(tokenStr,BRIDGE_HMAC_SECRET,profile,msg.start||{}):null;
         if(aliasRoute&&!session){logEvent('[bridge] route-bound token rejected');ws.close();return;}
         const tokenProfile = session ? profile : validateBridgeToken(tokenStr);
         if (!tokenProfile || tokenProfile !== profile) {
@@ -901,8 +904,17 @@ function start() {
         callSid = msg.start?.callSid || '';
 
         ws.removeListener('message', firstMessage);
-        handleCall(ws, profile, callerPhone, callSid,session);
-        ws.emit('message', raw);
+        if(profile==='ivr'){
+          activeCalls++;
+          let released=false;
+          startReceptionist({twilioWs:ws,session,startMessage:msg,entry:voiceEntry,
+            openLive:()=>claimPooled()||new WebSocket(LIVE_WS_URL,{headers:{Authorization:`Bearer ${OPENAI_API_KEY}`}}),
+            model:LIVE_MODEL,reasoningModel:REASONING_MODEL,
+            release:()=>{if(!released){released=true;activeCalls=Math.max(0,activeCalls-1);}},
+            log:message=>logEvent(`[${callSid}] ${message}`),
+            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen);ws.emit('message',JSON.stringify(start));}
+          });
+        }else{handleCall(ws, profile, callerPhone, callSid,session);ws.emit('message', raw);}
       };
 
       ws.on('message', firstMessage);

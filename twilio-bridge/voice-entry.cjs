@@ -11,24 +11,23 @@ const call=/^CA[0-9a-f]{32}$/i;
 const account=/^AC[0-9a-f]{32}$/i;
 const xml=s=>String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]));
 function envelope(inner){return '<?xml version="1.0" encoding="UTF-8"?><Response>'+inner+'</Response>';}
-function menu(prefix=''){
- return envelope((prefix?'<Say voice="Polly.Joanna">'+xml(prefix)+'</Say>':'')+'<Gather input="dtmf" numDigits="1" timeout="8" actionOnEmptyResult="true" action="'+ORIGIN+'/api/ivr/router" method="POST"><Say voice="Polly.Joanna">Thank you for calling AI4Businesses. For Support Specialist, press 1. For Sales Specialist, press 2. For Property Management Assistant, press 3. To repeat this menu, press 0.</Say></Gather><Say voice="Polly.Joanna">We did not receive a selection. Please call back and try again.</Say><Hangup/>');
-}
-function makeRouteToken(session,secret,now=Date.now()){
+function makeRouteToken(session,secret,now=Date.now(),reception=false){
  const claim={version:1,agentRoute:session.agentRoute,session_id:session.session_id,call_sid:session.call_sid,caller_number:session.caller_number,account_sid:session.account_sid,expires:Math.floor(now/1000)+120};
- if(!Object.hasOwn(byAgent,claim.agentRoute)||!uuid.test(claim.session_id)||!call.test(claim.call_sid)||!account.test(claim.account_sid)||!/^\+[1-9][0-9]{7,14}$/.test(claim.caller_number)||!secret)throw Error('Invalid route session');
+ if((reception?claim.agentRoute!==null:!Object.hasOwn(byAgent,claim.agentRoute))||!uuid.test(claim.session_id)||!call.test(claim.call_sid)||!account.test(claim.account_sid)||!/^\+[1-9][0-9]{7,14}$/.test(claim.caller_number)||!secret)throw Error('Invalid route session');
  const payload=Buffer.from(JSON.stringify(claim)).toString('base64url');
- return 'ivr1.'+payload+'.'+crypto.createHmac('sha256',secret).update('ivr1.'+payload).digest('hex');
+ const version=reception?'ivr0':'ivr1';
+ return version+'.'+payload+'.'+crypto.createHmac('sha256',secret).update(version+'.'+payload).digest('hex');
 }
 function verifyRouteToken(token,secret,expectedProfile,start,now=Date.now()){
  try{
   if(typeof token!=='string'||token.length>3000||!secret)return null;
   const [version,payload,sig,...rest]=token.split('.');
-  if(version!=='ivr1'||rest.length||!/^[a-f0-9]{64}$/.test(sig))return null;
+  const reception=expectedProfile==='ivr';
+  if(version!==(reception?'ivr0':'ivr1')||rest.length||!/^[a-f0-9]{64}$/.test(sig))return null;
   const expected=crypto.createHmac('sha256',secret).update(version+'.'+payload).digest();
   if(!crypto.timingSafeEqual(expected,Buffer.from(sig,'hex')))return null;
   const s=JSON.parse(Buffer.from(payload,'base64url').toString());
-  if(s.version!==1||!Object.hasOwn(byAgent,s.agentRoute)||byAgent[s.agentRoute].profile!==expectedProfile||!uuid.test(s.session_id)||!call.test(s.call_sid)||!account.test(s.account_sid)||s.call_sid!==start.callSid||s.account_sid!==start.accountSid||!Number.isSafeInteger(s.expires)||s.expires<now/1000||s.expires>now/1000+125)return null;
+  if(s.version!==1||(reception?s.agentRoute!==null:(!Object.hasOwn(byAgent,s.agentRoute)||byAgent[s.agentRoute].profile!==expectedProfile))||!uuid.test(s.session_id)||!call.test(s.call_sid)||!account.test(s.account_sid)||s.call_sid!==start.callSid||s.account_sid!==start.accountSid||!Number.isSafeInteger(s.expires)||s.expires<now/1000||s.expires>now/1000+125)return null;
   return Object.freeze({...s});
  }catch{return null;}
 }
@@ -53,7 +52,12 @@ function createVoiceEntry(env,request=fetch){
   const r=byAgent[session.agentRoute];
   if(!r||session.end_time)throw Error('Agent unavailable');
   const token=makeRouteToken(session,env.BRIDGE_HMAC_SECRET);
-  return envelope('<Say voice="Polly.Joanna">'+xml(r.entryPrompt)+'</Say><Connect action="'+ORIGIN+'/api/ivr/complete" method="POST"><Stream url="'+ORIGIN.replace('https:','wss:')+r.streamPath+'" statusCallback="'+GATEWAY+'/api/intake/voice-demo-status-staging" statusCallbackMethod="POST"><Parameter name="bridge_token" value="'+xml(token)+'"/></Stream></Connect><Hangup/>');
+  return envelope('<Connect action="'+ORIGIN+'/api/ivr/complete" method="POST"><Stream url="'+ORIGIN.replace('https:','wss:')+r.streamPath+'" statusCallback="'+GATEWAY+'/api/intake/voice-demo-status-staging" statusCallbackMethod="POST"><Parameter name="bridge_token" value="'+xml(token)+'"/></Stream></Connect><Hangup/>');
+ }
+ function receptionStream(session){
+  if(session.agentRoute!==null||session.end_time)throw Error('Reception session unavailable');
+  const token=makeRouteToken(session,env.BRIDGE_HMAC_SECRET,Date.now(),true);
+  return envelope('<Connect action="'+ORIGIN+'/api/ivr/complete" method="POST"><Stream url="'+ORIGIN.replace('https:','wss:')+'/ivr-stream" statusCallback="'+GATEWAY+'/api/intake/voice-demo-status-staging" statusCallbackMethod="POST"><Parameter name="bridge_token" value="'+xml(token)+'"/></Stream></Connect><Hangup/>');
  }
  async function handle(req,res,action){
   res.setHeader('Cache-Control','no-store');
@@ -65,8 +69,9 @@ function createVoiceEntry(env,request=fetch){
    if(action==='status')return res.status(200).send('');
    if(action==='complete')return res.send(envelope('<Hangup/>'));
    if(result.session?.agentRoute)return res.send(stream(result.session));
-   if(action==='route'&&req.body.Digits==='')return res.send(envelope('<Say voice="Polly.Joanna">We did not receive a selection. Please call back and try again.</Say><Hangup/>'));
-   return res.send(menu(action==='route'&&req.body.Digits!=='0'?'That selection was not recognized. Please try again.':''));
+   if(action==='entry')return res.send(receptionStream(result.session));
+   if(action==='route'&&req.body.Digits==='')return res.send(envelope('<Hangup/>'));
+   return res.send(receptionStream(result.session));
   }catch(e){return res.status([401,403,429].includes(e.status)?e.status:503).send('The demonstration is temporarily unavailable. Please try again later.');}
  }
  async function openSession(session){
@@ -79,6 +84,12 @@ function createVoiceEntry(env,request=fetch){
  }
  async function supportRpc(session,operation,args,operationId){return (await send({action:'support_rpc',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,operation,args,operationId})).rpcResult;}
  async function salesSubmit(session,args){return (await send({action:'sales_submit',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,args})).rpcResult;}
- return {enabled,handle,openSession,closeSession,supportRpc,salesSubmit};
+ async function reception(session,agentRoute=null){
+  const result=await send({action:agentRoute?'reception_choose':'reception_start',session_id:session.session_id,call_sid:session.call_sid,caller_number:session.caller_number,agentRoute});
+  if(result.session?.session_id!==session.session_id||result.session?.end_time||(agentRoute&&result.session.agentRoute!==agentRoute))throw Error('Reception route rejected');
+  return Object.freeze(result.session);
+ }
+ async function endReception(session,reason){return send({action:'reception_end',session_id:session.session_id,call_sid:session.call_sid,caller_number:session.caller_number,agentRoute:null,reason});}
+ return {enabled,handle,openSession,closeSession,supportRpc,salesSubmit,reception,endReception};
 }
-module.exports={routes,byAgent,byPath,menu,makeRouteToken,verifyRouteToken,boundInstructions,createVoiceEntry};
+module.exports={routes,byAgent,byPath,makeRouteToken,verifyRouteToken,boundInstructions,createVoiceEntry};

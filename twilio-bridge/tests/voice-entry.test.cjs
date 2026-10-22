@@ -2,7 +2,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const crypto=require('node:crypto');
-const {routes,menu,makeRouteToken,verifyRouteToken,boundInstructions,createVoiceEntry}=require('../voice-entry.cjs');
+const {routes,makeRouteToken,verifyRouteToken,boundInstructions,createVoiceEntry}=require('../voice-entry.cjs');
 const {processVoiceDemo}=require('../../lib/voiceDemo/gateway.cjs');
 const secret='synthetic-signing-secret-only';
 const session={session_id:'11111111-1111-4111-8111-111111111111',call_sid:'CA'+'a1'.repeat(16),caller_number:'+15555550123',account_sid:'AC'+'b1'.repeat(16),agentRoute:'support-specialist'};
@@ -21,9 +21,6 @@ test('route tokens reject tampering, expiry, other calls and accounts',()=>{
 });
 test('session agentRoute is immutable',()=>{
  const s=verifyRouteToken(makeRouteToken(session,secret),secret,'support',start);assert.throws(()=>{s.agentRoute='sales-specialist';});
-});
-test('menu uses DTMF 1/2/3, eight seconds, repeat and empty-result handling',()=>{
- const m=menu();for(const x of ['input="dtmf"','numDigits="1"','timeout="8"','actionOnEmptyResult="true"','press 0','/api/ivr/router'])assert.ok(m.includes(x));
 });
 test('wrong profile cannot load another agent assets',()=>{
  assert.throws(()=>boundInstructions('base',session,{agentRoute:'sales-specialist'}));
