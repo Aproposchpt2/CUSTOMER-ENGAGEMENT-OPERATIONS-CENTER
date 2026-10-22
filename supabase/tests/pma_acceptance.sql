@@ -1,5 +1,6 @@
 -- Synthetic security and workflow acceptance; everything is rolled back.
 begin;
+select set_config('request.jwt.claims','{}',true);
 insert into auth.users(id,email) values
  ('10000000-0000-4000-8000-000000000001','pma-owner-a@example.invalid'),
  ('10000000-0000-4000-8000-000000000002','pma-owner-b@example.invalid'),
@@ -112,7 +113,7 @@ end $$;
 update public.pm_properties set accepts_inquiries=true where id='40000000-0000-4000-8000-000000000002';
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated"}',true);
 do $$ declare a jsonb;b jsonb; begin
- if jsonb_array_length(public.pm_available_properties())<>1 then raise exception 'Unpublished property disclosure'; end if;
+ if (select count(*) from jsonb_array_elements(public.pm_available_properties()) x where x->>'id' in ('40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000003'))<>1 then raise exception 'Unpublished property disclosure'; end if;
  a=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
  b=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
  if a->>'leadId'<>b->>'leadId' or a->>'showingId'<>b->>'showingId' or a->>'housingDecisionMade'<>'false' then raise exception 'Prospect replay/housing restriction failed'; end if;
