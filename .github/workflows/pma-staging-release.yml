@@ -43,7 +43,7 @@ jobs:
           const {spawnSync}=require('node:child_process');
           const {mkdirSync,writeFileSync}=require('node:fs');
           const site=process.env.NETLIFY_SITE_ID;
-          function cli(args){return spawnSync('npx',['--yes','netlify-cli@23.11.0',...args,'--site',site],{encoding:'utf8',env:process.env});}
+          function cli(args){return spawnSync('npx',['--yes','netlify-cli@23.11.0',...args],{encoding:'utf8',env:process.env});}
           const revision='fly-alias-20261022-v1';
           const current=cli(['env:get','PMA_ALIAS_CONFIG_REVISION','--context','branch:pma-validation']);
           if(current.status===0&&current.stdout.includes(revision)){console.log('Alias signing configuration already applied');process.exit(0);}
