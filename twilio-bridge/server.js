@@ -7,6 +7,7 @@ const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 const { detectSafetyIntent } = require('./safety-intents.cjs');
 const { validateIntentId } = require('./sales-intents.cjs');
+const { lookupSalesKnowledge } = require('./sales-knowledge-retrieval.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -330,6 +331,12 @@ Never ask for passwords or payment information. Never promise specific fix timel
 // transfer_to_specialist always present; bridge enforces transferAllowed at execution time
 function salesTools(interactionId) {
   return [
+    ...(STAGING_ONLY && process.env.STELLAR_SALES_KB_READ_ENABLED === 'true' ? [{
+      type: 'function',
+      name: 'search_approved_sales_knowledge',
+      description: 'Look up only verified, owner-approved public STELLAR product knowledge for the current tenant. If no approved match is returned, say that the information is unavailable and offer follow-up. Do not invent product facts.',
+      parameters: { type: 'object', properties: { query: { type: 'string', description: 'Short specific product or policy topic to retrieve' } }, required: ['query'], additionalProperties: false },
+    }] : []),
     {
       type: 'function',
       name: 'submit_support_intake',
@@ -719,7 +726,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'submit_business_profile') {
+      if (name === 'search_approved_sales_knowledge') {
+        if (profile !== 'sales' || !STAGING_ONLY) { output = {status:'DISABLED',entries:[]}; }
+        else { output = await lookupSalesKnowledge({query:args.query,tenantId:CSS_TENANT_ID}); }
+      } else if (name === 'submit_business_profile') {
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
