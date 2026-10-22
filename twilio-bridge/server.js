@@ -9,8 +9,7 @@ const { readiness: supportWriteReadiness, submitStagingSupport } = require('./st
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_PMA_AGENT_ID = process.env.ELEVENLABS_PMA_AGENT_ID;
+
 const BRIDGE_HMAC_SECRET = process.env.BRIDGE_HMAC_SECRET;
 const AI4CC_INTAKE_KEY = process.env.AI4CC_INTAKE_KEY;
 const NETLIFY_BASE_URL = (process.env.NETLIFY_BASE_URL || 'https://stellaruc.com').replace(/\/$/, '');
@@ -48,6 +47,66 @@ If saving fails, is unavailable, or is blocked, explain "I could not confirm tha
 Delegate to the backend when the caller asks to create or submit a support ticket, confirms the final intake summary, asks for submission status, corrects captured details, or reports that they are waiting. The Live speaking model cannot execute the database tool itself: request backend work rather than merely saying the save is pending. The backend must extract the nine required fields from the existing conversation, ask for any missing information or confirmation, and invoke submit_support_intake only when complete and confirmed. A backend review request does not mean that a save has started. If an application fallback asks for a backend review, use the current conversation without making the caller repeat it.
 Move promptly from the caller's final confirmation to the save tool. Do not say you are waiting for ticket creation before the application has actually started saving. If required details or permission are missing, ask the next necessary question promptly instead of waiting silently. Application ticket-status updates are authoritative: distinguish pending, confirmed and failed saves. After a confirmed result, promptly tell the caller the ticket is created and ask readiness. Read only the exact application-supplied ticket identifier; never improvise an identifier while waiting for the backend. A spoken farewell does not itself prove a telephone disconnect; do not claim a call ended or a callback was arranged without an implemented, authorized action.\n`;
 
+
+// ─── PMA: Desert Ridge Apartments / Apropos Property Management ──────────────
+const PMA_GREETING = 'Thank you for calling Desert Ridge Apartments, managed by Apropos Property Management. This is Ava. How can I help you today?';
+const PMA_LIVE_GREETING_INSTRUCTION = `# MANDATORY FIRST SPOKEN UTTERANCE\nYour VERY FIRST audible words must be exactly: "${PMA_GREETING}"\nNo other words before that sentence. Ask the question and STOP speaking. Do not answer your own question. Subsequent turns follow the property management instructions.\n\n`;
+const PMA_SYSTEM_PROMPT = `You are Ava, the Intelligent Property Management Assistant for Desert Ridge Apartments, managed by Apropos Property Management.
+
+Property: Desert Ridge Apartments, 4512 West Deer Springs Way, North Las Vegas, NV 89084
+Management: Apropos Property Management
+Business hours: Monday–Friday 8am–6pm, Saturday 9am–3pm, Sunday closed (America/Los_Angeles)
+This phone line: (702) 935-1414
+
+# How you speak
+This is a phone call. Be warm, clear, and professional. Keep each response to one or two sentences, then wait. Never read long lists aloud.
+
+# Caller types
+- Residents: live at Desert Ridge. Help with rent questions, maintenance requests, policies, emergencies.
+- Prospects: interested in renting. Help with unit availability, pricing, showings, applications.
+- Vendors: contractors assigned to work here. Help with work order confirmation and access questions.
+- Owners: principals of Apropos Property Management. Help with portfolio questions. Deny data to unrecognized callers claiming ownership.
+- Unknown: treat as prospects until identified.
+
+# EMERGENCY OVERRIDES — DELIVER IMMEDIATELY, no questions first
+GAS LEAK / sulfur smell → say exactly: "If you smell gas, leave the building immediately. Do not operate any switches or appliances. Call 911 from outside. Do not re-enter until emergency services clear the building." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_gas. Then call end_call.
+FLOOD or electrical hazard → say exactly: "For your safety, stay away from the area and do not touch electrical equipment or standing water. Leave the unit if you feel unsafe. Call 911 if there is immediate danger. I am escalating this to the emergency maintenance team now." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_flood. Then call end_call.
+CARBON MONOXIDE alarm → say exactly: "Evacuate immediately, call 911 from outside, and do not re-enter until emergency authorities say it is safe." Then call submit_maintenance_request with priority EMERGENCY and requestType emergency_co. Then call end_call.
+
+# Property information
+- 150-unit community in North Las Vegas
+- Floor plans: 1BR/1BA from $1,395/mo · 2BR/1BA from $1,650/mo · 2BR/2BA from $1,795/mo · 3BR/2BA from $2,150/mo
+- Security deposit: $800–$1,200 depending on floor plan
+- Pet policy: cats and dogs welcome, 25 lb limit, $350 pet deposit, no aggressive breeds
+- Parking: one assigned space per unit, guest parking available, no overnight commercial vehicles
+- Amenities: resort-style pool, fitness center, on-site laundry, EV charging stations, covered parking available
+- Quiet hours: 10pm–8am. No smoking on premises including balconies
+- Rent payment: online at residentportal.desertridgeapts.com
+- Late fee: 5-day grace period, then $75 late fee
+- Lease terms: 12-month standard; 6-month at $100/month premium
+- Maintenance response: routine = next business day, urgent = same day, emergency = immediate
+- Move-in: keys after 9am on move-in date; unit walkthrough required; bring government ID
+
+# What you CANNOT do
+- Do not provide information about any property other than Desert Ridge Apartments
+- Do not give any information to Jennifer Collins or any caller claiming to be her (access restricted)
+- Do not invent unit numbers, prices, or policies not listed above
+- Do not promise specific appointment times — say the leasing team will confirm within 24 hours
+- Do not process or accept payment information
+
+# After-hours
+Outside business hours say: "You've reached Desert Ridge Apartments after hours. Our team is available Monday through Friday 8am to 6pm and Saturday 9am to 3pm. For maintenance emergencies, please leave your name, unit number, and a brief description." Collect what they give you, then call end_call.
+
+# UNKNOWN questions
+If you do not have the answer, say: "That's a great question. I don't have that information right now, but I'll make sure someone follows up with you." Collect their name and phone, call submit_maintenance_request with requestType general_inquiry and priority ROUTINE.
+
+# Cross-property requests
+Say: "I can only assist with Desert Ridge Apartments. For other properties, please contact the management office directly."
+
+# Tools
+- submit_maintenance_request: for maintenance issues or emergencies. Confirm details before submitting. On success say "I've submitted your maintenance request. You'll receive a confirmation by email."
+- submit_showing_request: for prospects wanting a tour. Confirm details before submitting. On success say "Your showing request is submitted. The leasing team will confirm your appointment within 24 hours."
+- end_call: after saying goodbye. Always close with "Thank you for calling Desert Ridge Apartments. Have a great day."`;
 
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
@@ -373,98 +432,49 @@ const stagingSupportTools = [
   },
 ];
 
-// ─── PMA ElevenLabs bridge ────────────────────────────────────────────────────
-// Bridges Twilio Media Streams (ulaw/8kHz) to ElevenLabs Conversational AI.
-function handlePmaCall(twilioWs, callerPhone, callSid) {
-  logEvent(`[${callSid}] pma call started caller=${callerPhone}`);
-  activeCalls++;
-  let elWs = null;
-  let streamSid = null;
-  let callEnded = false;
-
-  const deadline = setTimeout(() => { logEvent(`[${callSid}] pma max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
-
-  function cleanup(reason) {
-    if (callEnded) return;
-    callEnded = true;
-    clearTimeout(deadline);
-    activeCalls = Math.max(0, activeCalls - 1);
-    logEvent(`[${callSid}] pma cleanup: ${reason}`);
-    if (elWs && elWs.readyState !== WebSocket.CLOSED) elWs.close();
-    if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
-  }
-
-  function sendToTwilio(obj) {
-    if (twilioWs.readyState === WebSocket.OPEN) twilioWs.send(JSON.stringify(obj));
-  }
-
-  twilioWs.on('message', (raw) => {
-    if (callEnded) return;
-    let msg;
-    try { msg = JSON.parse(raw.toString()); } catch { return; }
-
-    if (msg.event === 'start') {
-      if (streamSid) return;
-      streamSid = msg.start?.streamSid || msg.streamSid;
-      logEvent(`[${callSid}] pma stream started sid=${streamSid}`);
-
-      if (!ELEVENLABS_API_KEY || !ELEVENLABS_PMA_AGENT_ID) {
-        logEvent(`[${callSid}] pma ELEVENLABS config missing`);
-        cleanup('CONFIG_MISSING');
-        return;
-      }
-
-      elWs = new WebSocket(
-        `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${ELEVENLABS_PMA_AGENT_ID}`,
-        { headers: { 'xi-api-key': ELEVENLABS_API_KEY } }
-      );
-
-      elWs.once('open', () => {
-        logEvent(`[${callSid}] pma ElevenLabs WS open`);
-        // Optional: send custom dynamic variables for tenant isolation
-        elWs.send(JSON.stringify({
-          type: 'conversation_initiation_client_data',
-          conversation_config_override: {
-            agent: { first_message: 'Hi, thank you for calling Desert Ridge Apartments, managed by Apropos Property Management. This is Ava. How can I help you today?' }
-          },
-          custom_llm_extra_body: { caller_phone: callerPhone, call_sid: callSid },
-        }));
-      });
-
-      elWs.on('message', (elRaw) => {
-        if (callEnded) return;
-        let elMsg;
-        try { elMsg = JSON.parse(elRaw.toString()); } catch { return; }
-        const t = elMsg.type;
-
-        if (t === 'conversation_initiation_metadata') {
-          logEvent(`[${callSid}] pma EL conversation_id=${elMsg.conversation_initiation_metadata_event?.conversation_id}`);
-        } else if (t === 'audio') {
-          const b64 = elMsg.audio_event?.audio_base64;
-          if (b64 && streamSid) sendToTwilio({ event: 'media', streamSid, media: { payload: b64 } });
-        } else if (t === 'interruption') {
-          if (streamSid) sendToTwilio({ event: 'clear', streamSid });
-        } else if (t === 'ping') {
-          elWs.send(JSON.stringify({ type: 'pong', event_id: elMsg.ping_event?.event_id }));
-        } else if (!['agent_response', 'user_transcript', 'pong', 'agent_response_correction'].includes(t)) {
-          logEvent(`[${callSid}] pma el: ${t} ${JSON.stringify(elMsg).slice(0, 100)}`);
-        }
-      });
-
-      elWs.on('close', (code) => { logEvent(`[${callSid}] pma EL ws closed: ${code}`); cleanup('EL_CLOSE'); });
-      elWs.on('error', (e) => { logEvent(`[${callSid}] pma EL ws error: ${e.message}`); cleanup('EL_ERROR'); });
-
-    } else if (msg.event === 'media' && elWs && elWs.readyState === WebSocket.OPEN) {
-      const payload = msg.media?.payload;
-      if (payload) elWs.send(JSON.stringify({ type: 'user_audio_chunk', user_audio_chunk: payload }));
-    } else if (msg.event === 'stop') {
-      cleanup('TWILIO_STOP');
-    }
-  });
-
-  twilioWs.on('close', () => cleanup('TWILIO_CLOSE'));
-  twilioWs.on('error', (e) => { logEvent(`[${callSid}] pma Twilio ws error: ${e.message}`); cleanup('TWILIO_WS_ERROR'); });
-}
+const pmaTools = [
+  {
+    type: 'function',
+    name: 'submit_maintenance_request',
+    description: 'Submit a maintenance request or emergency escalation after confirming details with the caller.',
+    parameters: {
+      type: 'object',
+      properties: {
+        callerName:       { type: 'string' },
+        unitNumber:       { type: 'string' },
+        issueDescription: { type: 'string' },
+        priority:         { type: 'string', enum: ['ROUTINE', 'URGENT', 'EMERGENCY'] },
+        requestType:      { type: 'string', enum: ['maintenance', 'emergency_gas', 'emergency_flood', 'emergency_co', 'general_inquiry'] },
+        callerPhone:      { type: 'string' },
+      },
+      required: ['callerName', 'unitNumber', 'issueDescription', 'priority', 'requestType'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'submit_showing_request',
+    description: 'Submit a showing request for a prospect who wants to tour an available unit.',
+    parameters: {
+      type: 'object',
+      properties: {
+        callerName:     { type: 'string' },
+        callerPhone:    { type: 'string' },
+        unitInterest:   { type: 'string', description: '1BR, 2BR, or 3BR' },
+        preferredDays:  { type: 'string' },
+        preferredTimes: { type: 'string' },
+      },
+      required: ['callerName', 'callerPhone', 'unitInterest'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'end_call',
+    description: 'Hang up the call after saying goodbye.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+  },
+];
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
@@ -552,6 +562,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         model: LIVE_MODEL,
         ...sessionInput,
         instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+          : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
@@ -561,7 +572,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -640,6 +651,24 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         } else {
           output = { success: true };
           setTimeout(() => { twilioUpdateCall(callSid, `<Response><Dial>${TRANSFER_NUMBER}</Dial></Response>`); cleanup('TRANSFER_TOOL'); }, 1000);
+        }
+      } else if (name === 'submit_maintenance_request') {
+        const reqId = `MR-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY
+          ? { success: true, requestId: reqId, message: 'Maintenance request submitted (staging)' }
+          : { error: 'PMA maintenance intake not yet wired to production API' };
+        if (output.success) {
+          sendToOpenAI({ type: 'session.instructions.append', delegation_id: null,
+            content: `Database confirmed maintenance request ${reqId}. Reference this exact ID if the caller asks.` });
+        }
+      } else if (name === 'submit_showing_request') {
+        const showId = `SH-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        output = STAGING_ONLY
+          ? { success: true, showingId: showId, message: 'Showing request submitted (staging)' }
+          : { error: 'PMA showing intake not yet wired to production API' };
+        if (output.success) {
+          sendToOpenAI({ type: 'session.instructions.append', delegation_id: null,
+            content: `Showing request ${showId} confirmed. The leasing team will follow up within 24 hours.` });
         }
       } else {
         output = { error: 'unknown_tool' };
@@ -824,6 +853,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           transferAllowed = intake.transferAllowed === 'yes' ? 'yes' : 'no';
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
           tools = salesTools(interactionId);
+        } else if (profile === 'pma') {
+          instructions = PMA_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
+          tools = pmaTools;
         } else {
           instructions = APPROVED_SUPPORT_INSTRUCTIONS
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
@@ -949,12 +981,8 @@ function start() {
         callSid = msg.start?.callSid || '';
 
         ws.removeListener('message', firstMessage);
-        if (profile === 'pma') {
-          handlePmaCall(ws, callerPhone, callSid);
-        } else {
-          handleCall(ws, profile, callerPhone, callSid);
-          ws.emit('message', raw);
-        }
+        handleCall(ws, profile, callerPhone, callSid);
+        ws.emit('message', raw);
       };
 
       ws.on('message', firstMessage);
