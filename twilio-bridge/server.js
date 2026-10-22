@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const { detectSafetyIntent } = require('./safety-intents.cjs');
+const { validateIntentId } = require('./sales-intents.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -722,6 +724,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
           if (!interactionId) throw new Error('No verified interaction ID for this call');
+          // Validate intentId — optional; invalid values are stripped, never block the save.
+          if (args.intentId !== undefined) {
+            const vid = validateIntentId(args.intentId);
+            if (vid === 'UNKNOWN') { logEvent(`[${callSid}] intentId stripped: unrecognized`); delete args.intentId; }
+            else if (vid) { args.intentId = vid; }
+          }
           const caller = (args.callerName || '').trim();
           const desc = (args.description || '').trim();
           if (!caller) throw new Error('Lead qualification incomplete: callerName is required before saving.');
@@ -860,6 +868,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   function attachOpenAIHandlers() {
     const toolCallBuffers = {};
     const completedToolCalls = new Set();
+    let safetyTranscriptBuffer = '';
+    const firedSafeIds = new Set();
 
     openaiWs.on('message', (raw) => {
       if (callEnded) return;
@@ -868,6 +878,26 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+
+      // SAFE-001..008: deterministic safety scan — runs for sales and support only,
+      // before any other transcript handling. PMA manages its own emergency routing.
+      if ((profile === 'sales' || profile === 'support')
+          && t === 'session.input_transcript.delta'
+          && typeof msg.delta === 'string' && msg.delta.trim()) {
+        safetyTranscriptBuffer = (safetyTranscriptBuffer + ' ' + msg.delta).slice(-600);
+        const hit = detectSafetyIntent(safetyTranscriptBuffer);
+        if (hit && !firedSafeIds.has(hit.intentId)) {
+          firedSafeIds.add(hit.intentId);
+          logEvent(`[${callSid}] SAFE override intentId=${hit.intentId}`);
+          if (!leadSubmissionPending && !supportSavePending) {
+            clearTwilioAudio();
+            sendToOpenAI({ type: 'response.cancel' });
+          }
+          sendToOpenAI({ type: 'session.instructions.append', content: `\n\n# SAFETY OVERRIDE ${hit.intentId}: ${hit.intent}\nSERVER DETECTED SAFETY SIGNAL. Deliver this script verbatim immediately:\n"${hit.script}"\nThen ask: "Are you safe right now?" If the caller confirms there is no current emergency, resume the conversation naturally.` });
+          sendToOpenAI({ type: 'response.create' });
+        }
+      }
+
       if (STAGING_ONLY && profile === 'support') {
         if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
           supportInputVersion++;
