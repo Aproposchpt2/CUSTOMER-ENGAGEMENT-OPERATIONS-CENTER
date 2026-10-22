@@ -12,6 +12,6 @@ export default function handler(req:NextApiRequest,res:NextApiResponse){
   const data=`pma:${Math.floor(Date.now()/1000)}:${randomBytes(8).toString('hex')}`;
   const token=`${data}:${createHmac('sha256',secret).update(data).digest('hex')}`;
   res.setHeader('Content-Type','text/xml');
-  return res.send(`<?xml version="1.0"?><Response><Connect><Stream url="${url.origin}${url.pathname.replace(/\/$/,'')}/pma"><Parameter name="bridge_token" value="${token}"/></Stream></Connect><Hangup/></Response>`);
+  return res.send(`<?xml version="1.0"?><Response><Connect><Stream url="${url.origin}/ws/pma"><Parameter name="bridge_token" value="${token}"/></Stream></Connect><Hangup/></Response>`);
  }catch(e){return fail(res,e);}
 }

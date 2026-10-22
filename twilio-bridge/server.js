@@ -5,6 +5,22 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
+const ORCH_STAGING_URL='https://hvzauakkhlivzeqatfqm.supabase.co';
+const ORCH_STAGING_TENANT='5885a020-d363-4c27-910a-c035eda132f5';
+const ORCH_RPC_ALLOW=new Set(['stellar_orch_lookup_staging','stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_create_phone_support_test_intake']);
+function buildStagingOrchestrator(env=process.env,request=fetch){
+  if(env.STELLAR_BRIDGE_STAGING!=='true'||env.STAGING_VOICE_ORCHESTRATION_ENABLED!=='true'||env.STAGING_SUPPORT_WRITES_ENABLED!=='true'||env.STAGING_SUPABASE_URL!==ORCH_STAGING_URL||env.CSS_TENANT_ID!==ORCH_STAGING_TENANT||!env.STAGING_SUPABASE_SERVICE_ROLE_KEY)return null;
+  const rpc=async(name,args)=>{
+    if(!ORCH_RPC_ALLOW.has(name))throw Error('ORCHESTRATOR_RPC_REJECTED');
+    const response=await request(ORCH_STAGING_URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{'content-type':'application/json',apikey:env.STAGING_SUPABASE_SERVICE_ROLE_KEY,authorization:'Bearer '+env.STAGING_SUPABASE_SERVICE_ROLE_KEY},body:JSON.stringify(args),signal:AbortSignal.timeout(6000)});
+    if(!response.ok)throw Error('ORCHESTRATOR_RPC_UNAVAILABLE');
+    return response.json();
+  };
+  return createVoiceOrchestrationAdapter({rpc,staging:true,deadlineMs:6500});
+}
+
+
 const { createPmaAdapter } = require('./pma-adapter.cjs');
 const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, options));
 
@@ -375,6 +391,7 @@ const stagingSupportTools = [
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
+  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?buildStagingOrchestrator():null;
   logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
   activeCalls++;
   let openaiWs = null;
@@ -514,7 +531,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         }, 4000);
         supportProgressTimers.add(timer);
         try {
-          const result = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          const result = stagingOrchestrator
+            ? await stagingOrchestrator.submit({trustedCall:{authenticated:true,staging:true,profile:'support',tenantId:ORCH_STAGING_TENANT,callSid},toolCallId:callId,confirmed:true,intake:args})
+            : STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          if (stagingOrchestrator && (result?.success!==true || !result.caseId || !result.customerId)) throw Error('TICKET_NOT_CONFIRMED_'+(result?.state||'UNKNOWN'));
           if (!STAGING_ONLY && (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
             || typeof result.caseId !== 'string' || !result.caseId.trim()))
             throw new Error('Support ticket database confirmation missing');
@@ -789,6 +809,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
