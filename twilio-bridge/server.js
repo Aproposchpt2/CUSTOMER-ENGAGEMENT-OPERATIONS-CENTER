@@ -9,6 +9,8 @@ const { readiness: supportWriteReadiness, submitStagingSupport } = require('./st
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const ELEVENLABS_PMA_AGENT_ID = process.env.ELEVENLABS_PMA_AGENT_ID;
 const BRIDGE_HMAC_SECRET = process.env.BRIDGE_HMAC_SECRET;
 const AI4CC_INTAKE_KEY = process.env.AI4CC_INTAKE_KEY;
 const NETLIFY_BASE_URL = (process.env.NETLIFY_BASE_URL || 'https://stellaruc.com').replace(/\/$/, '');
@@ -109,7 +111,7 @@ function validateBridgeToken(token) {
   try {
     if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expected, 'hex'))) return null;
   } catch { return null; }
-  if (profile !== 'sales' && profile !== 'support') return null;
+  if (profile !== 'sales' && profile !== 'support' && profile !== 'pma') return null;
   return profile;
 }
 
@@ -370,6 +372,99 @@ const stagingSupportTools = [
     parameters: { type: 'object', properties: {}, additionalProperties: false },
   },
 ];
+
+// ─── PMA ElevenLabs bridge ────────────────────────────────────────────────────
+// Bridges Twilio Media Streams (ulaw/8kHz) to ElevenLabs Conversational AI.
+function handlePmaCall(twilioWs, callerPhone, callSid) {
+  logEvent(`[${callSid}] pma call started caller=${callerPhone}`);
+  activeCalls++;
+  let elWs = null;
+  let streamSid = null;
+  let callEnded = false;
+
+  const deadline = setTimeout(() => { logEvent(`[${callSid}] pma max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
+
+  function cleanup(reason) {
+    if (callEnded) return;
+    callEnded = true;
+    clearTimeout(deadline);
+    activeCalls = Math.max(0, activeCalls - 1);
+    logEvent(`[${callSid}] pma cleanup: ${reason}`);
+    if (elWs && elWs.readyState !== WebSocket.CLOSED) elWs.close();
+    if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
+  }
+
+  function sendToTwilio(obj) {
+    if (twilioWs.readyState === WebSocket.OPEN) twilioWs.send(JSON.stringify(obj));
+  }
+
+  twilioWs.on('message', (raw) => {
+    if (callEnded) return;
+    let msg;
+    try { msg = JSON.parse(raw.toString()); } catch { return; }
+
+    if (msg.event === 'start') {
+      if (streamSid) return;
+      streamSid = msg.start?.streamSid || msg.streamSid;
+      logEvent(`[${callSid}] pma stream started sid=${streamSid}`);
+
+      if (!ELEVENLABS_API_KEY || !ELEVENLABS_PMA_AGENT_ID) {
+        logEvent(`[${callSid}] pma ELEVENLABS config missing`);
+        cleanup('CONFIG_MISSING');
+        return;
+      }
+
+      elWs = new WebSocket(
+        `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${ELEVENLABS_PMA_AGENT_ID}`,
+        { headers: { 'xi-api-key': ELEVENLABS_API_KEY } }
+      );
+
+      elWs.once('open', () => {
+        logEvent(`[${callSid}] pma ElevenLabs WS open`);
+        // Optional: send custom dynamic variables for tenant isolation
+        elWs.send(JSON.stringify({
+          type: 'conversation_initiation_client_data',
+          conversation_config_override: {
+            agent: { first_message: 'Hi, thank you for calling Desert Ridge Apartments, managed by Apropos Property Management. This is Ava. How can I help you today?' }
+          },
+          custom_llm_extra_body: { caller_phone: callerPhone, call_sid: callSid },
+        }));
+      });
+
+      elWs.on('message', (elRaw) => {
+        if (callEnded) return;
+        let elMsg;
+        try { elMsg = JSON.parse(elRaw.toString()); } catch { return; }
+        const t = elMsg.type;
+
+        if (t === 'conversation_initiation_metadata') {
+          logEvent(`[${callSid}] pma EL conversation_id=${elMsg.conversation_initiation_metadata_event?.conversation_id}`);
+        } else if (t === 'audio') {
+          const b64 = elMsg.audio_event?.audio_base64;
+          if (b64 && streamSid) sendToTwilio({ event: 'media', streamSid, media: { payload: b64 } });
+        } else if (t === 'interruption') {
+          if (streamSid) sendToTwilio({ event: 'clear', streamSid });
+        } else if (t === 'ping') {
+          elWs.send(JSON.stringify({ type: 'pong', event_id: elMsg.ping_event?.event_id }));
+        } else if (!['agent_response', 'user_transcript', 'pong', 'agent_response_correction'].includes(t)) {
+          logEvent(`[${callSid}] pma el: ${t} ${JSON.stringify(elMsg).slice(0, 100)}`);
+        }
+      });
+
+      elWs.on('close', (code) => { logEvent(`[${callSid}] pma EL ws closed: ${code}`); cleanup('EL_CLOSE'); });
+      elWs.on('error', (e) => { logEvent(`[${callSid}] pma EL ws error: ${e.message}`); cleanup('EL_ERROR'); });
+
+    } else if (msg.event === 'media' && elWs && elWs.readyState === WebSocket.OPEN) {
+      const payload = msg.media?.payload;
+      if (payload) elWs.send(JSON.stringify({ type: 'user_audio_chunk', user_audio_chunk: payload }));
+    } else if (msg.event === 'stop') {
+      cleanup('TWILIO_STOP');
+    }
+  });
+
+  twilioWs.on('close', () => cleanup('TWILIO_CLOSE'));
+  twilioWs.on('error', (e) => { logEvent(`[${callSid}] pma Twilio ws error: ${e.message}`); cleanup('TWILIO_WS_ERROR'); });
+}
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid) {
@@ -827,7 +922,7 @@ function start() {
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
     if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
-    if (profile !== 'sales' && profile !== 'support') { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
+    if (profile !== 'sales' && profile !== 'support' && profile !== 'pma') { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
     logEvent(`[upgrade] accepted profile=${profile}`);
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -854,8 +949,12 @@ function start() {
         callSid = msg.start?.callSid || '';
 
         ws.removeListener('message', firstMessage);
-        handleCall(ws, profile, callerPhone, callSid);
-        ws.emit('message', raw);
+        if (profile === 'pma') {
+          handlePmaCall(ws, callerPhone, callSid);
+        } else {
+          handleCall(ws, profile, callerPhone, callSid);
+          ws.emit('message', raw);
+        }
       };
 
       ws.on('message', firstMessage);
