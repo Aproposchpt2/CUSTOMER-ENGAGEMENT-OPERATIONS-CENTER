@@ -1,5 +1,7 @@
 # Property Management Assistant — remaining environment work
 
+> Current configuration audit: read PROPERTY-MANAGEMENT-CONFIG-AUDIT-20261022.md before continuing. The owner confirms OpenAI/Twilio/Railway is the approved voice stack; ElevenLabs is not used. Railway access is restored. There are 66 loaded property-scoped knowledge entries, with publication-state consistency and a synthetic resident-binding mismatch still to resolve. The PMA preview remains undeployed. This audit supersedes older assumptions about missing content or Railway authentication.
+
 Owner authorization covers implementation and staging. Production requires separate authorization. Keep PR #91 draft and unmerged. Do not deploy the implementation branch.
 
 Repository: Aproposchpt2/ai4-contact-center
