@@ -1,0 +1,349 @@
+{
+  "status": "SOURCE_MAPPING_NOT_ACTIVE",
+  "version": "1.0",
+  "mapping": [
+    {
+      "intent_ref": "SLS-001",
+      "intent_id": "PRODUCT_OVERVIEW",
+      "source_sections": [
+        3,
+        4,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "business_need",
+      "expected_action_from_catalog": "Explain portfolio and discover need",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-002",
+      "intent_id": "PRODUCT_COMPARISON",
+      "source_sections": [
+        3,
+        4,
+        6
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "products",
+      "expected_action_from_catalog": "Compare approved scope",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-003",
+      "intent_id": "PRODUCT_RECOMMENDATION",
+      "source_sections": [
+        5,
+        6
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "problem, coverage, current_process",
+      "expected_action_from_catalog": "Qualify then recommend",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-004",
+      "intent_id": "CEOC_INQUIRY",
+      "source_sections": [
+        3,
+        4,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "topic",
+      "expected_action_from_catalog": "Explain connected operations foundation",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-005",
+      "intent_id": "SALES_SPECIALIST_INQUIRY",
+      "source_sections": [
+        3,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "coverage_need",
+      "expected_action_from_catalog": "Explain engagement and lead capture",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-006",
+      "intent_id": "SUPPORT_SPECIALIST_INQUIRY",
+      "source_sections": [
+        3,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "support_need",
+      "expected_action_from_catalog": "Explain structured support intake",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-007",
+      "intent_id": "PROPERTY_MANAGEMENT_INQUIRY",
+      "source_sections": [
+        3,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "portfolio/use_case",
+      "expected_action_from_catalog": "Explain communication-centered scope",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-008",
+      "intent_id": "COMBINED_SYSTEM_INQUIRY",
+      "source_sections": [
+        3,
+        4,
+        7
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "sales_need, support_need",
+      "expected_action_from_catalog": "Explain shared CEOC and distinct workflows",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-009",
+      "intent_id": "PRICING_QUESTION",
+      "source_sections": [
+        2,
+        7,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "product, usage context",
+      "expected_action_from_catalog": "Use approved commercial knowledge or consultation",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-010",
+      "intent_id": "ROI_QUESTION",
+      "source_sections": [
+        2,
+        8,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "current_cost context",
+      "expected_action_from_catalog": "Discuss value without guarantee",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-011",
+      "intent_id": "FEATURE_QUESTION",
+      "source_sections": [
+        2,
+        3,
+        7,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "product, feature",
+      "expected_action_from_catalog": "Return truth-classified answer",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-012",
+      "intent_id": "INTEGRATION_QUESTION",
+      "source_sections": [
+        2,
+        7,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "system, workflow, data need",
+      "expected_action_from_catalog": "Capture requirement; technical review",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-013",
+      "intent_id": "DEMO_REQUEST",
+      "source_sections": [
+        9,
+        10,
+        14,
+        20
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "contact, products, preferred_time",
+      "expected_action_from_catalog": "Create verified demo request",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-014",
+      "intent_id": "CONSULTATION_REQUEST",
+      "source_sections": [
+        9,
+        10,
+        14,
+        20
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "contact, need",
+      "expected_action_from_catalog": "Create verified consultation request",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-015",
+      "intent_id": "LEAD_QUALIFICATION",
+      "source_sections": [
+        5,
+        9,
+        10
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "contact, business, problem, urgency",
+      "expected_action_from_catalog": "Collect structured fit data",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-016",
+      "intent_id": "BUSINESS_DISCOVERY",
+      "source_sections": [
+        5,
+        9,
+        10
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "coverage, volume, process, goals",
+      "expected_action_from_catalog": "Ask one question at a time",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-017",
+      "intent_id": "COVERAGE_QUESTION",
+      "source_sections": [
+        7,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "hours/periods",
+      "expected_action_from_catalog": "Explain configurable coverage caveat",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-018",
+      "intent_id": "AFTER_HOURS_QUESTION",
+      "source_sections": [
+        7,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "schedule",
+      "expected_action_from_catalog": "Explain approved after-hours model",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-019",
+      "intent_id": "MISSED_CALL_QUESTION",
+      "source_sections": [
+        5,
+        6,
+        10
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "missed periods, call types",
+      "expected_action_from_catalog": "Quantify pain and recommend fit",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-020",
+      "intent_id": "IMPLEMENTATION_QUESTION",
+      "source_sections": [
+        7,
+        11,
+        16
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "product",
+      "expected_action_from_catalog": "Describe approved discovery/config/testing process",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-021",
+      "intent_id": "ONBOARDING_QUESTION",
+      "source_sections": [
+        7,
+        9,
+        16
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "business info, KB, routing",
+      "expected_action_from_catalog": "List approved setup information",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-022",
+      "intent_id": "OBJECTION_COST",
+      "source_sections": [
+        8,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "concern",
+      "expected_action_from_catalog": "Value response; no pressure/guarantee",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-023",
+      "intent_id": "OBJECTION_ALREADY_HAVE_STAFF",
+      "source_sections": [
+        8,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "coverage gap",
+      "expected_action_from_catalog": "Position augmentation",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-024",
+      "intent_id": "OBJECTION_ALREADY_HAVE_VOICEMAIL",
+      "source_sections": [
+        8,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "current_process",
+      "expected_action_from_catalog": "Contrast structured conversation/capture",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    },
+    {
+      "intent_ref": "SLS-025",
+      "intent_id": "OBJECTION_AI_CONCERNS",
+      "source_sections": [
+        8,
+        11
+      ],
+      "source_document": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "required_entities_from_catalog": "concern",
+      "expected_action_from_catalog": "Explain approved knowledge and fallback",
+      "runtime_status": "NOT_VERIFIED",
+      "publication_gate": "approved=true; publication_state=published; visibility=public; audience_scope=public; source_status=VERIFIED; tenant match"
+    }
+  ]
+}
