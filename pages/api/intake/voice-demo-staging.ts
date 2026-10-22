@@ -10,7 +10,23 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
   if(process.env.NEXT_PUBLIC_SUPABASE_URL!=='https://hvzauakkhlivzeqatfqm.supabase.co'||!process.env.SUPABASE_SERVICE_ROLE_KEY)throw new PmaError('Staging storage unavailable',503);
   const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
   const record=async(args:Record<string,unknown>)=>result(await admin.rpc('stellar_voice_demo_session_staging',{t:process.env.AI4CC_VOICE_DEMO_TENANT_ID,p:process.env.PMA_STAGING_PROPERTY_ID,c:process.env.PMA_STAGING_CONTACT_ID,...args}));
-  const knowledge=async(agentRoute:string)=>result(await admin.from('ai4cc_knowledge_entries').select('id,title,content,tags,approved,publication_state,visibility,source_status,version_num,valid_until,effective_at,expires_at').eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID).is('property_id',null).is('unit_id',null).eq('approved',true).eq('publication_state','published').eq('visibility','public').eq('source_status','VERIFIED').contains('tags',['agent:'+agentRoute]).limit(12))??[];
+  const knowledge=async(agentRoute:string)=>{
+    // PMA public knowledge must be scoped to the configured staging property.
+    // Never load resident, staff, unit-private, unreviewed, or draft material into a shared voice prompt.
+    const query=admin.from('ai4cc_knowledge_entries')
+      .select('id,title,content,tags,approved,publication_state,visibility,source_status,version_num,valid_until,effective_at,expires_at')
+      .eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID)
+      .is('unit_id',null)
+      .eq('approved',true)
+      .eq('publication_state','published')
+      .eq('visibility','public')
+      .eq('source_status','VERIFIED');
+    if(agentRoute==='property-management-assistant'){
+      if(!process.env.PMA_STAGING_PROPERTY_ID)throw new PmaError('Property binding unavailable',503);
+      return result(await query.eq('property_id',process.env.PMA_STAGING_PROPERTY_ID).limit(12))??[];
+    }
+    return result(await query.is('property_id',null).contains('tags',['agent:'+agentRoute]).limit(12))??[];
+  };
   const workflow=async(body:{action:string;operation?:string;operationId?:string;args:Record<string,unknown>},session:{call_sid:string;session_id:string})=>{
    const tenant=process.env.AI4CC_VOICE_DEMO_TENANT_ID;
    if(body.action==='sales_submit')return result(await admin.rpc('stellar_voice_demo_sales_submit_staging',{t:tenant,p:process.env.PMA_STAGING_PROPERTY_ID,c:process.env.PMA_STAGING_CONTACT_ID,actor:process.env.PMA_CHANNEL_ACTOR_USER_ID,session_id:session.session_id,payload:body.args}));
