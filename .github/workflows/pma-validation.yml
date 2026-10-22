@@ -13,7 +13,7 @@ on:
       - 'scripts/pma-browser-smoke.cjs'
       - '.github/workflows/pma-validation.yml'
   push:
-    branches: [feature/property-management-assistant-mvp, fix/pma-voice-knowledge-binding-20261022]
+    branches: [feature/property-management-assistant-mvp, fix/pma-voice-knowledge-binding-20261022, fix/pma-availability-lookup-20261022]
 permissions:
   contents: read
 jobs:
