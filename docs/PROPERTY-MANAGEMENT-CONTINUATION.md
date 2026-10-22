@@ -19,3 +19,9 @@ PR: https://github.com/Aproposchpt2/ai4-contact-center/pull/91
 
 ## Knowledge behavior to preserve
 Platform → existing owner tenant_id → property_id → unit_id. The compiled platform safety rules cannot be overridden by retrieved content. Private owner/vendor content stays internal. Only approved, current, authorized answer content is quoted. Equally specific multiple matches escalate; timestamps do not resolve policy conflict. Structured template values are reference fields; the owner-reviewed answer is the spoken/text reply. Null fields are unknown. All channels use canonical transactional workflow logs. No applicant/housing/financial decisions, legal advice, availability/repair promises or fabricated emergency/provider delivery claims.
+
+## Saved implementation evidence
+Knowledge implementation commit: `2d0cadaa64567c5b952e9738c46708a79f8afcd8`.
+Standard CI: https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39700448994 (success).
+Browser/build validation: https://github.com/Aproposchpt2/ai4-contact-center/actions/runs/39700449022 (success; mocked sessions/API).
+All 127 tests, TypeScript and optimized build passed. The mobile knowledge screenshot was inspected. An earlier browser failure identifying the scope selector was fixed with explicit accessible labels and the full workflow then passed. Final read-only staging inspection confirmed that the thirteenth knowledge migration remains absent and no canonical model copy is installed. Code and migration are saved; execution and real-environment acceptance are the remaining work.
