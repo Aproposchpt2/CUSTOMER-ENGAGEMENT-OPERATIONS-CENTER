@@ -3,7 +3,8 @@ import {createClient} from '@supabase/supabase-js';
 import {createHmac,timingSafeEqual} from 'crypto';
 import {validateRequest} from 'twilio';
 import {stagingGate,result} from './server';
-import {classify,optionalUuid,text,uuid,PmaError} from './domain';
+import {text,uuid,PmaError} from './domain';
+import {intentArguments} from './intentCatalog';
 
 export function stagingTransportGate(){
  stagingGate();
@@ -37,6 +38,6 @@ export async function trustedPmaTurn(body:Record<string,unknown>,channel:'voice'
  if(!property)throw new PmaError('Staging property unavailable',503);
  const contact=result(await admin.from('ai4cc_contacts').select('id,metadata').eq('tenant_id',property.tenant_id).eq('id',contactId).single());
  if(!contact||contact.metadata?.synthetic!==true)throw new PmaError('Only synthetic staging contacts are allowed',403);
- const classification=classify(body.message);
- return result(await admin.rpc('pm_trusted_channel_turn',{actor,t:property.tenant_id,p:propertyId,c:contactId,u:optionalUuid(process.env.PMA_STAGING_UNIT_ID,'staging unit'),k:text(body.operationKey,'operation key',160),ch:channel,msg:text(body.message,'message',4000),intent:classification.intent,category:classification.category,priority:classification.priority,show_at:body.showingAt??null,request_id:optionalUuid(body.requestId,'request')}));
+ const prepared=intentArguments({...body,workflowData:{}},{tenantId:property.tenant_id,propertyId,contactId,unitId:process.env.PMA_STAGING_UNIT_ID},channel);
+ return result(await admin.rpc('pm_trusted_catalog_turn',{actor,...prepared.args}));
 }

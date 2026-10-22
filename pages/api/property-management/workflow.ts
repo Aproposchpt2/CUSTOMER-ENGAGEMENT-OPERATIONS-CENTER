@@ -1,3 +1,4 @@
+import {intentDecision} from '@/lib/propertyManagement/intentCatalog';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { pmaSession, privateResponse, result, fail } from '@/lib/propertyManagement/server';
 import { assertTransition, classify, futureTime, oneOf, optionalUuid, PmaError, statuses, text, uuid } from '@/lib/propertyManagement/domain';
@@ -22,7 +23,7 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse) {
       if(!updated)throw new PmaError('Showing changed; refresh and retry',409);
       return res.json({showing:updated});
     }
-    if(b.action==='classify') return res.json({classification:classify(b.message),persisted:false});
+    if(b.action==='classify') return res.json({classification:intentDecision(b.message,b.modelOutput),persisted:false});
     if(b.action==='assign') return res.json({assignment:result(await db.rpc('pm_assign_vendor',{t:tenantId,p:uuid(b.propertyId),r:uuid(b.requestId),v:uuid(b.vendorId)})),notificationSent:false});
     if(b.action==='showing') return res.status(201).json({showing:result(await db.rpc('pm_request_showing',{t:tenantId,p:uuid(b.propertyId),u:optionalUuid(b.unitId,'unit'),c:uuid(b.contactId),at_time:futureTime(b.requestedAt),n:text(b.notes??'','notes',4000,false),k:text(b.operationKey,'operation key',200)})),availabilityGuaranteed:false});
     if(b.action==='transition') {

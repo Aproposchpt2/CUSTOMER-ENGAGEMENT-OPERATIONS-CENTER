@@ -28,3 +28,11 @@ test('PMA voice timeout and malformed return cannot announce a saved request',as
  const malformed=createPmaAdapter(env,async()=>({ok:true,json:async()=>({result:{reply:'created'}})}));
  assert.equal((await malformed.submit(args,ctx)).success,false);
 });
+test('PMA voice forwards validated catalog proposals and never delays safety for confirmation',async()=>{
+ const bodies:any[]=[];const adapter=createPmaAdapter(env,async(_url:string,options:any)=>{bodies.push(JSON.parse(options.body));return {ok:true,json:async()=>({result:{persisted:true,interactionId:'10000000-0000-4000-8000-000000000001'}})};});
+ assert.equal((await adapter.submit({message:'I smell gas',confirmed:false,intent:'GENERAL_GREETING',confidence:0,entities:{tenant_id:'injected'}},ctx)).success,true);
+ assert.equal(bodies[0].confirmed,false);assert.equal(bodies[0].modelOutput,undefined);
+ assert.equal((await adapter.submit({message:'Question',confirmed:false,intent:'PET_POLICY',confidence:0.78,entities:{topic:'pets'}},ctx)).success,true);
+ assert.equal(bodies[1].modelOutput.intent,'PET_POLICY');assert.equal(bodies[1].modelOutput.confidence,0.78);
+ const before=bodies.length;assert.equal((await adapter.submit({message:'Question',confirmed:true,intent:'OWNER_OVERRIDE',confidence:1,entities:{owner:true}},ctx)).state,'INVALID_CLASSIFICATION');assert.equal(bodies.length,before);
+});

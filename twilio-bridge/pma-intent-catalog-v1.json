@@ -1,0 +1,518 @@
+{
+  "version": "1.0",
+  "thresholds": {
+    "high": 0.9,
+    "medium": 0.7,
+    "rule": 0.94,
+    "ambiguous": 0.78,
+    "unknown": 0.3
+  },
+  "availabilityMaxAgeHours": 24,
+  "scoreDisclaimer": "Rule scores are conservative routing heuristics, not calibrated probabilities. A model score never conveys authorization.",
+  "scopeNote": "platform_tenant_id and the legacy tenant_id both mean the existing owner workspace; residents remain contacts/occupancies.",
+  "modelFields": [
+    "topic",
+    "bedrooms",
+    "move_date",
+    "impact",
+    "category",
+    "description",
+    "safety_indicators",
+    "response",
+    "vendor_status",
+    "notes",
+    "followup_requested"
+  ],
+  "canonicalFields": [
+    "intent",
+    "confidence",
+    "channel",
+    "platform_tenant_id",
+    "property_id",
+    "unit_id",
+    "contact_role",
+    "contact_id",
+    "tenant_id",
+    "prospect_id",
+    "workflow_action",
+    "priority",
+    "requires_clarification",
+    "requires_escalation",
+    "requires_notification",
+    "safety_override",
+    "knowledge_entry_ids",
+    "correlation_id",
+    "timestamp"
+  ],
+  "intents": [
+    {
+      "id": "INT-001",
+      "intent": "LEASING_INQUIRY",
+      "agent": "Leasing Agent",
+      "workflow": "WF-001 Leasing Inquiry",
+      "action": "leasing",
+      "required": [
+        "property"
+      ],
+      "pattern": "tell me about the property|how much is rent|leasing|amenities",
+      "examples": [
+        "What units do you have?",
+        "Tell me about the property.",
+        "How much is rent?"
+      ],
+      "restrictions": "No guaranteed availability or pricing.",
+      "safety": false,
+      "legacy": "leasing_inquiry"
+    },
+    {
+      "id": "INT-002",
+      "intent": "UNIT_AVAILABILITY",
+      "agent": "Leasing Agent",
+      "workflow": "Availability Lookup",
+      "action": "availability",
+      "required": [
+        "property",
+        "unit_preference",
+        "move_date"
+      ],
+      "pattern": "available|availability|bedrooms?|next opening",
+      "examples": [
+        "Do you have a two-bedroom?",
+        "When is the next opening?"
+      ],
+      "restrictions": "Use only fresh authoritative inventory; never guarantee availability.",
+      "safety": false,
+      "legacy": "leasing_inquiry"
+    },
+    {
+      "id": "INT-003",
+      "intent": "SHOWING_REQUEST",
+      "agent": "Leasing Agent",
+      "workflow": "WF-002 Showing Request",
+      "action": "showing",
+      "required": [
+        "property",
+        "prospect_name",
+        "contact_method",
+        "showing_time"
+      ],
+      "pattern": "showing|tour|see the unit|visit the (unit|property)",
+      "examples": [
+        "Can I see the unit?",
+        "Schedule a showing."
+      ],
+      "restrictions": "Requested times are not confirmed until the workflow/calendar confirms them.",
+      "safety": false,
+      "legacy": "showing_request"
+    },
+    {
+      "id": "INT-004",
+      "intent": "APPLICATION_QUESTION",
+      "agent": "Leasing Agent",
+      "workflow": "Application Question Workflow",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "topic"
+      ],
+      "pattern": "apply|applying|application|what is the fee",
+      "examples": [
+        "How do I apply?",
+        "What is the fee?"
+      ],
+      "restrictions": "No screening, applicant approval/rejection or legal determination.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-005",
+      "intent": "PROPERTY_POLICY",
+      "agent": "Tenant Assistant",
+      "workflow": "Knowledge Response",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "topic",
+        "audience"
+      ],
+      "pattern": "policy|policies|quiet hours|guests use|smoking|balcony|trash|grill",
+      "examples": [
+        "What are quiet hours?",
+        "Can guests use the pool?"
+      ],
+      "restrictions": "Missing, expired or conflicting knowledge escalates.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-006",
+      "intent": "PET_POLICY",
+      "agent": "Tenant Assistant",
+      "workflow": "Policy Knowledge Workflow",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "topic"
+      ],
+      "pattern": "pets?|pet rent|service animals?|assistance animals?",
+      "examples": [
+        "Are pets allowed?",
+        "How much is pet rent?"
+      ],
+      "restrictions": "No assistance-animal eligibility decisions.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-007",
+      "intent": "PARKING_QUESTION",
+      "agent": "Tenant Assistant",
+      "workflow": "Policy Knowledge Workflow",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "audience"
+      ],
+      "pattern": "parking|park|permit|towed|towing",
+      "examples": [
+        "Where can guests park?",
+        "Do I need a permit?"
+      ],
+      "restrictions": "Never expose private resident or vehicle information.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-008",
+      "intent": "MOVE_IN",
+      "agent": "Tenant Assistant",
+      "workflow": "WF-013 Move-In",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "unit",
+        "resident_identity"
+      ],
+      "pattern": "move[ -]?in|moving in|how do i get (my )?keys|key pickup",
+      "examples": [
+        "How do I get keys?",
+        "What do I need before move-in?"
+      ],
+      "restrictions": "No access credentials before authorization.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-009",
+      "intent": "MOVE_OUT",
+      "agent": "Tenant Assistant",
+      "workflow": "WF-014 Move-Out",
+      "action": "knowledge",
+      "required": [
+        "property",
+        "unit",
+        "resident_identity"
+      ],
+      "pattern": "move[ -]?out|moving out|notice is required|return (my )?keys",
+      "examples": [
+        "How much notice is required?",
+        "Where do I return keys?"
+      ],
+      "restrictions": "No lease interpretation or legal advice.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-010",
+      "intent": "MAINTENANCE_REQUEST",
+      "agent": "Maintenance Intake Agent",
+      "workflow": "WF-005 Maintenance Request",
+      "action": "maintenance",
+      "required": [
+        "property",
+        "unit_or_common_area",
+        "contact",
+        "category",
+        "description",
+        "impact",
+        "safety_indicators"
+      ],
+      "pattern": "leak(?:ing)?|broken|not working|repair|maintenance|no heat|no cooling|clogged|pests?|locked out|internet down",
+      "examples": [
+        "My AC is not working.",
+        "Water is leaking."
+      ],
+      "restrictions": "No guaranteed repair time, assignment or resolution.",
+      "safety": false,
+      "legacy": "maintenance_request"
+    },
+    {
+      "id": "INT-011",
+      "intent": "MAINTENANCE_STATUS",
+      "agent": "Tenant Assistant",
+      "workflow": "Maintenance Status Lookup",
+      "action": "status",
+      "required": [
+        "property",
+        "resident_identity",
+        "request_or_unit"
+      ],
+      "pattern": "(repair|maintenance|request|ticket).*(status|update|progress)|(status|update).*(repair|request|ticket)|has anyone been assigned|what is happening with my request",
+      "examples": [
+        "Has anyone been assigned?",
+        "What is happening with my request?"
+      ],
+      "restrictions": "Never expose another resident\u2019s request.",
+      "safety": false,
+      "legacy": "maintenance_status"
+    },
+    {
+      "id": "INT-012",
+      "intent": "FIRE_OR_SMOKE",
+      "agent": "Emergency Escalation Agent",
+      "workflow": "WF-006 Emergency",
+      "action": "emergency",
+      "required": [],
+      "pattern": "fire|smoke",
+      "examples": [
+        "There is a fire.",
+        "The unit is filling with smoke."
+      ],
+      "restrictions": "Safety first; no fabricated emergency-services dispatch.",
+      "safety": true,
+      "legacy": "emergency_event"
+    },
+    {
+      "id": "INT-013",
+      "intent": "SUSPECTED_GAS_LEAK",
+      "agent": "Emergency Escalation Agent",
+      "workflow": "WF-006 Emergency",
+      "action": "emergency",
+      "required": [],
+      "pattern": "gas leak|smell gas|gas odou?r|smells like gas",
+      "examples": [
+        "I smell gas.",
+        "There may be a gas leak."
+      ],
+      "restrictions": "Do not troubleshoot or delay evacuation guidance.",
+      "safety": true,
+      "legacy": "emergency_event"
+    },
+    {
+      "id": "INT-014",
+      "intent": "ELECTRICAL_HAZARD",
+      "agent": "Emergency Escalation Agent",
+      "workflow": "WF-006 Emergency",
+      "action": "emergency",
+      "required": [],
+      "pattern": "sparks?|sparking|electrical hazard|exposed (?:wire|wires|conductors)|panel is smoking",
+      "examples": [
+        "The outlet is sparking.",
+        "The panel is smoking."
+      ],
+      "restrictions": "No unsafe physical intervention.",
+      "safety": true,
+      "legacy": "emergency_event"
+    },
+    {
+      "id": "INT-015",
+      "intent": "MAJOR_FLOODING",
+      "agent": "Emergency Escalation Agent",
+      "workflow": "WF-006 Emergency",
+      "action": "emergency",
+      "required": [],
+      "pattern": "flooding|burst (?:pipe|plumbing)|pipe burst|water is pouring|uncontrolled water",
+      "examples": [
+        "A pipe burst.",
+        "Water is pouring into the unit."
+      ],
+      "restrictions": "No promised shutoff or vendor arrival.",
+      "safety": true,
+      "legacy": "emergency_event"
+    },
+    {
+      "id": "INT-016",
+      "intent": "PERSONAL_SAFETY_THREAT",
+      "agent": "Emergency Escalation Agent",
+      "workflow": "WF-006 Emergency",
+      "action": "emergency",
+      "required": [],
+      "pattern": "security threat|threatening me|dangerous person|violence|structural threat|ceiling collaps\\w*",
+      "examples": [
+        "Someone is threatening me.",
+        "A dangerous person is on the property."
+      ],
+      "restrictions": "Do not mediate or delay safety guidance to collect details. Structural threats are conservatively escalated here.",
+      "safety": true,
+      "legacy": "emergency_event"
+    },
+    {
+      "id": "INT-017",
+      "intent": "VENDOR_RESPONSE",
+      "agent": "Vendor Coordination Agent",
+      "workflow": "WF-007 Vendor Assignment",
+      "action": "vendor_response",
+      "required": [
+        "vendor_identity",
+        "assignment",
+        "response"
+      ],
+      "pattern": "(?:vendor|contractor).*(?:accept|decline)|i can take the job|we need more information",
+      "examples": [
+        "I can take the job.",
+        "We need more information."
+      ],
+      "restrictions": "No contract or spending authority.",
+      "safety": false,
+      "legacy": "vendor_response"
+    },
+    {
+      "id": "INT-018",
+      "intent": "VENDOR_STATUS_UPDATE",
+      "agent": "Vendor Coordination Agent",
+      "workflow": "WF-008 Vendor Completion",
+      "action": "vendor_status",
+      "required": [
+        "vendor_identity",
+        "assignment",
+        "vendor_status",
+        "notes"
+      ],
+      "pattern": "work has started|repair is complete|(?:vendor|contractor).*(?:completed|scheduled|progress)",
+      "examples": [
+        "Work has started.",
+        "Repair is complete."
+      ],
+      "restrictions": "Completion is a report; staff verify and close the request.",
+      "safety": false,
+      "legacy": "vendor_response"
+    },
+    {
+      "id": "INT-019",
+      "intent": "OWNER_REQUEST",
+      "agent": "Owner Assistant",
+      "workflow": "Owner Dashboard Query",
+      "action": "owner_query",
+      "required": [
+        "owner_identity",
+        "query"
+      ],
+      "pattern": "show open requests|what happened today|owner (?:request|dashboard|summary)",
+      "examples": [
+        "Show open requests.",
+        "What happened today?"
+      ],
+      "restrictions": "Existing authenticated owner/admin scope only; no cross-tenant aggregation.",
+      "safety": false,
+      "legacy": "unknown_question"
+    },
+    {
+      "id": "INT-020",
+      "intent": "OWNER_OVERRIDE",
+      "agent": "Owner Assistant",
+      "workflow": "Owner Decision Workflow",
+      "action": "owner_override",
+      "required": [
+        "owner_identity",
+        "property",
+        "target",
+        "change",
+        "confirmation"
+      ],
+      "pattern": "assign this vendor|escalate this issue|change (?:the )?priority|owner override",
+      "examples": [
+        "Assign this vendor.",
+        "Escalate this issue."
+      ],
+      "restrictions": "Authentication, explicit confirmation, target/version checks and audit required.",
+      "safety": false,
+      "legacy": "unknown_question"
+    },
+    {
+      "id": "INT-021",
+      "intent": "PAYMENT_QUESTION",
+      "agent": "Tenant Assistant",
+      "workflow": "Payment Information Workflow",
+      "action": "payment",
+      "required": [
+        "property",
+        "resident_identity",
+        "topic"
+      ],
+      "pattern": "pay rent|payment|balance",
+      "examples": [
+        "How do I pay rent?",
+        "Was my payment received?"
+      ],
+      "restrictions": "Approved instructions only without an authorized accounting integration; no balances or financial advice.",
+      "safety": false,
+      "legacy": "policy_question"
+    },
+    {
+      "id": "INT-022",
+      "intent": "LEASE_QUESTION",
+      "agent": "Tenant Assistant",
+      "workflow": "Lease Question Escalation",
+      "action": "lease",
+      "required": [
+        "property",
+        "resident_identity",
+        "question"
+      ],
+      "pattern": "what does this clause mean|break my lease|lease terms|lease interpretation|legal advice",
+      "examples": [
+        "What does this clause mean?",
+        "Can I break my lease?"
+      ],
+      "restrictions": "No lease interpretation or legal advice.",
+      "safety": false,
+      "legacy": "unknown_question"
+    },
+    {
+      "id": "INT-023",
+      "intent": "UNKNOWN_QUESTION",
+      "agent": "Tenant Assistant",
+      "workflow": "WF-009 Knowledge Escalation",
+      "action": "unknown",
+      "required": [],
+      "pattern": "(?!)",
+      "examples": [
+        "Unrecognized or unsupported request."
+      ],
+      "restrictions": "Create a human follow-up and knowledge gap; never fabricate an answer.",
+      "safety": false,
+      "legacy": "unknown_question"
+    },
+    {
+      "id": "INT-024",
+      "intent": "HELP_REQUEST",
+      "agent": "Channel Agent",
+      "workflow": "System Help",
+      "action": "help",
+      "required": [],
+      "pattern": "what can you (?:help|do)|how can you help|what do you do",
+      "examples": [
+        "What can you help me with?"
+      ],
+      "restrictions": "Describe only available capabilities for the verified role.",
+      "safety": false,
+      "legacy": "unknown_question"
+    },
+    {
+      "id": "INT-025",
+      "intent": "GENERAL_GREETING",
+      "agent": "Channel Agent",
+      "workflow": "Greeting",
+      "action": "greeting",
+      "required": [],
+      "pattern": "^(?:hello|hi|hey|good (?:morning|afternoon|evening))[!. ]*$",
+      "examples": [
+        "Hello.",
+        "Good morning."
+      ],
+      "restrictions": "No lead, work order or follow-up task for greeting alone.",
+      "safety": false,
+      "legacy": "unknown_question"
+    }
+  ]
+}
