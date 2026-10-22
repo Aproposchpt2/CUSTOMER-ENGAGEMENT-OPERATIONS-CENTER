@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { persistentKnowledge } from '@/lib/knowledgePersistence';
 import {
   createEntry,
   deleteEntry,
@@ -29,6 +30,7 @@ export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<KnowledgeEntry[] | KnowledgeEntry | { ok: true } | ErrorResponse>
 ) {
+  if (process.env.KNOWLEDGE_PERSISTENCE_ENABLED === 'true') return persistentKnowledge(req, res);
   const action = req.query.action;
   const actionValue = Array.isArray(action) ? action[0] : action;
 

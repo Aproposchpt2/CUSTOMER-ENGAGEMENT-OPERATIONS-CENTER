@@ -11,6 +11,7 @@ export type MissionControlModule = {
 };
 
 export const missionControlModules: MissionControlModule[] = [
+  { id: 'property-management', name: 'Property Management Assistant', route: '/property-management', group: 'Property Operations', maturity: 'development' },
   { id: 'flow-library', name: 'Flow Library', route: '/dashboard', group: 'Flow Authoring', maturity: 'canonical' },
   { id: 'builder', name: 'Builder', route: '/builder', group: 'Flow Authoring', maturity: 'canonical' },
   { id: 'designer', name: 'Designer', route: '/designer', group: 'Flow Authoring', maturity: 'development' },

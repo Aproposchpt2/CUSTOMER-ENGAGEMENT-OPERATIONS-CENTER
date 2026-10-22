@@ -21,6 +21,7 @@ const NAV = [
   { href: '/agent-workspace', label: 'Agent Workspace' },
   { href: '/lead-management', label: 'Lead Management' },
   { href: '/customer-360', label: 'Customer 360' },
+  { href: '/property-management', label: 'Property Management' },
   { href: '/voicemails', label: 'Voicemails' },
   { href: '/voice-operations', label: 'Voice Operations' },
   { href: '/analytics-engine', label: 'Analytics Engine' },
@@ -108,11 +109,11 @@ export default function Header({ publicProductName = 'STELLAR INTELLIGENT TECHNO
   // Safe default is minimal, not maximal: a visitor with no resolved workspace (signed out, or
   // context still loading) must never see the full internal tool list. Only an explicit
   // workspace.modules === 'all' (staff on the operator host) unlocks everything.
-  const visibleNav = workspace?.modules === 'all'
+  const visibleNav = (workspace?.modules === 'all'
     ? NAV
     : workspace
       ? NAV.filter(({ href }) => (workspace.modules as string[]).includes(href))
-      : [];
+      : []).filter(({href}) => href !== '/property-management' || process.env.NEXT_PUBLIC_PMA_ENABLED === 'true');
   const showBuilderCta = workspace?.modules === 'all' || (Array.isArray(workspace?.modules) && workspace.modules.includes('/builder'));
   const brandName = workspace?.branding?.companyName || workspace?.tenant.name || null;
   const brandProduct = workspace?.branding?.productName || 'Intelligent Customer Engagement Operation Center';

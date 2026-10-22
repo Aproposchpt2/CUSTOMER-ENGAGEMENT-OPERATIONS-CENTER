@@ -1,0 +1,45 @@
+# Dedicated PMA staging app. Existing fly.toml belongs to the shared bridge.
+app = "ai4-pma-bridge-staging"
+primary_region = "lax"
+kill_signal = "SIGTERM"
+kill_timeout = "10s"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  STELLAR_BRIDGE_STAGING = "true"
+  PMA_CHANNELS_ENABLED = "true"
+  VOICE_DEMO_IVR_ENABLED = "true"
+  PMA_STAGING_BASE_URL = "https://pma-validation--ai4cc-staging.netlify.app"
+  NETLIFY_BASE_URL = "https://pma-validation--ai4cc-staging.netlify.app"
+  STAGING_SUPPORT_WRITES_ENABLED = "false"
+  STAGING_VOICE_ORCHESTRATION_ENABLED = "false"
+  MAX_CONCURRENT_CALLS = "3"
+  MAX_CALL_DURATION_MS = "2700000"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 3
+    hard_limit = 6
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/health"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

@@ -5,6 +5,28 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
+const ORCH_STAGING_URL='https://hvzauakkhlivzeqatfqm.supabase.co';
+const ORCH_STAGING_TENANT='5885a020-d363-4c27-910a-c035eda132f5';
+const ORCH_RPC_ALLOW=new Set(['stellar_orch_lookup_staging','stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_create_phone_support_test_intake']);
+function buildStagingOrchestrator(env=process.env,request=fetch){
+  if(env.STELLAR_BRIDGE_STAGING!=='true'||env.STAGING_VOICE_ORCHESTRATION_ENABLED!=='true'||env.STAGING_SUPPORT_WRITES_ENABLED!=='true'||env.STAGING_SUPABASE_URL!==ORCH_STAGING_URL||env.CSS_TENANT_ID!==ORCH_STAGING_TENANT||!env.STAGING_SUPABASE_SERVICE_ROLE_KEY)return null;
+  const rpc=async(name,args)=>{
+    if(!ORCH_RPC_ALLOW.has(name))throw Error('ORCHESTRATOR_RPC_REJECTED');
+    const response=await request(ORCH_STAGING_URL+'/rest/v1/rpc/'+name,{method:'POST',headers:{'content-type':'application/json',apikey:env.STAGING_SUPABASE_SERVICE_ROLE_KEY,authorization:'Bearer '+env.STAGING_SUPABASE_SERVICE_ROLE_KEY},body:JSON.stringify(args),signal:AbortSignal.timeout(6000)});
+    if(!response.ok)throw Error('ORCHESTRATOR_RPC_UNAVAILABLE');
+    return response.json();
+  };
+  return createVoiceOrchestrationAdapter({rpc,staging:true,deadlineMs:6500});
+}
+
+
+const { createPmaAdapter } = require('./pma-adapter.cjs');
+const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, options));
+const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./voice-entry.cjs');
+const voiceEntry=createVoiceEntry(process.env);
+const voicePrompts=require('./voice-system-prompts.json');
+const {startReceptionist}=require('./voice-receptionist.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -109,7 +131,7 @@ function validateBridgeToken(token) {
   try {
     if (!crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expected, 'hex'))) return null;
   } catch { return null; }
-  if (profile !== 'sales' && profile !== 'support') return null;
+  if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled)) return null;
   return profile;
 }
 
@@ -372,8 +394,9 @@ const stagingSupportTools = [
 ];
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
-async function handleCall(twilioWs, profile, callerPhone, callSid) {
-  logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
+async function handleCall(twilioWs, profile, callerPhone, callSid, session=null) {
+  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?(session?createVoiceOrchestrationAdapter({rpc:(name,args,context)=>voiceEntry.supportRpc(session,name,args,context.operationId),staging:true,deadlineMs:9000}):buildStagingOrchestrator()):null;
+  logEvent(`[${callSid}] ${profile} call started${session ? ' session='+session.session_id+' agentRoute='+session.agentRoute : ''}`);
   activeCalls++;
   let openaiWs = null;
   let streamSid = null;
@@ -414,6 +437,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
+    if(session)void voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
     if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
@@ -456,7 +480,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+        instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
@@ -466,7 +490,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -483,14 +507,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'submit_business_profile') {
+      if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+        output = await pmaAdapter.submit(args, { callSid, callId });
+      } else if (name === 'submit_business_profile') {
+        if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
+        if(session&&args.confirmed!==true)throw new Error('Lead details require caller confirmation');
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
           if (!interactionId) throw new Error('No verified interaction ID for this call');
           leadSubmissionPending = true;
           try {
-            const persisted = await callSalesIntakeSubmit({ ...args, interactionId });
+            const persisted = session ? await voiceEntry.salesSubmit(session,{...args,interactionId:session.session_id}) : await callSalesIntakeSubmit({ ...args, interactionId });
             if (!persisted || typeof persisted.lead?.id !== 'string' || !persisted.lead.id.trim()) throw new Error('Lead persistence not confirmed by intake API');
             leadSaved = true;
             output = { success: true, leadId: persisted.lead.id };
@@ -510,7 +538,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         }, 4000);
         supportProgressTimers.add(timer);
         try {
-          const result = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          const result = stagingOrchestrator
+            ? await stagingOrchestrator.submit({trustedCall:{authenticated:true,staging:true,profile:'support',tenantId:ORCH_STAGING_TENANT,callSid},toolCallId:callId,confirmed:true,intake:args})
+            : STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          if (stagingOrchestrator && (result?.success!==true || !result.caseId || !result.customerId)) throw Error('TICKET_NOT_CONFIRMED_'+(result?.state||'UNKNOWN'));
           if (!STAGING_ONLY && (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
             || typeof result.caseId !== 'string' || !result.caseId.trim()))
             throw new Error('Support ticket database confirmation missing');
@@ -643,18 +674,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         // Startup speech must not erase the greeting before any audio has played.
         // GPT-Live manages full-duplex speech itself, as in the approved browser.
         // Speech detection alone is not a request to cancel delegated support work.
-        if (greetingPlayed && !(STAGING_ONLY && profile === 'support')) {
+        if (greetingPlayed && !(STAGING_ONLY && profile === 'support') && profile !== 'pma') {
           clearTwilioAudio();
           sendToOpenAI({ type: 'response.cancel' });
         }
-      } else if (STAGING_ONLY && profile === 'support' && t === 'response.output_item.done'
+      } else if (((STAGING_ONLY && profile === 'support') || profile === 'pma') && t === 'response.output_item.done'
         && msg.item?.type === 'function_call') {
         const { call_id: id, name, arguments: args } = msg.item;
         if (typeof id !== 'string' || !id.trim() || completedToolCalls.has(id)) return;
         completedToolCalls.add(id);
         delete toolCallBuffers[id];
         executeTool(id, name, args || '{}');
-      } else if (STAGING_ONLY && profile === 'support'
+      } else if (((STAGING_ONLY && profile === 'support') || profile === 'pma')
         && (t === 'response.function_call_arguments.delta' || t === 'response.function_call_arguments.done')) {
         // Arguments fragments may lack name/call correlation. Wait for the finished item.
         return;
@@ -719,21 +750,32 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
         const intake = await intakeP;
         if (callEnded) return;
+        const assets=session?await voiceEntry.openSession(session):null;
+        if(callEnded)return;
 
         let instructions;
         let tools;
-        if (profile === 'sales') {
+        if (profile === 'pma' && pmaAdapter.enabled) {
+          instructions = pmaAdapter.instructions;
+          tools = pmaAdapter.tools;
+        } else if (profile === 'sales') {
           if (!intake || typeof intake.interactionId !== 'string' || !intake.interactionId.trim())
             throw new Error('Sales intake did not return an interaction ID');
           interactionId = intake.interactionId;
           transferAllowed = intake.transferAllowed === 'yes' ? 'yes' : 'no';
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
+          if(session)instructions=LIVE_GREETING_INSTRUCTION+PREFERRED_SALES_BEHAVIOR+voicePrompts['sales-specialist'].instructions+`\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: no\nThis is an isolated fictional staging demonstration. No real outreach is enabled. Never claim a lead was saved unless its tool actually confirms persistence.`;
           tools = salesTools(interactionId);
+          if(session){interactionId=session.session_id;tools=salesTools(interactionId).filter(t=>t.name!=='submit_support_intake').map(t=>t.name==='submit_business_profile'?{...t,description:'Save a fictional staging lead only after the caller confirms all details. Await verified persisted lead ID.',parameters:{...t.parameters,required:[...t.parameters.required,'confirmed'],properties:{...t.parameters.properties,confirmed:{type:'boolean'}}}}:t);}
         } else {
           instructions = APPROVED_SUPPORT_INSTRUCTIONS
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = supportTools;
+          if(session)instructions=SUPPORT_GREETING_INSTRUCTION+instructions+SUPPORT_TICKET_FLOW;
         }
+
+        if(session)instructions=boundInstructions(instructions,session,assets);
+        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
@@ -780,8 +822,12 @@ function start() {
   fillPool();
 
   const app = express();
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
+  app.use('/api/ivr',express.urlencoded({extended:false,limit:'16kb',parameterLimit:100}));
+  for(const [path,action] of Object.entries({'/api/ivr/main':'entry','/api/ivr/router':'route','/api/ivr/status':'status','/api/ivr/complete':'complete'}))app.all(path,(req,res)=>void voiceEntry.handle(req,res,action));
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
+    voiceDemo: {receptionist:'openai-live-marin',enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
@@ -823,11 +869,13 @@ function start() {
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathParts = url.pathname.split('/').filter(Boolean);
-    const profile = pathParts[1] || url.searchParams.get('profile');
+    const receptionPath=url.pathname==='/ivr-stream'&&voiceEntry.enabled;
+    const aliasRoute=receptionPath?{profile:'ivr'}:byPath[url.pathname];
+    const profile = aliasRoute?.profile || pathParts[1] || url.searchParams.get('profile');
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
-    if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
+    if ((!aliasRoute&&pathParts[0] !== 'ws')||(aliasRoute&&!voiceEntry.enabled)) { logEvent('[upgrade] rejected: wrong or disabled path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
-    if (profile !== 'sales' && profile !== 'support') { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
+    if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled) && !(profile === 'ivr' && receptionPath)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
     logEvent(`[upgrade] accepted profile=${profile}`);
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -843,19 +891,30 @@ function start() {
 
         const params = msg.start?.customParameters || {};
         const tokenStr = params.bridge_token || params.token;
-        const tokenProfile = validateBridgeToken(tokenStr);
+        const session=typeof tokenStr==='string'&&/^ivr[01]\./.test(tokenStr)?verifyRouteToken(tokenStr,BRIDGE_HMAC_SECRET,profile,msg.start||{}):null;
+        if(aliasRoute&&!session){logEvent('[bridge] route-bound token rejected');ws.close();return;}
+        const tokenProfile = session ? profile : validateBridgeToken(tokenStr);
         if (!tokenProfile || tokenProfile !== profile) {
           logEvent(`[bridge] token rejected: tokenProfile=${tokenProfile} urlProfile=${profile}`);
           ws.close();
           return;
         }
         logEvent(`[bridge] token accepted for ${profile}`);
-        callerPhone = msg.start?.from || params.callerPhone || '';
+        callerPhone = session?.caller_number || msg.start?.from || params.callerPhone || '';
         callSid = msg.start?.callSid || '';
 
         ws.removeListener('message', firstMessage);
-        handleCall(ws, profile, callerPhone, callSid);
-        ws.emit('message', raw);
+        if(profile==='ivr'){
+          activeCalls++;
+          let released=false;
+          startReceptionist({twilioWs:ws,session,startMessage:msg,entry:voiceEntry,
+            openLive:()=>claimPooled()||new WebSocket(LIVE_WS_URL,{headers:{Authorization:`Bearer ${OPENAI_API_KEY}`}}),
+            model:LIVE_MODEL,reasoningModel:REASONING_MODEL,
+            release:()=>{if(!released){released=true;activeCalls=Math.max(0,activeCalls-1);}},
+            log:message=>logEvent(`[${callSid}] ${message}`),
+            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen);ws.emit('message',JSON.stringify(start));}
+          });
+        }else{handleCall(ws, profile, callerPhone, callSid,session);ws.emit('message', raw);}
       };
 
       ws.on('message', firstMessage);
