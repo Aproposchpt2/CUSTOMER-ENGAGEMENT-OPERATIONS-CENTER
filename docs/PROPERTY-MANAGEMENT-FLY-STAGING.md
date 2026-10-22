@@ -1,6 +1,6 @@
 # PMA Fly.io staging migration
 
-Target app: `ai4-pma-bridge-staging` (name reservation still requires authenticated Fly access).
+Target app: `ai4-pma-bridge-staging` (deployed).
 Gateway: `https://pma-validation--ai4cc-staging.netlify.app`.
 Bridge: `wss://ai4-pma-bridge-staging.fly.dev/ws/pma`.
 
@@ -18,7 +18,7 @@ From the `twilio-bridge` directory, deploy the release checkout with:
 fly deploy --config fly.pma-staging.toml --ha=false --env BRIDGE_RELEASE_SHA=<reviewed-release-commit>
 ```
 
-`--ha=false` prevents the initial deploy creating a second staging machine. Inspect Fly deployment, health, PMA enabled state and approved models before activation. No machine or app has been created by preparation alone.
+`--ha=false` prevents the initial deploy creating a second staging machine. Inspect Fly deployment, health, PMA enabled state and approved models before activation. For the actual deployed runtime, see the evidence below.
 
 ## Activation
 
@@ -30,4 +30,17 @@ fly deploy --config fly.pma-staging.toml --ha=false --env BRIDGE_RELEASE_SHA=<re
 
 The existing Railway staging repair was queued as f933b9fe-e5cf-4904-817b-850df742179a during the provider outage. Do not assume it is absent or create repeated deployments. Inspect it separately before any cleanup; no Railway deletion is authorized by this migration.
 
-At preparation: Fly account sign-in and deployment credentials remain required. No Fly deployment or successful call is claimed.
+## Verified deployment and repair evidence — 2026-10-22
+
+- Reviewed runtime source: `5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e`, release branch `release/pma-fly-staging-20261022`.
+- App deployed in personal organization, LAX machine `83d3d6f733d658`, one shared CPU / 512 MB; shared IPv4 allocated.
+- Remote builder networking failed. Deployment used Fly Machines file injection of the reviewed bridge source into existing immutable image `registry.fly.io/stellar-twilio-bridge@sha256:0e6d717297f5abb01f284bd14a3573939eb61adb52e0f56e0da56e589274bd1f`, command `node /app/server.js`. The existing bridge was not modified.
+- Source files, package lock, adapters, knowledge and intent catalog were included. Live dependencies: Node 20.20.2, express 4.22.3, ws 8.22.0. Temporary builder machine was stopped.
+- Public `/health` returned `ok:true`, `stagingOnly:true`, correct release SHA, PMA enabled at `/ws/pma`, catalog 1.0, support writes disabled.
+- Authenticated synthetic WebSocket probe returned `authenticatedAudioProbe:true`, one media packet and one mark, `received_openai_audio`. This does not establish a successful telephone call.
+- New inbound failure at 16:36:11 UTC: call `CA00ee4da0280cd6234cd3ed1cd52e311c`, Twilio 11200, HTTP 404 from the old private-voice-poc hostname. Confirmed in Twilio request inspector.
+- Dedicated PMA DID Voice POST URL was corrected and saved to `https://pma-validation--ai4cc-staging.netlify.app/api/twilio/pma-voice-staging`. No production DID, IVR or SMS routing changed.
+- Preview-only `PMA_CHANNELS_ENABLED=true` configured. Earlier successful gateway release 39814226139 captured the disabled flag; replacement run `39814792785`, release commit `c0b5336eb8c0a07cd8e3a035d11da0662c4f5dd3`, is queued for an ubuntu-latest runner. No pending environment approvals.
+- Gateway unsigned POST still returns HTTP 503 (channels disabled) while rebuild is queued. Do not request another phone test yet.
+
+Remaining: complete queued gateway release; expect unauthorized probes to reach signature/HMAC guards rather than 503; verify synthetic adapter-to-Supabase persistence; then repeat the real inbound phone acceptance test. Never disable signature, account, DID, caller or HMAC checks to make a test pass.
