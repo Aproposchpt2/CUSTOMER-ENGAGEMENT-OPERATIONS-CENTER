@@ -36,7 +36,7 @@ test('sales transport registers sales tools and initializes the interaction',asy
  assert.equal(s.requests[0].action,'start');
  await s.tool('early','transfer_to_specialist');
  assert.match(s.outbound.find(x=>x.item?.call_id==='early').item.output,/not been saved/);
- await s.tool('save','submit_business_profile',{description:'Fictional inquiry'});
+ await s.tool('save','submit_business_profile',{callerName:'Test Caller',description:'Prospect called about Sales Specialist service. Interested in AI-powered inbound sales. Has 5 agents. Budget confirmed. Needs demo.'});
  assert.match(s.outbound.find(x=>x.item?.call_id==='save').item.output,/fictional-lead/);
  await s.tool('repeat','submit_business_profile');
  assert.equal(s.requests.filter(x=>x.action==='submit').length,1);
@@ -44,7 +44,7 @@ test('sales transport registers sales tools and initializes the interaction',asy
  assert.deepEqual(JSON.parse(s.outbound.find(x=>x.item?.call_id==='transfer').item.output),{success:true});
 });
 test('unconfirmed persistence never authorizes a transfer',async()=>{
- const s=await session('sales',true); await s.tool('save','submit_business_profile');await s.tool('transfer','transfer_to_specialist');
+ const s=await session('sales',true); await s.tool('save','submit_business_profile',{callerName:'Test Caller',description:'Prospect called about Sales Specialist service. Interested in AI-powered inbound sales. Has 5 agents. Budget confirmed. Needs demo.'});await s.tool('transfer','transfer_to_specialist');
  assert.match(s.outbound.find(x=>x.item?.call_id==='save').item.output,/not confirmed/);
  assert.match(s.outbound.find(x=>x.item?.call_id==='transfer').item.output,/not been saved/);
 });
@@ -55,7 +55,7 @@ test('support transport retains its support tools and disconnect cleanup',async(
 });
 
 test('delegated envelope executes once and rejects non-object arguments',async()=>{
- const s=await session('sales');await s.tool('envelope','submit_business_profile',{description:'Fictional inquiry'},true);await s.tool('envelope','submit_business_profile',{},true);
+ const s=await session('sales');await s.tool('envelope','submit_business_profile',{callerName:'Test Caller',description:'Prospect called about Sales Specialist service. Interested in AI-powered inbound sales. Has 5 agents. Budget confirmed. Needs demo.'},true);await s.tool('envelope','submit_business_profile',{},true);
  assert.equal(s.requests.filter(x=>x.action==='submit').length,1);
  await s.tool('invalid','end_call',null,true);
  assert.match(s.outbound.find(x=>x.item?.call_id==='invalid').item.output,/Invalid tool arguments/);

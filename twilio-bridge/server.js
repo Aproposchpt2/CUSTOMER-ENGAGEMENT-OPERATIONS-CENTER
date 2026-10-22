@@ -38,6 +38,21 @@ Be warm, calm, attentive, confident and professionally conversational, matching 
 
 `;
 
+const SALES_INTENT_CATALOG = `
+# SALES INTENT CATALOG v1.0
+Classify every caller turn. Confidence ≥0.90 → execute workflow. 0.70–0.89 → ask one clarifying question. <0.70 → treat as UNKNOWN and ask an open question.
+
+SLS-001 PRODUCT_OVERVIEW | SLS-002 PRODUCT_COMPARISON | SLS-003 PRODUCT_RECOMMENDATION | SLS-004 CEOC_INQUIRY
+SLS-005 SALES_SPECIALIST_INQUIRY | SLS-006 SUPPORT_SPECIALIST_INQUIRY | SLS-007 PROPERTY_MANAGEMENT_INQUIRY | SLS-008 COMBINED_SYSTEM_INQUIRY
+SLS-009 PRICING_QUESTION | SLS-010 ROI_QUESTION | SLS-011 FEATURE_QUESTION | SLS-012 INTEGRATION_QUESTION
+SLS-013 DEMO_REQUEST | SLS-014 CONSULTATION_REQUEST | SLS-015 LEAD_QUALIFICATION | SLS-016 BUSINESS_DISCOVERY
+SLS-017 COVERAGE_QUESTION | SLS-018 AFTER_HOURS_QUESTION | SLS-019 MISSED_CALL_QUESTION
+SLS-020 IMPLEMENTATION_QUESTION | SLS-021 ONBOARDING_QUESTION
+SLS-022 OBJECTION_COST | SLS-023 OBJECTION_ALREADY_HAVE_STAFF | SLS-024 OBJECTION_ALREADY_HAVE_VOICEMAIL | SLS-025 OBJECTION_AI_CONCERNS
+
+Before calling submit_business_profile, confirm: callerName, businessName, serviceInterest, problem statement, urgency, and next action. Set intentId to the best matching SLS-### code.
+`;
+
 // Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
 const SUPPORT_TICKET_FLOW = `\n\n# OWNER-APPROVED TICKET CONVERSATION FLOW
 After gathering and confirming the intake details, tell the caller: "Please give me a moment while I create your support ticket." Then delegate to submit_support_intake once. Do not use this sentence as a substitute for actually invoking the tool. While a save is pending, acknowledge any caller check-in calmly and explain that you are still waiting for confirmation; do not leave the caller unsure whether you are present.
@@ -208,7 +223,7 @@ async function callSalesIntakeStart(callSid, callerPhone) {
 }
 
 async function callSalesIntakeSubmit(body) {
-  if (STAGING_ONLY) throw new Error('STAGING_WRITES_DISABLED');
+  if (STAGING_ONLY) return { lead: { id: `staging-lead-${body.interactionId}-${Date.now()}` }, stagingOnly: true };
   const res = await fetch(`${NETLIFY_BASE_URL}/api/intake/webhook`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ai4cc-intake-key': AI4CC_INTAKE_KEY },
@@ -347,9 +362,10 @@ function salesTools(interactionId) {
           email: { type: 'string' },
           phone: { type: 'string' },
           serviceInterest: { type: 'string' },
-          description: { type: 'string', description: 'Compact labeled-line discovery summary' },
+          description: { type: 'string', description: 'Compact labeled-line discovery summary (minimum 50 characters)' },
+          intentId: { type: 'string', description: 'Best matching SLS-### intent code from the Sales Intent Catalog' },
         },
-        required: ['interactionId', 'description'],
+        required: ['interactionId', 'callerName', 'description'],
         additionalProperties: false,
       },
     },
@@ -599,6 +615,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let supportReviewedVersion = 0;
   let supportBackendActive = false;
   let supportSavePending = false;
+  let salesReviewTimer = null;
+  let salesInputVersion = 0;
+  let salesReviewedVersion = 0;
+  let salesBackendActive = false;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -608,6 +628,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     clearTimeout(deadline);
     clearTimeout(greetingDeadline);
     clearTimeout(supportReviewTimer);
+    clearTimeout(salesReviewTimer);
     clearInterval(startupSilence);
     for (const timer of supportProgressTimers) clearTimeout(timer);
     supportProgressTimers.clear();
@@ -640,6 +661,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     }, delay);
   }
 
+  function scheduleSalesReview(delay = 20000) {
+    clearTimeout(salesReviewTimer);
+    salesReviewTimer = setTimeout(() => {
+      if (callEnded || !sessionStarted || !greetingPlayed || salesReviewedVersion >= salesInputVersion) return;
+      if (salesBackendActive || leadSubmissionPending) { scheduleSalesReview(5000); return; }
+      salesReviewedVersion = salesInputVersion;
+      salesBackendActive = true;
+      logEvent(`[${callSid}] sales backend review after caller inactivity`);
+      sendToOpenAI({ type: 'response.create' });
+    }, delay);
+  }
+
   function clearTwilioAudio() {
     if (streamSid) sendToTwilio({ event: 'clear', streamSid });
   }
@@ -667,7 +700,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT + '\n\n' + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT + '\n\n' + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR + SALES_INTENT_CATALOG : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -689,6 +722,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
           if (!interactionId) throw new Error('No verified interaction ID for this call');
+          const caller = (args.callerName || '').trim();
+          const desc = (args.description || '').trim();
+          if (!caller) throw new Error('Lead qualification incomplete: callerName is required before saving.');
+          if (desc.length < 50) throw new Error('Lead qualification incomplete: discovery summary must be at least 50 characters.');
           leadSubmissionPending = true;
           try {
             const persisted = await callSalesIntakeSubmit({ ...args, interactionId });
@@ -844,6 +881,19 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           supportBackendActive = false;
       }
 
+      if (profile === 'sales') {
+        if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+          salesInputVersion++;
+          scheduleSalesReview();
+        }
+        if (t === 'response.created') {
+          salesBackendActive = true;
+          salesReviewedVersion = salesInputVersion;
+        }
+        if (['response.completed','response.done','response.failed','response.cancelled'].includes(t))
+          salesBackendActive = false;
+      }
+
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
         logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
@@ -903,7 +953,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         // Startup speech must not erase the greeting before any audio has played.
         // GPT-Live manages full-duplex speech itself, as in the approved browser.
         // Speech detection alone is not a request to cancel delegated support work.
-        if (greetingPlayed && !(STAGING_ONLY && profile === 'support')) {
+        if (greetingPlayed && !leadSubmissionPending && !(STAGING_ONLY && profile === 'support')) {
           clearTwilioAudio();
           sendToOpenAI({ type: 'response.cancel' });
         }
@@ -993,8 +1043,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = PMA_ORCHESTRATOR_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = pmaTools;
         } else {
-          instructions = APPROVED_SUPPORT_INSTRUCTIONS
-            + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
+          instructions = APPROVED_SUPPORT_INSTRUCTIONS;
           tools = supportTools;
         }
 
