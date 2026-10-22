@@ -23,6 +23,9 @@ function buildStagingOrchestrator(env=process.env,request=fetch){
 
 const { createPmaAdapter } = require('./pma-adapter.cjs');
 const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, options));
+const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./voice-entry.cjs');
+const voiceEntry=createVoiceEntry(process.env);
+const voicePrompts=require('./voice-system-prompts.json');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -390,9 +393,9 @@ const stagingSupportTools = [
 ];
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
-async function handleCall(twilioWs, profile, callerPhone, callSid) {
-  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?buildStagingOrchestrator():null;
-  logEvent(`[${callSid}] ${profile} call started caller=${callerPhone}`);
+async function handleCall(twilioWs, profile, callerPhone, callSid, session=null) {
+  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?(session?createVoiceOrchestrationAdapter({rpc:(name,args)=>voiceEntry.supportRpc(session,name,args),staging:true,deadlineMs:9000}):buildStagingOrchestrator()):null;
+  logEvent(`[${callSid}] ${profile} call started${session ? ' session='+session.session_id+' agentRoute='+session.agentRoute : ''}`);
   activeCalls++;
   let openaiWs = null;
   let streamSid = null;
@@ -433,6 +436,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
     logEvent(`[${callSid}] cleanup: ${reason}`);
+    if(session)void voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
     if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
@@ -475,7 +479,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+        instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
@@ -485,7 +489,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -505,13 +509,15 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, callId });
       } else if (name === 'submit_business_profile') {
+        if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
+        if(session&&args.confirmed!==true)throw new Error('Lead details require caller confirmation');
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
           if (!interactionId) throw new Error('No verified interaction ID for this call');
           leadSubmissionPending = true;
           try {
-            const persisted = await callSalesIntakeSubmit({ ...args, interactionId });
+            const persisted = session ? await voiceEntry.salesSubmit(session,{...args,interactionId:session.session_id}) : await callSalesIntakeSubmit({ ...args, interactionId });
             if (!persisted || typeof persisted.lead?.id !== 'string' || !persisted.lead.id.trim()) throw new Error('Lead persistence not confirmed by intake API');
             leadSaved = true;
             output = { success: true, leadId: persisted.lead.id };
@@ -743,6 +749,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         logEvent(`[${callSid}] OpenAI WS open (pool=${poolHit})`);
         const intake = await intakeP;
         if (callEnded) return;
+        const assets=session?await voiceEntry.openSession(session):null;
+        if(callEnded)return;
 
         let instructions;
         let tools;
@@ -755,12 +763,17 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           interactionId = intake.interactionId;
           transferAllowed = intake.transferAllowed === 'yes' ? 'yes' : 'no';
           instructions = SALES_SYSTEM_PROMPT + `\n\n# CALL CONTEXT\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: ${transferAllowed}\nKNOWN_CALLER_NAME: ${intake.knownCallerName || ''}\nCALLER_NUMBER: ${callerPhone}`;
+          if(session)instructions=LIVE_GREETING_INSTRUCTION+PREFERRED_SALES_BEHAVIOR+voicePrompts['sales-specialist'].instructions+`\nINTERACTION_ID: ${interactionId}\nTRANSFER_ALLOWED: no\nThis is an isolated fictional staging demonstration. No real outreach is enabled. Never claim a lead was saved unless its tool actually confirms persistence.`;
           tools = salesTools(interactionId);
+          if(session){interactionId=session.session_id;tools=salesTools(interactionId).filter(t=>t.name!=='submit_support_intake').map(t=>t.name==='submit_business_profile'?{...t,description:'Save a fictional staging lead only after the caller confirms all details. Await verified persisted lead ID.',parameters:{...t.parameters,required:[...t.parameters.required,'confirmed'],properties:{...t.parameters.properties,confirmed:{type:'boolean'}}}}:t);}
         } else {
           instructions = APPROVED_SUPPORT_INSTRUCTIONS
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = supportTools;
+          if(session)instructions=SUPPORT_GREETING_INSTRUCTION+instructions+SUPPORT_TICKET_FLOW;
         }
+
+        if(session)instructions=boundInstructions(instructions,session,assets);
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
@@ -807,9 +820,12 @@ function start() {
   fillPool();
 
   const app = express();
+  app.use('/api/ivr',express.urlencoded({extended:false,limit:'16kb',parameterLimit:100}));
+  for(const [path,action] of Object.entries({'/api/ivr/main':'entry','/api/ivr/router':'route','/api/ivr/status':'status','/api/ivr/complete':'complete'}))app.all(path,(req,res)=>void voiceEntry.handle(req,res,action));
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
     pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
+    voiceDemo: {enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
     supportTicketFlowRevision: STAGING_ONLY ? 'owner-2026-10-17-v2-review-watchdog' : null,
@@ -851,9 +867,10 @@ function start() {
   server.on('upgrade', (req, socket, head) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const pathParts = url.pathname.split('/').filter(Boolean);
-    const profile = pathParts[1] || url.searchParams.get('profile');
+    const aliasRoute=byPath[url.pathname];
+    const profile = aliasRoute?.profile || pathParts[1] || url.searchParams.get('profile');
     logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
-    if (pathParts[0] !== 'ws') { logEvent('[upgrade] rejected: wrong path'); socket.destroy(); return; }
+    if ((!aliasRoute&&pathParts[0] !== 'ws')||(aliasRoute&&!voiceEntry.enabled)) { logEvent('[upgrade] rejected: wrong or disabled path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
     if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
 
@@ -871,18 +888,20 @@ function start() {
 
         const params = msg.start?.customParameters || {};
         const tokenStr = params.bridge_token || params.token;
-        const tokenProfile = validateBridgeToken(tokenStr);
+        const session=typeof tokenStr==='string'&&tokenStr.startsWith('ivr1.')?verifyRouteToken(tokenStr,BRIDGE_HMAC_SECRET,profile,msg.start||{}):null;
+        if(aliasRoute&&!session){logEvent('[bridge] route-bound token rejected');ws.close();return;}
+        const tokenProfile = session ? profile : validateBridgeToken(tokenStr);
         if (!tokenProfile || tokenProfile !== profile) {
           logEvent(`[bridge] token rejected: tokenProfile=${tokenProfile} urlProfile=${profile}`);
           ws.close();
           return;
         }
         logEvent(`[bridge] token accepted for ${profile}`);
-        callerPhone = msg.start?.from || params.callerPhone || '';
+        callerPhone = session?.caller_number || msg.start?.from || params.callerPhone || '';
         callSid = msg.start?.callSid || '';
 
         ws.removeListener('message', firstMessage);
-        handleCall(ws, profile, callerPhone, callSid);
+        handleCall(ws, profile, callerPhone, callSid,session);
         ws.emit('message', raw);
       };
 

@@ -1,0 +1,5 @@
+{
+  "1": {"agent":"support-specialist","profile":"support","displayName":"Support Specialist","entryPrompt":"Connecting you with the Support Specialist.","streamPath":"/support-stream","prompt":"Support System Prompt","knowledge":"Support KB","intents":"Support Intents","intentGroup":"support"},
+  "2": {"agent":"sales-specialist","profile":"sales","displayName":"Sales Specialist","entryPrompt":"Connecting you with the Sales Specialist.","streamPath":"/sales-stream","prompt":"Sales System Prompt","knowledge":"Sales KB","intents":"Sales Intents","intentGroup":"sales"},
+  "3": {"agent":"property-management-assistant","profile":"pma","displayName":"Property Management Assistant","entryPrompt":"Connecting you with the Property Management Assistant.","streamPath":"/pma-stream","prompt":"PMA Orchestrator Prompt","knowledge":"PMA KB","intents":"PMA Intents","intentGroup":"pma"}
+}
