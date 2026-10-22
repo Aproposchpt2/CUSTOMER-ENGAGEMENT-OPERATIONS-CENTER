@@ -234,9 +234,9 @@ export default function Home() {
           <div className="sectionHeading">
             <div>
               <span className="eyebrow">03 · THE STELLAR INTELLIGENT TECHNOLOGIES SUITE</span>
-              <h2>Three systems. <em className="stellar-branded-display">One direction.</em></h2>
+              <h2>Four systems. <em className="stellar-branded-display">One direction.</em></h2>
             </div>
-            <p>From the intelligent platform to sales and support engagement, each system has a distinct responsibility within the customer lifecycle.</p>
+            <p>From the intelligent platform to sales, support, and property management engagement, each system has a distinct responsibility within the customer lifecycle.</p>
           </div>
           <div className="productGrid">
             <article className="productCard">
@@ -258,6 +258,13 @@ export default function Home() {
               <h3>Support Specialist</h3>
               <p>An intelligent support intake and coordination service that helps customers explain their needs while verified tasks move through the operating workflow.</p>
               <div className="productDetail">Natural conversation. Verified service outcomes.</div>
+              <a className="productLink" href="/intake">Discuss this system <span>↗</span></a>
+            </article>
+            <article className="productCard">
+              <div className="productTop"><span>04</span><span className="productLabel">INTELLIGENT PROPERTY MANAGEMENT</span></div>
+              <h3>Property Management Assistant</h3>
+              <p>An intelligent voice and messaging interface for resident inquiries, maintenance coordination, and property operations — available around the clock.</p>
+              <div className="productDetail">Resident needs addressed. Property operations coordinated.</div>
               <a className="productLink" href="/intake">Discuss this system <span>↗</span></a>
             </article>
           </div>
@@ -297,7 +304,7 @@ export default function Home() {
           <p>Explore how intelligent customer engagement, sales, and support systems can complement the people who drive your business forward.</p>
           <a className="primary" href="/intake">Learn About Stellar&apos;s Approach <span>↗</span></a>
           <div className="directCallLinks" aria-label="Call STELLAR intelligent technology services">
-            <a href="tel:+17029351414" aria-label="Call STELLAR main IVR at 702 935 1414"><span>MAIN IVR · AUTOMATED CALL MENU</span><strong>(702) 935-1414 ↗</strong></a>
+            <a href="tel:+17029351414" aria-label="Call Property Management Assistant at 702 935 1414"><span>PROPERTY MANAGEMENT ASSISTANT</span><strong>(702) 935-1414 ↗</strong></a>
             <a href="tel:+17253305102" aria-label="Call Sales Specialist at 725 330 5102"><span>SALES SPECIALIST</span><strong>(725) 330-5102 ↗</strong></a>
             <a href="tel:+17027102622" aria-label="Call Support Specialist at 702 710 2622"><span>SUPPORT SPECIALIST</span><strong>(702) 710-2622 ↗</strong></a>
           </div>
