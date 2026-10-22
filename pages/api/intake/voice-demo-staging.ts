@@ -27,6 +27,17 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
     }
     return result(await query.is('property_id',null).contains('tags',['agent:'+agentRoute]).limit(12))??[];
   };
+  const availability=async(args:{bedrooms?:number},session:{agentRoute:string})=>{
+    if(session.agentRoute!=='property-management-assistant'||!process.env.PMA_STAGING_PROPERTY_ID||!process.env.AI4CC_VOICE_DEMO_TENANT_ID)throw new PmaError('Availability scope unavailable',503);
+    let query=admin.from('pm_units').select('label,bedrooms,bathrooms,status,availability_date')
+      .eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID)
+      .eq('property_id',process.env.PMA_STAGING_PROPERTY_ID)
+      .eq('status','vacant').not('availability_date','is',null)
+      .order('availability_date',{ascending:true}).limit(20);
+    if(args.bedrooms!==undefined)query=query.eq('bedrooms',args.bedrooms);
+    const units=result(await query)??[];
+    return {success:true,stagingOnly:true,property:'Desert Ridge Apartments',asOf:new Date().toISOString().slice(0,10),units:units.map((u:any)=>({unit:u.label,bedrooms:u.bedrooms,bathrooms:u.bathrooms,earliestRecordedDate:u.availability_date})),disclaimer:'Fictional staging inventory only. Vacant status and recorded dates do not confirm lease eligibility or guaranteed move-in.'};
+  };
   const workflow=async(body:{action:string;operation?:string;operationId?:string;args:Record<string,unknown>},session:{call_sid:string;session_id:string})=>{
    const tenant=process.env.AI4CC_VOICE_DEMO_TENANT_ID;
    if(body.action==='sales_submit')return result(await admin.rpc('stellar_voice_demo_sales_submit_staging',{t:tenant,p:process.env.PMA_STAGING_PROPERTY_ID,c:process.env.PMA_STAGING_CONTACT_ID,actor:process.env.PMA_CHANNEL_ACTOR_USER_ID,session_id:session.session_id,payload:body.args}));
@@ -49,7 +60,7 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
    if(body.operation==='stellar_orch_lookup_staging'&&outcome?.found&&(outcome.tenantId!==tenant||outcome.sessionId!==expected))throw new PmaError('Workflow ownership mismatch',403);
    return outcome;
   };
-  try{return await processVoiceDemo(body,{env:process.env,validateRequest,record,knowledge,workflow});}
+  try{return await processVoiceDemo(body,{env:process.env,validateRequest,record,knowledge,workflow,availability});}
   catch(e){if(e instanceof Error&&'status' in e)throw new PmaError(e.message,Number(e.status));throw e;}
 }
 export default async function handler(req:NextApiRequest,res:NextApiResponse){
