@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy-preview:
-    if: github.repository == 'Aproposchpt2/ai4-contact-center' && github.ref == 'refs/heads/release/pma-staging-validation'
+    if: github.repository_id == '1296163902' && github.ref == 'refs/heads/release/pma-staging-validation'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     # Reuse the existing protected Netlify credential; do not relax its rules.
@@ -24,8 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Fly staging: 199 regression tests, TypeScript and production build passed; exact staging host only.
-          ref: e71cdad546caef323c7d0dadca772ce5c6a49b3d
+          # Conversational receptionist: reviewed source, exact staging host only.
+          ref: fbfc21adbb65e0bed73ba587fcc585e011252d0c
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NETLIFY_AUTH_TOKEN" || { echo 'BLOCKED: protected NETLIFY_AUTH_TOKEN is unavailable'; exit 1; }
-          npx --yes netlify-cli@23.11.0 deploy --build --context branch:pma-validation --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation e71cdad546caef323c7d0dadca772ce5c6a49b3d' --json > /tmp/pma-deploy.json
+          npx --yes netlify-cli@23.11.0 deploy --build --context branch:pma-validation --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation fbfc21adbb65e0bed73ba587fcc585e011252d0c' --json > /tmp/pma-deploy.json
           python3 - <<'PY'
           import json,os
           data=json.load(open('/tmp/pma-deploy.json'))
@@ -59,7 +59,7 @@ jobs:
           if not evidence['deploy_id'] or not evidence['deploy_url']:
               raise SystemExit('Deployment did not return a deploy ID and URL')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('PMA staging preview only. Reviewed source: e71cdad546caef323c7d0dadca772ce5c6a49b3d\n\n')
+              f.write('PMA staging preview only. Reviewed source: fbfc21adbb65e0bed73ba587fcc585e011252d0c\n\n')
               f.write(json.dumps(evidence,indent=2)+'\n')
           os.makedirs('artifacts/pma-release',exist_ok=True)
           json.dump(evidence,open('artifacts/pma-release/deployment.json','w'),indent=2)
