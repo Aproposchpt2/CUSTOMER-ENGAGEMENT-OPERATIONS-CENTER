@@ -20,7 +20,8 @@ function authorize(call,toolCallId){
 function createVoiceOrchestrationAdapter({rpc,staging=false,deadlineMs=6500}={}){
   if(staging!==true||typeof rpc!=='function'||!Number.isInteger(deadlineMs)||deadlineMs<100||deadlineMs>9000)
     throw Error('STAGING_ADAPTER_DISABLED');
-  const service=createSupportIntegration({rpc,staging:true});
+  // Carry trusted operation context through the transport, never through model args.
+  const serviceFor=context=>createSupportIntegration({rpc:(name,args)=>rpc(name,args,context),staging:true});
   async function bounded(work,context){
     let timeoutId;
     try{
@@ -40,6 +41,7 @@ function createVoiceOrchestrationAdapter({rpc,staging=false,deadlineMs=6500}={})
   };
   async function submit({trustedCall,toolCallId,confirmed,intake:details}){
     const context=authorize(trustedCall,toolCallId);
+    const service=serviceFor(context);
     if(confirmed!==true)throw Error('INTAKE_NOT_CONFIRMED');
     const clean=intake(details);
     try{
@@ -54,6 +56,7 @@ function createVoiceOrchestrationAdapter({rpc,staging=false,deadlineMs=6500}={})
   }
   async function recover({trustedCall,toolCallId}){
     const context=authorize(trustedCall,toolCallId);
+    const service=serviceFor(context);
     try{return projection(await bounded(service.recover(context),context));}
     catch{return {success:false,state:'UNKNOWN',notificationSent:false,technicianFollowupConfirmed:false};}
   }

@@ -394,7 +394,7 @@ const stagingSupportTools = [
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid, session=null) {
-  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?(session?createVoiceOrchestrationAdapter({rpc:(name,args)=>voiceEntry.supportRpc(session,name,args),staging:true,deadlineMs:9000}):buildStagingOrchestrator()):null;
+  const stagingOrchestrator=STAGING_ONLY&&profile==='support'?(session?createVoiceOrchestrationAdapter({rpc:(name,args,context)=>voiceEntry.supportRpc(session,name,args,context.operationId),staging:true,deadlineMs:9000}):buildStagingOrchestrator()):null;
   logEvent(`[${callSid}] ${profile} call started${session ? ' session='+session.session_id+' agentRoute='+session.agentRoute : ''}`);
   activeCalls++;
   let openaiWs = null;

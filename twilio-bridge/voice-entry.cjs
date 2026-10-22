@@ -77,7 +77,7 @@ function createVoiceEntry(env,request=fetch){
  async function closeSession(session,reason){
   for(let n=0;n<3;n++)try{return await send({action:'stream_end',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,reason});}catch(e){if(n===2)throw e;await new Promise(r=>setTimeout(r,250*(n+1)));}
  }
- async function supportRpc(session,operation,args){return (await send({action:'support_rpc',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,operation,args})).rpcResult;}
+ async function supportRpc(session,operation,args,operationId){return (await send({action:'support_rpc',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,operation,args,operationId})).rpcResult;}
  async function salesSubmit(session,args){return (await send({action:'sales_submit',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute,args})).rpcResult;}
  return {enabled,handle,openSession,closeSession,supportRpc,salesSubmit};
 }
