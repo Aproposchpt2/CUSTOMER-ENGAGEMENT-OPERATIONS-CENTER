@@ -1,16 +1,19 @@
 name: PMA Browser Validation
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feature/property-management-assistant-mvp]
     paths:
       - 'components/property-management/**'
+      - 'lib/voiceDemo/**'
+      - 'twilio-bridge/**'
+      - 'pages/api/intake/voice-demo-staging.ts'
       - 'lib/propertyManagement/**'
       - 'pages/property-management/**'
       - 'pages/api/property-management/**'
       - 'scripts/pma-browser-smoke.cjs'
       - '.github/workflows/pma-validation.yml'
   push:
-    branches: [feature/property-management-assistant-mvp]
+    branches: [feature/property-management-assistant-mvp, fix/pma-voice-knowledge-binding-20261022]
 permissions:
   contents: read
 jobs:
