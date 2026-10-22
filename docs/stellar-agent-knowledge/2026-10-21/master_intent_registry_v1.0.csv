@@ -1,0 +1,106 @@
+group,reference_id,intent_id,purpose,action,required_entities,effect_or_completion
+universal,UNI-001,GENERAL_GREETING,Greeting,Greeting only,None,No domain write
+universal,UNI-002,GENERAL_HELP,Capability question,Explain approved capabilities,audience_role,Log optional intent event
+universal,UNI-003,GENERAL_INFORMATION,General business question,Retrieve approved knowledge,"topic, audience",Interaction event
+universal,UNI-004,UNKNOWN_QUESTION,No reliable match/answer,Create knowledge gap and follow-up,"original_question, scope","knowledge_gap, follow_up"
+universal,UNI-005,HUMAN_AGENT_REQUEST,Caller requests a person,Transfer or callback workflow,"reason, contact",handoff_request
+universal,UNI-006,CALLBACK_REQUEST,Caller requests return call,Capture callback request,"name, callback, topic",callback_task
+universal,UNI-007,APPOINTMENT_REQUEST,Caller wants appointment,Route product-specific appointment request,"contact, purpose, preferred_time",appointment_request
+universal,UNI-008,CONTACT_UPDATE,Caller updates contact record,Authenticate then update allowed fields,"contact_id, changed_fields",contact + audit
+universal,UNI-009,CONTACT_CAPTURE,New contact details,Validate and create/update contact,"name, one contact method",contact
+universal,UNI-010,EMAIL_CAPTURE,Email supplied,Confirm spelling and normalize,email,contact field
+universal,UNI-011,PHONE_CAPTURE,Phone supplied,Confirm number and preference,phone,contact field
+universal,UNI-012,ESCALATION_REQUEST,User asks for escalation,Create escalation under policy,"reason, urgency",escalation task
+universal,UNI-013,COMPLAINT,Negative service feedback,Capture concern; avoid unverified admission,"contact, issue",complaint/follow-up
+universal,UNI-014,COMPLIMENT,Positive feedback,Capture feedback when configured,message,feedback event
+universal,UNI-015,FEEDBACK,Product/service suggestion,Record feedback,"message, product",feedback
+universal,UNI-016,LANGUAGE_CHANGE,User requests supported language,Switch supported locale or escalate,language,session setting
+conversation_control,CTL-001,CONFIRMATION_YES,Affirmation,Advance pending step,pending_action,No write unless action executes
+conversation_control,CTL-002,CONFIRMATION_NO,Rejection,Cancel/revise pending step,pending_action,No action
+conversation_control,CTL-003,CORRECTION,User corrects earlier data,Update session state; reconfirm,"field, corrected_value",Audit if persisted
+conversation_control,CTL-004,CLARIFICATION_REQUEST,User asks agent to explain,Restate simply,topic,None
+conversation_control,CTL-005,REPEAT_REQUEST,User asks repetition,Repeat requested item only,segment,None
+conversation_control,CTL-006,INTERRUPTION,Barge-in detected,Stop speech and listen,audio event,Telemetry
+conversation_control,CTL-007,START_OVER,Restart current flow,Clear uncommitted state,workflow,Session event
+conversation_control,CTL-008,CANCEL_REQUEST,Cancel pending action,Cancel if allowed; verify state,operation_id,Workflow/audit
+conversation_control,CTL-009,RESUME_PREVIOUS_TASK,Resume interrupted task,Recover session/workflow state,operation_id,Read workflow
+sales,SLS-001,PRODUCT_OVERVIEW,Portfolio question,Explain portfolio and discover need,business_need,Interaction
+sales,SLS-002,PRODUCT_COMPARISON,Compare offerings,Compare approved scope,products,Interaction
+sales,SLS-003,PRODUCT_RECOMMENDATION,Best-fit request,Qualify then recommend,"problem, coverage, current_process",Lead notes
+sales,SLS-004,CEOC_INQUIRY,CEOC question,Explain connected operations foundation,topic,Interaction
+sales,SLS-005,SALES_SPECIALIST_INQUIRY,Sales agent question,Explain engagement and lead capture,coverage_need,Lead optional
+sales,SLS-006,SUPPORT_SPECIALIST_INQUIRY,Support product question,Explain structured support intake,support_need,Lead optional
+sales,SLS-007,PROPERTY_MANAGEMENT_INQUIRY,PMA question,Explain communication-centered scope,portfolio/use_case,Lead optional
+sales,SLS-008,COMBINED_SYSTEM_INQUIRY,Sales + support need,Explain shared CEOC and distinct workflows,"sales_need, support_need",Lead
+sales,SLS-009,PRICING_QUESTION,Price/fees question,Use approved commercial knowledge or consultation,"product, usage context",Lead/follow-up
+sales,SLS-010,ROI_QUESTION,Savings/return question,Discuss value without guarantee,current_cost context,Lead note
+sales,SLS-011,FEATURE_QUESTION,Specific capability,Return truth-classified answer,"product, feature",Interaction/gap
+sales,SLS-012,INTEGRATION_QUESTION,CRM/telephony/etc.,Capture requirement; technical review,"system, workflow, data need",Technical follow-up
+sales,SLS-013,DEMO_REQUEST,Demo requested,Create verified demo request,"contact, products, preferred_time",Demo request
+sales,SLS-014,CONSULTATION_REQUEST,Consultation requested,Create verified consultation request,"contact, need",Consultation request
+sales,SLS-015,LEAD_QUALIFICATION,Qualification in progress,Collect structured fit data,"contact, business, problem, urgency",Lead
+sales,SLS-016,BUSINESS_DISCOVERY,Operational discovery,Ask one question at a time,"coverage, volume, process, goals",Lead notes
+sales,SLS-017,COVERAGE_QUESTION,Coverage schedule,Explain configurable coverage caveat,hours/periods,Interaction
+sales,SLS-018,AFTER_HOURS_QUESTION,After-hours operation,Explain approved after-hours model,schedule,Lead optional
+sales,SLS-019,MISSED_CALL_QUESTION,Missed-call problem,Quantify pain and recommend fit,"missed periods, call types",Lead
+sales,SLS-020,IMPLEMENTATION_QUESTION,Deployment process,Describe approved discovery/config/testing process,product,Follow-up
+sales,SLS-021,ONBOARDING_QUESTION,Setup inputs,List approved setup information,"business info, KB, routing",Follow-up
+sales,SLS-022,OBJECTION_COST,Cost objection,Value response; no pressure/guarantee,concern,Lead note
+sales,SLS-023,OBJECTION_ALREADY_HAVE_STAFF,Staff objection,Position augmentation,coverage gap,Lead note
+sales,SLS-024,OBJECTION_ALREADY_HAVE_VOICEMAIL,Voicemail objection,Contrast structured conversation/capture,current_process,Lead note
+sales,SLS-025,OBJECTION_AI_CONCERNS,AI accuracy/control concern,Explain approved knowledge and fallback,concern,Lead note
+support,SUP-001,SUPPORT_REQUEST,General support need,Begin structured intake,"contact, issue",Support case
+support,SUP-002,CASE_CREATION,Ready to submit case,Confirm summary and invoke workflow,"required case fields, consent",Case/workflow
+support,SUP-003,CASE_STATUS,Existing case status,Authenticate and retrieve owned case,"case_id, identity",Read case
+support,SUP-004,CASE_UPDATE,Add information,Authenticate; append event,"case_id, update",Case event
+support,SUP-005,TECHNICAL_ISSUE,Technical problem,Collect symptoms/impact/prior steps,"product, issue",Case
+support,SUP-006,SERVICE_ISSUE,Service delivery concern,Capture facts and route,"service, impact",Case/complaint
+support,SUP-007,BILLING_QUESTION,Billing concern,Use approved billing knowledge or follow-up,"identity, topic",Follow-up
+support,SUP-008,WARRANTY_QUESTION,Warranty question,Capture details; no determination,equipment/service data,Warranty follow-up
+support,SUP-009,URGENT_SUPPORT,High-impact request,Apply priority policy,"impact, safety signals",Priority case
+support,SUP-010,EMERGENCY_SUPPORT,Potential emergency,Deterministic safety review,hazard signals,Critical event
+support,SUP-011,DOCUMENT_REQUEST,Manual/invoice/document,Authenticate and route approved request,"document_type, identity",Document task
+support,SUP-012,KNOWLEDGE_REQUEST,How-to/FAQ,Retrieve approved article,"product, topic",Interaction
+support,SUP-013,FOLLOW_UP_REQUEST,Caller wants follow-up,Create follow-up linked to case/contact,"case/contact, reason",Follow-up task
+hvac,HVC-001,NO_COOLING,No cooling,Safety screen then cooling intake,"location, equipment, symptoms, impact",HVAC case
+hvac,HVC-002,NO_HEAT,No heat,Safety screen then heating intake,"location, equipment, symptoms, impact",HVAC case
+hvac,HVC-003,THERMOSTAT_ISSUE,Thermostat concern,Approved low-risk checks,"model if safe, display, settings",Case/knowledge
+hvac,HVC-004,WEAK_AIRFLOW,Reduced airflow,Capture vents/filter observations,"rooms, onset, filter",Case
+hvac,HVC-005,NO_POWER_TO_UNIT,Unit not powered,Safety screen; limited breaker observation,"equipment, breaker observation",Case
+hvac,HVC-006,SYSTEM_SHORT_CYCLING,Frequent on/off,Capture timing and impact; no diagnosis,"cycle pattern, equipment",Case
+hvac,HVC-007,STRANGE_NOISE,Noise/vibration,Screen smoke/sparks then capture sound,"sound, timing, system state",Case
+hvac,HVC-008,BURNING_ODOR,Burning smell,Safety override review,"odor, smoke/sparks",Urgent/critical case
+hvac,HVC-009,GAS_ODOR,Gas/sulfur odor,Immediate evacuation script,minimum safe context,Critical event
+hvac,HVC-010,CO_ALARM,CO detector alarm,Leave and call 911 script,minimum safe context,Critical event
+hvac,HVC-011,WATER_LEAK,Water/condensate,Determine electrical proximity/severity,"location, quantity, electrical risk",Case
+hvac,HVC-012,REFRIGERANT_CONCERN,Suspected refrigerant issue,No diagnosis/handling; capture concern,"symptoms, equipment",Case
+hvac,HVC-013,FROZEN_COIL,Ice/frozen indicator,Safe observation only; case intake,"observed ice, airflow",Case
+hvac,HVC-014,OUTDOOR_UNIT_PROBLEM,Outdoor unit concern,Safe-distance observation only,"noise, state, obstruction",Case
+hvac,HVC-015,FILTER_QUESTION,Filter question,Approved knowledge; no unsafe access,equipment/filter type if known,Interaction
+hvac,HVC-016,ROUTINE_MAINTENANCE,Maintenance request,Create request,"equipment, location, preference",Appointment request
+hvac,HVC-017,SEASONAL_TUNEUP,Seasonal service,Create request,"equipment, preference",Appointment request
+hvac,HVC-018,MAINTENANCE_PLAN,Plan inquiry,Demo knowledge or sales follow-up,"contact, question",Lead/follow-up
+hvac,HVC-019,INSTALLATION_REQUEST,New installation,Route to sales,"property, goals, contact",Sales lead
+hvac,HVC-020,REPLACEMENT_REQUEST,Replacement inquiry,Route assessment/estimate,"equipment, reason, contact",Sales lead
+hvac,HVC-021,ENERGY_EFFICIENCY_QUESTION,Efficiency question,General approved info; estimator follow-up,"equipment, goals",Lead/follow-up
+hvac,HVC-022,COMMERCIAL_HVAC_REQUEST,Commercial site issue,Capture site contact and impact,"site, contact, equipment, impact",Commercial case
+safety,SAFE-001,EMERGENCY_GAS_LEAK,Gas/sulfur odor,,,
+safety,SAFE-002,EMERGENCY_CO_ALARM,CO alarm,,,
+safety,SAFE-003,EMERGENCY_FIRE,Visible fire,,,
+safety,SAFE-004,EMERGENCY_SMOKE,Visible smoke,,,
+safety,SAFE-005,EMERGENCY_SPARKING,Active sparks,,,
+safety,SAFE-006,EMERGENCY_MEDICAL,Symptoms/immediate medical danger,,,
+safety,SAFE-007,EMERGENCY_FLOODING,Major uncontrolled flooding/electrical risk,,,
+safety,SAFE-008,EMERGENCY_ELECTRICAL,Electrical fire/shock hazard,,,
+backend_workflow,WF-001,WORKFLOW_CREATE_LEAD,,Create idempotent lead,Validated qualification + consent,Lead ID verified
+backend_workflow,WF-002,WORKFLOW_CREATE_CASE,,Create idempotent case,Validated intake + confirmation,Case ID verified
+backend_workflow,WF-003,WORKFLOW_CREATE_APPOINTMENT,,Create appointment request,Contact + preferred window,"Request saved, not necessarily confirmed"
+backend_workflow,WF-004,WORKFLOW_UPDATE_CONTACT,,Update allowed contact fields,Authentication/authorization,Updated row verified
+backend_workflow,WF-005,WORKFLOW_ESCALATE,,Create escalation,Policy + reason + target,Task/event saved
+backend_workflow,WF-006,WORKFLOW_NOTIFY_OWNER,,Request owner notification,Event policy,Delivery status separate from business completion
+backend_workflow,WF-007,WORKFLOW_NOTIFY_TEAM,,Request team notification,Recipient policy,Delivery status tracked
+backend_workflow,WF-008,WORKFLOW_STORE_INTERACTION,,Persist interaction metadata,Tenant/session/correlation,Interaction saved
+backend_workflow,WF-009,WORKFLOW_GENERATE_TASK,,Create follow-up task,Owner + due rule,Task saved
+backend_workflow,WF-010,WORKFLOW_CREATE_KNOWLEDGE_GAP,,Create unanswered-question record,Question + scope,Gap saved
+backend_workflow,WF-011,WORKFLOW_CREATE_AUDIT_EVENT,,Append audit event,Actor/action/entity,Append verified
+backend_workflow,WF-012,WORKFLOW_RECONCILE_UNKNOWN,,Resolve uncertain operation,Stable operation identity,Authoritative success/failure/pending
