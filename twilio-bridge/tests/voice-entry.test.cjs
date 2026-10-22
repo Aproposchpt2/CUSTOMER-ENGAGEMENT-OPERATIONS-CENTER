@@ -63,3 +63,22 @@ test('provider completion callback is signature checked',async()=>{
  let writes=0;const b={action:'status',originalPath:'/api/ivr/status',twilioSignature:'forged',params:{AccountSid:session.account_sid,CallSid:session.call_sid,StreamEvent:'stream-stopped'}};
  await assert.rejects(processVoiceDemo(b,dependencies({record:async()=>{writes++;}})),/signature/);assert.equal(writes,0);
 });
+
+test('PMA voice session includes only verified published public property facts without requiring legacy agent tags',async()=>{
+ const pma={...session,agentRoute:'property-management-assistant'};
+ const good={id:'property-fact',title:'Property FAQ',content:'Published staging property fact',version_num:1,approved:true,publication_state:'published',visibility:'public',source_status:'VERIFIED',tags:[]};
+ const entries=[good,{...good,id:'staff-secret',visibility:'staff'},{...good,id:'resident-secret',visibility:'resident'},{...good,id:'draft',publication_state:'draft'},{...good,id:'expired',expires_at:'2020-01-01T00:00:00Z'},{...good,id:'unapproved',approved:false},{...good,id:'unverified',source_status:'REVIEW'}];
+ const result=await processVoiceDemo({action:'stream_start',call_sid:pma.call_sid,session_id:pma.session_id,agentRoute:pma.agentRoute},dependencies({record:async()=>pma,knowledge:async route=>{assert.equal(route,pma.agentRoute);return entries;}}));
+ assert.equal(result.assets.knowledgeAvailable,true);
+ assert.deepEqual(result.assets.knowledgeEntries.map(e=>e.id),['property-fact']);
+ const spoken=boundInstructions('PMA prompt',pma,result.assets);
+ assert.match(spoken,/Published staging property fact/);
+ for(const denied of ['staff-secret','resident-secret','unapproved','unverified'])assert.doesNotMatch(spoken,new RegExp(denied));
+});
+test('PMA with no published knowledge reports unavailable and cannot improvise property facts',async()=>{
+ const pma={...session,agentRoute:'property-management-assistant'};
+ const result=await processVoiceDemo({action:'stream_start',call_sid:pma.call_sid,session_id:pma.session_id,agentRoute:pma.agentRoute},dependencies({record:async()=>pma,knowledge:async()=>[]}));
+ assert.equal(result.assets.knowledgeAvailable,false);
+ assert.deepEqual(result.assets.knowledgeEntries,[]);
+ assert.match(boundInstructions('PMA prompt',pma,result.assets),/cannot verify the answer/);
+});
