@@ -1,4 +1,4 @@
-# Rebuild after preview-only PMA channel activation; Fly runtime verified healthy.
+# Isolated three-agent IVR staging release; shared live routes remain unchanged.
 name: PMA protected staging release
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           # Fly staging: 199 regression tests, TypeScript and production build passed; exact staging host only.
-          ref: 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e
+          ref: b8c0826a984603552af8fe0ff4152e9e980aad50
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -33,31 +33,17 @@ jobs:
           cache: npm
       - name: Install reviewed dependencies without deployment credentials
         run: npm ci --no-audit --no-fund
-      - name: Configure isolated PMA alias signing key once
+      - name: Verify three-agent route security
+        run: node --test twilio-bridge/tests/voice-*.test.cjs
+      - name: Configure isolated voice demo alias
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         shell: bash
         run: |
-          node <<'JS'
-          const {randomBytes,publicEncrypt,constants}=require('node:crypto');
-          const {spawnSync}=require('node:child_process');
-          const {mkdirSync,writeFileSync}=require('node:fs');
-          const site=process.env.NETLIFY_SITE_ID;
-          function cli(args){return spawnSync('npx',['--yes','netlify-cli@23.11.0',...args],{encoding:'utf8',env:process.env});}
-          const revision='fly-alias-20261022-v1';
-          const current=cli(['env:get','PMA_ALIAS_CONFIG_REVISION','--context','branch:pma-validation']);
-          if(current.status===0&&current.stdout.includes(revision)){console.log('Alias signing configuration already applied');process.exit(0);}
-          const value=randomBytes(32).toString('hex');
-          console.log('::add-mask::'+value);
-          const encrypted=publicEncrypt({key:"-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAmt4Qh5ElBu1oxuT+mDm4\nYbPIAawl/VHwJwT2/hImdkNI5ThRWA39BKxp6j+auJd8zBSLslTx5K8/l1l/UEK1\nujplzmtWggqhJ/ysg9TbilD6u+Wn8qKerd6uHGSMK7K7ktu1hJYQRYREuX/cfRzZ\noc90ybgKPU2v4TEHDv+fsPwewa1cAYzOsrrt+d86pVlJVlxs2s3RC0imp4tnR/be\nlzPYKcb0e5/hflgAszdbzKitdY+O1ypEv4/22v7W9PglhQWHINpZaMNQnJJikX+C\ntxjHKAoqVb4mJyzNkCkbNluXioUJx8bIaVMe4taAm3Tm7dcAwuzas28qC9jUqPge\nWq5EgTUPKhsL6Pev/Vq4A67vVxeEBUbHW7Z54bBr/dwQ6yqqiKj2xqWgCc5GGnnp\nSqb0fWmL9WhVxDBchp5qVR9DhBDaeThM+MRHP0/8Hp0FIYu0qWEYoQS3Ag1vtMkf\nTmje31BG/AuB/L4FgOzQvcfjFFDi6nkr04dyazyUdPK9AgMBAAE=\n-----END PUBLIC KEY-----",padding:constants.RSA_PKCS1_OAEP_PADDING,oaepHash:'sha256'},Buffer.from(value));
-          mkdirSync('artifacts/pma-release',{recursive:true});
-          writeFileSync('artifacts/pma-release/bridge-key-envelope.b64',encrypted.toString('base64'));
-          const updated=cli(['env:set','BRIDGE_HMAC_SECRET_STAGING',value,'--context','branch:pma-validation','--secret','--force']);
-          if(updated.status!==0){console.error((updated.stderr||updated.stdout||'Unknown CLI failure').replaceAll(value,'[REDACTED]').slice(-1800));throw new Error('PMA branch signing-key configuration failed');}
-          const marked=cli(['env:set','PMA_ALIAS_CONFIG_REVISION',revision,'--context','branch:pma-validation','--force']);
-          if(marked.status!==0)throw new Error('PMA branch configuration marker failed');
-          console.log('PMA alias signing key configured; encrypted envelope retained for approved Fly runtime synchronization');
-          JS
+          set -euo pipefail
+          npx --yes netlify-cli@23.11.0 env:set VOICE_DEMO_IVR_ENABLED true --context branch:pma-validation --force
+          npx --yes netlify-cli@23.11.0 env:set VOICE_DEMO_WORKFLOWS_ENABLED true --context branch:pma-validation --force
+          npx --yes netlify-cli@23.11.0 env:set AI4CC_VOICE_DEMO_TENANT_ID 5885a020-d363-4c27-910a-c035eda132f5 --context branch:pma-validation --force
       - name: Build and deploy isolated preview
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -65,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$NETLIFY_AUTH_TOKEN" || { echo 'BLOCKED: protected NETLIFY_AUTH_TOKEN is unavailable'; exit 1; }
-          npx --yes netlify-cli@23.11.0 deploy --build --context branch:pma-validation --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e' --json > /tmp/pma-deploy.json
+          npx --yes netlify-cli@23.11.0 deploy --build --context branch:pma-validation --alias pma-validation --site "$NETLIFY_SITE_ID" --message 'PMA staging validation b8c0826a984603552af8fe0ff4152e9e980aad50' --json > /tmp/pma-deploy.json
           python3 - <<'PY'
           import json,os
           data=json.load(open('/tmp/pma-deploy.json'))
@@ -73,7 +59,7 @@ jobs:
           if not evidence['deploy_id'] or not evidence['deploy_url']:
               raise SystemExit('Deployment did not return a deploy ID and URL')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
-              f.write('PMA staging preview only. Reviewed source: 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e\n\n')
+              f.write('PMA staging preview only. Reviewed source: b8c0826a984603552af8fe0ff4152e9e980aad50\n\n')
               f.write(json.dumps(evidence,indent=2)+'\n')
           os.makedirs('artifacts/pma-release',exist_ok=True)
           json.dump(evidence,open('artifacts/pma-release/deployment.json','w'),indent=2)
@@ -91,7 +77,7 @@ jobs:
               except urllib.error.HTTPError as e: status=e.code
               checks.append({'path':path,'status':status})
               if status not in allowed: raise SystemExit('Unexpected preview status: '+json.dumps(checks))
-          for path,expected in [('/api/twilio/pma-voice-staging',403),('/api/intake/pma-staging',401)]:
+          for path,expected in [('/api/twilio/pma-voice-staging',403),('/api/intake/pma-staging',401),('/api/intake/voice-demo-staging',401),('/api/intake/voice-demo-status-staging',403)]:
               req=urllib.request.Request(base+path,data=b'{}',headers={'Content-Type':'application/json'},method='POST')
               try:
                   with urllib.request.urlopen(req,timeout=30) as r: status=r.status
