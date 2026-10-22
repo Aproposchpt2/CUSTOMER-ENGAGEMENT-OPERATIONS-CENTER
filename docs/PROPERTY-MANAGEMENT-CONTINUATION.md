@@ -1,3 +1,17 @@
+# Property Management Assistant — current staging status
+
+> 2026-10-22 Fly migration update: read PROPERTY-MANAGEMENT-FLY-STAGING.md first. It supersedes the older Railway/preview configuration notes below.
+>
+> Fly app ai4-pma-bridge-staging is deployed and healthy on reviewed source 5b2a48dfd6846fcd14eb7ad37b936d7cfe22493e. Authenticated synthetic audio probe received OpenAI audio. KB v1 and 25-intent catalog are installed; synthetic resident binding was repaired with a separate test unit.
+>
+> Latest real call CA00ee4da0280cd6234cd3ed1cd52e311c at 16:36:11 UTC failed Twilio 11200 / HTTP 404 at the old private-voice-poc URL. Dedicated DID (702) 935-1414 Voice POST URL has now been corrected and saved to https://pma-validation--ai4cc-staging.netlify.app/api/twilio/pma-voice-staging.
+>
+> BLOCKER: preview channel flag true is configured, but gateway rebuild run 39814792785 (release commit c0b5336eb8c0a07cd8e3a035d11da0662c4f5dd3) is queued without a runner; pending environment approvals are empty. Current gateway still responds 503 channels disabled. GitHub Status reports Actions degraded performance. Do not trigger duplicate releases or weaken guards.
+>
+> Next: check this run, verify gateway signature/HMAC guards after release, test synthetic bridge-to-Supabase persistence, then request a real inbound call. No successful phone call is claimed. PR #91 remains draft/unmerged; production, SMS and existing bridges unchanged.
+
+## Earlier notes (historical; use current status above)
+
 # Property Management Assistant — remaining environment work
 
 > Latest call diagnosis: PROPERTY-MANAGEMENT-CALL-FAILURE-20261022.md supersedes the preview-deployment blocker below. The web release succeeded on a later attempt. Both PMA voice POST endpoints return 503 because channels remain disabled; the Railway PMA integration and exact Twilio call/routing evidence remain outstanding.
