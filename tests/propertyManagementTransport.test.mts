@@ -34,5 +34,6 @@ test('PMA voice forwards validated catalog proposals and never delays safety for
  assert.equal(bodies[0].confirmed,false);assert.equal(bodies[0].modelOutput,undefined);
  assert.equal((await adapter.submit({message:'Question',confirmed:false,intent:'PET_POLICY',confidence:0.78,entities:{topic:'pets'}},ctx)).success,true);
  assert.equal(bodies[1].modelOutput.intent,'PET_POLICY');assert.equal(bodies[1].modelOutput.confidence,0.78);
+ assert.equal((await adapter.submit({message:'Something dangerous is happening',confirmed:false,intent:'PERSONAL_SAFETY_THREAT',confidence:0.5},ctx)).success,true);assert.equal(bodies[2].modelOutput.intent,'PERSONAL_SAFETY_THREAT');
  const before=bodies.length;assert.equal((await adapter.submit({message:'Question',confirmed:true,intent:'OWNER_OVERRIDE',confidence:1,entities:{owner:true}},ctx)).state,'INVALID_CLASSIFICATION');assert.equal(bodies.length,before);
 });

@@ -17,3 +17,5 @@ test('configuration contains all canonical fields, unique routes and tunable thr
 });
 
 test('explicit availability preferences are extracted without inventing a move date',()=>{const out=r.classify('Do you have a 2 bedroom available for 2099-01-01?');assert.equal(out.intent,'UNIT_AVAILABILITY');assert.equal(out.entities.bedrooms,2);assert.equal(out.entities.move_date,'2099-01-01');assert.equal(r.classify('Any studios available?').entities.move_date,undefined);assert.equal(r.classify('available on 2099-02-31').entities.move_date,undefined);});
+
+test('a model-reported emergency preserves uncertainty while prioritizing safety',()=>{const out=r.classify('Something dangerous is happening',{intent:'PERSONAL_SAFETY_THREAT',confidence:0.5});assert.equal(out.intent,'PERSONAL_SAFETY_THREAT');assert.equal(out.confidence,0.5);assert.equal(out.confidence_source,'model_proposal');assert.equal(out.safety_override,true);assert.equal(out.priority,'emergency');});

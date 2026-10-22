@@ -19,7 +19,7 @@ The 25-intent catalog extends the existing AI4Businesses platform. It does not p
 | 021–025 | PAYMENT_QUESTION, LEASE_QUESTION, UNKNOWN_QUESTION, HELP_REQUEST, GENERAL_GREETING |
 
 ## Routing and authority
-Safety patterns override model classification and confidence. High confidence (at least .90) permits only bounded actions after entity validation, authorization and required confirmation. Medium confidence (.70 through below .90) asks one clarification. Low confidence routes UNKNOWN_QUESTION to the existing blocked manual follow-up queue. Greeting/help turns only log the interaction.
+Safety patterns override model classification and confidence. A validated model-reported emergency also takes the safety path while preserving the reported confidence and source; it cannot become a routine request merely because confidence is low. High confidence (at least .90) permits only bounded actions after entity validation, authorization and required confirmation. Medium confidence (.70 through below .90) asks one clarification. Low confidence routes UNKNOWN_QUESTION to the existing blocked manual follow-up queue. Greeting/help turns only log the interaction.
 
 All canonical fields from the supplied catalog are stored on the interaction and in the audit event, with workflow, agent, resolution, escalation level, record IDs and workflow duration in milliseconds. `tenant_id` and `platform_tenant_id` both identify the existing platform workspace; residents remain contacts/occupancies, and prospect IDs reference existing leads. No duplicate resident identity or CRM is introduced.
 

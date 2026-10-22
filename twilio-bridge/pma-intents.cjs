@@ -18,13 +18,14 @@ function validateModel(v){
 function classify(message,proposal){
  if(typeof message!=='string'||!message.trim()||message.length>4000)throw Error('Invalid message');
  const exact=config.intents.find(d=>d.examples.some(x=>normalize(x)===normalize(message)));
- const safety=(exact?.safety?exact:null)??config.intents.find(d=>d.safety&&new RegExp('\\b(?:'+d.pattern+')\\b','i').test(message));
+ const deterministicSafety=(exact?.safety?exact:null)??config.intents.find(d=>d.safety&&new RegExp('\\b(?:'+d.pattern+')\\b','i').test(message));
  // Untrusted malformed model data cannot suppress deterministic safety handling.
- const model=safety?null:proposal===undefined?null:validateModel(proposal);
+ const model=deterministicSafety?null:proposal===undefined?null:validateModel(proposal);
+ const safety=deterministicSafety??(model&&byName[model.intent].safety?byName[model.intent]:null);
  const matches=config.intents.filter(d=>!d.safety&&d.action!=='unknown'&&new RegExp(d.pattern,'i').test(message));
  const precedence=['GENERAL_GREETING','HELP_REQUEST','OWNER_OVERRIDE','OWNER_REQUEST','VENDOR_STATUS_UPDATE','VENDOR_RESPONSE','LEASE_QUESTION','PAYMENT_QUESTION','MAINTENANCE_STATUS','MOVE_OUT','MOVE_IN','PET_POLICY','PARKING_QUESTION','APPLICATION_QUESTION','PROPERTY_POLICY','SHOWING_REQUEST','UNIT_AVAILABILITY','MAINTENANCE_REQUEST','LEASING_INQUIRY'];
  let chosen=safety??(model?byName[model.intent]:exact??matches.sort((a,b)=>precedence.indexOf(a.intent)-precedence.indexOf(b.intent))[0])??byName.UNKNOWN_QUESTION;
- let confidence=safety?1:model?.confidence??(chosen.action==='unknown'?config.thresholds.unknown:config.thresholds.rule);
+ let confidence=deterministicSafety?1:model?.confidence??(chosen.action==='unknown'?config.thresholds.unknown:config.thresholds.rule);
  if(!safety&&!model&&!exact&&matches.some(d=>['PET_POLICY','PARKING_QUESTION','MOVE_IN','MOVE_OUT'].includes(d.intent)&&d.intent!==chosen.intent))confidence=config.thresholds.ambiguous;
  if(!safety&&confidence<config.thresholds.medium)chosen=byName.UNKNOWN_QUESTION;
  const entities={topic:message.slice(0,2000),description:message.slice(0,2000),...(model?.entities??{})};
@@ -37,6 +38,6 @@ function classify(message,proposal){
  if(entities.followup_requested===undefined)entities.followup_requested=/contact me|follow.up|call me|reach me/i.test(message);
  if(!entities.response){if(/i can take the job|\baccept\b/i.test(message))entities.response='accepted';else if(/\bdecline\b/i.test(message))entities.response='declined';else if(/more information/i.test(message))entities.response='information_requested';}
  if(!entities.vendor_status){if(/repair is complete|work.*complete|vendor.*completed/i.test(message))entities.vendor_status='completed';else if(/work has started/i.test(message))entities.vendor_status='in_progress';}
- return {intent:chosen.intent,legacy:chosen.legacy,agent:chosen.agent,workflow:chosen.workflow,action:chosen.action,confidence,confidence_source:safety?'deterministic_safety':model?'model_proposal':'deterministic_rules',entities,safety_override:!!safety,requires_clarification:!safety&&confidence>=config.thresholds.medium&&confidence<config.thresholds.high,catalog_version:config.version,priority:safety?'emergency':'normal',category:entities.category};
+ return {intent:chosen.intent,legacy:chosen.legacy,agent:chosen.agent,workflow:chosen.workflow,action:chosen.action,confidence,confidence_source:deterministicSafety?'deterministic_safety':model?'model_proposal':'deterministic_rules',entities,safety_override:!!safety,requires_clarification:!safety&&confidence>=config.thresholds.medium&&confidence<config.thresholds.high,catalog_version:config.version,priority:safety?'emergency':'normal',category:entities.category};
 }
 module.exports={config,byName,validateModel,classify};
