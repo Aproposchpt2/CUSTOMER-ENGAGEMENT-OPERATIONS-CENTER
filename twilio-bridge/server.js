@@ -507,7 +507,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+      if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
+        output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
+      } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, callId });
       } else if (name === 'submit_business_profile') {
         if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
