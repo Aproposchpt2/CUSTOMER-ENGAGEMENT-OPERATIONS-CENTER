@@ -5,7 +5,7 @@ const crypto=require('node:crypto');
 const {routes,makeRouteToken,verifyRouteToken,boundInstructions,createVoiceEntry}=require('../voice-entry.cjs');
 const {processVoiceDemo}=require('../../lib/voiceDemo/gateway.cjs');
 const secret='synthetic-signing-secret-only';
-const session={session_id:'11111111-1111-4111-8111-111111111111',call_sid:'CA'+'a1'.repeat(16),caller_number:'+15555550123',account_sid:'AC'+'b1'.repeat(16),agentRoute:'support-specialist'};
+const session={session_id:'11111111-1111-4111-8111-111111111111',call_sid:'CA'+'a1'.repeat(16),caller_number:'+15555550123',account_sid:'AC'+'b1'.repeat(16),agentRoute:'support-specialist',start_time:new Date(Date.now()-1000).toISOString()};
 const env={STELLAR_BRIDGE_STAGING:'true',PMA_ENVIRONMENT:'staging',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',BRIDGE_HMAC_SECRET:secret,TWILIO_ACCOUNT_SID:session.account_sid,TWILIO_AUTH_TOKEN:'synthetic-twilio-token',PMA_STAGING_DID:'+15555550100',PMA_STAGING_TEST_CALLER:session.caller_number};
 const start={callSid:session.call_sid,accountSid:session.account_sid};
 for(const [digit,r]of Object.entries(routes))test('digit '+digit+' binds only '+r.agent,()=>{
@@ -138,4 +138,12 @@ test('staging voice agents retain distinct departmental identities and acoustic 
  assert.match(server,/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
  assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
  assert.doesNotMatch(adapter.createPmaAdapter({}).instructions,/Start by saying: "Hello, this is the AI4Businesses/);
+});
+
+for(const [label,start_time]of [['missing',undefined],['invalid','invalid'],['expired',new Date(Date.now()-3*60*60*1000).toISOString()],['future',new Date(Date.now()+60000).toISOString()]])test('PMA rejects '+label+' session lifetime before knowledge or inventory access',async()=>{
+ const pma={...session,agentRoute:'property-management-assistant',start_time};
+ let reads=0;
+ const deps=dependencies({env:{...env,VOICE_DEMO_WORKFLOWS_ENABLED:'true'},record:async()=>pma,knowledge:async()=>{reads++;return [];},availability:async()=>{reads++;return {};}});
+ for(const action of ['stream_start','pma_availability'])await assert.rejects(processVoiceDemo({action,call_sid:pma.call_sid,session_id:pma.session_id,agentRoute:pma.agentRoute,args:{}},deps),/expired or missing lifetime/);
+ assert.equal(reads,0);
 });
