@@ -23,6 +23,9 @@ export function oneOf<T extends string>(value: unknown, values: readonly T[], na
 }
 export function futureTime(value: unknown): string {
   const s = text(value, 'showing time', 80);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/.test(s)) throw new PmaError('Provide a showing time with an explicit timezone offset');
+  const day=new Date(s.slice(0,10)+'T12:00:00Z');
+  if (!Number.isFinite(day.getTime())||day.toISOString().slice(0,10)!==s.slice(0,10)) throw new PmaError('Invalid showing date');
   const t = Date.parse(s);
   if (!Number.isFinite(t) || t <= Date.now()) throw new PmaError('Choose a future showing time');
   return new Date(t).toISOString();

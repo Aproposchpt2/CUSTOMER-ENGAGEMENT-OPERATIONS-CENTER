@@ -86,9 +86,9 @@ update public.pm_maintenance_requests set status='Scheduled',scheduled_at=now()+
 update public.pm_maintenance_requests set status='In Progress' where id='70000000-0000-4000-8000-000000000001';
 update public.pm_maintenance_requests set status='Completed',resolution='Synthetic repair confirmed by owner' where id='70000000-0000-4000-8000-000000000001';
 update public.pm_maintenance_requests set status='Closed' where id='70000000-0000-4000-8000-000000000001';
-insert into public.ai4cc_knowledge_entries(tenant_id,property_id,title,content,visibility,approved) values
- ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Resident FAQ','Synthetic policy','resident',true),
- ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Staff FAQ','Private staff policy','staff',true);
+insert into public.ai4cc_knowledge_entries(tenant_id,property_id,title,content,visibility,approved,source_status,publication_state) values
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Resident FAQ','Synthetic policy','resident',true,'VERIFIED','published'),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Staff FAQ','Private staff policy','staff',true,'VERIFIED','published');
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated"}',true);
 do $$ begin if (select count(*) from public.ai4cc_knowledge_entries)<>1 then raise exception 'Knowledge visibility failed'; end if; end $$;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000005","role":"authenticated"}',true);
@@ -158,6 +158,7 @@ insert into public.ai4cc_knowledge_entries(tenant_id,property_id,unit_id,title,c
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','First conflicting answer','public',true,null),
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','Second conflicting answer','public',true,null),
  ('20000000-0000-4000-8000-000000000001',null,null,'staffonlyprobe','Owner preferences private','staff',false,null);
+update public.ai4cc_knowledge_entries set source_status='VERIFIED',publication_state='published' where tenant_id='20000000-0000-4000-8000-000000000001' and title in ('scopeprobe','unitprivateprobe','expiredprobe','draftprobe','conflictprobe','staffonlyprobe');
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 do $$ declare v jsonb;begin

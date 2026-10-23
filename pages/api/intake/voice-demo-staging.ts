@@ -3,6 +3,7 @@ import {createClient} from '@supabase/supabase-js';
 import {validateRequest} from 'twilio';
 import {verifyPmaBridge} from '@/lib/propertyManagement/transport';
 import {privateResponse,fail,result} from '@/lib/propertyManagement/server';
+import {inventorySnapshot,AVAILABILITY_MAX_AGE_HOURS} from '@/lib/propertyManagement/availability';
 import {PmaError} from '@/lib/propertyManagement/domain';
 // The bridge sends the original Twilio signature; validation stays server-side here.
 const {processVoiceDemo}=require('@/lib/voiceDemo/gateway.cjs');
@@ -13,6 +14,10 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
   const knowledge=async(agentRoute:string)=>{
     // PMA public knowledge must be scoped to the configured staging property.
     // Never load resident, staff, unit-private, unreviewed, or draft material into a shared voice prompt.
+    if(agentRoute==='property-management-assistant'){
+      if(!process.env.PMA_STAGING_PROPERTY_ID)throw new PmaError('Property binding unavailable',503);
+      return result(await admin.rpc('pm_public_voice_knowledge_v1',{t:process.env.AI4CC_VOICE_DEMO_TENANT_ID,p:process.env.PMA_STAGING_PROPERTY_ID}))??[];
+    }
     const query=admin.from('ai4cc_knowledge_entries')
       .select('id,title,content,tags,approved,publication_state,visibility,source_status,version_num,valid_until,effective_at,expires_at')
       .eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID)
@@ -21,22 +26,22 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
       .eq('publication_state','published')
       .eq('visibility','public')
       .eq('source_status','VERIFIED');
-    if(agentRoute==='property-management-assistant'){
-      if(!process.env.PMA_STAGING_PROPERTY_ID)throw new PmaError('Property binding unavailable',503);
-      return result(await query.eq('property_id',process.env.PMA_STAGING_PROPERTY_ID).order('title',{ascending:true}).limit(64))??[];
-    }
     return result(await query.is('property_id',null).contains('tags',['agent:'+agentRoute]).limit(12))??[];
   };
   const availability=async(args:{bedrooms?:number},session:{agentRoute:string})=>{
     if(session.agentRoute!=='property-management-assistant'||!process.env.PMA_STAGING_PROPERTY_ID||!process.env.AI4CC_VOICE_DEMO_TENANT_ID)throw new PmaError('Availability scope unavailable',503);
-    let query=admin.from('pm_units').select('label,bedrooms,bathrooms,status,availability_date')
+    const property=result(await admin.from('pm_properties').select('name,status,accepts_inquiries,timezone').eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID).eq('id',process.env.PMA_STAGING_PROPERTY_ID).single());
+    if(!property||property.status!=='active'||property.accepts_inquiries!==true||property.timezone!=='America/Los_Angeles')throw new PmaError('Current property inventory unavailable',503);
+    const now=new Date();
+    let query=admin.from('pm_units').select('label,bedrooms,bathrooms,status,availability_date,updated_at')
       .eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID)
       .eq('property_id',process.env.PMA_STAGING_PROPERTY_ID)
       .eq('status','vacant').not('availability_date','is',null)
+      .gt('updated_at',new Date(now.getTime()-AVAILABILITY_MAX_AGE_HOURS*3600000).toISOString()).lte('updated_at',now.toISOString())
       .order('availability_date',{ascending:true}).limit(20);
     if(args.bedrooms!==undefined)query=query.eq('bedrooms',args.bedrooms);
     const units=result(await query)??[];
-    return {success:true,stagingOnly:true,property:'Desert Ridge Apartments',asOf:new Date().toISOString().slice(0,10),units:units.map((u:any)=>({unit:u.label,bedrooms:u.bedrooms,bathrooms:u.bathrooms,earliestRecordedDate:u.availability_date})),disclaimer:'Fictional staging inventory only. Vacant status and recorded dates do not confirm lease eligibility or guaranteed move-in.'};
+    return {...inventorySnapshot(units,now),property:property.name};
   };
   const workflow=async(body:{action:string;operation?:string;operationId?:string;args:Record<string,unknown>},session:{call_sid:string;session_id:string})=>{
    const tenant=process.env.AI4CC_VOICE_DEMO_TENANT_ID;
