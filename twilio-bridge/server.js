@@ -780,7 +780,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         if(session)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
           const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
-          instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. This instruction overrides earlier first-turn greetings.';
+          instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
         }
 
         startSession(instructions, tools);
