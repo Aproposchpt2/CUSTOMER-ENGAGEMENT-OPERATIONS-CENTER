@@ -778,7 +778,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         if(session)instructions=boundInstructions(instructions,session,assets);
-        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already spoke with the Stellar Intelligent Technologies IVR receptionist. You are a DIFFERENT specialist voice agent. Do not repeat the IVR menu. If property-management-assistant, your first words MUST be exactly: "You have reached Desert Ridge Apartments. How can I help you?" Then wait. For Sales or Support, introduce your department briefly and ask one useful question. This overrides any preceding first-turn instructions.';
+        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already spoke with the Stellar Intelligent Technologies IVR receptionist. You are a DIFFERENT specialist voice agent. Do not repeat the IVR menu. If property-management-assistant, your first words MUST be exactly: "You have reached Desert Ridge Apartments. How can I help you?" Then wait. For Support, your first words MUST be exactly: "You have reached Summit Comfort Heating & Air. How can I help you?" Then wait. For Sales, introduce the Stellar Intelligent Technologies Sales department briefly and ask one useful question. This overrides any preceding first-turn instructions.';
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
