@@ -181,7 +181,12 @@ test('staging Support adds the fixed opening while preserving the approved model
  // Frozen original persona remains intact; owner-approved workflow is a separate suffix.
  assert.ok(start.instructions.startsWith(prefix+approved.brief));
  assert.ok(start.delegation.responses.instructions.startsWith(prefix+approved.instructions));
- assert.equal(start.instructions.slice((prefix+approved.brief).length),start.delegation.responses.instructions.slice((prefix+approved.instructions).length));
+ const liveSuffix=start.instructions.slice((prefix+approved.brief).length);
+ const delegatedSuffix=start.delegation.responses.instructions.slice((prefix+approved.instructions).length);
+ const expectedContext='\n\n# CALL CONTEXT\nCALL_SID: TEST_CALL\nCALLER_PHONE: +12025550199';
+ // Delegation receives call context; the speaking persona retains the approved workflow without it.
+ assert.ok(delegatedSuffix.startsWith(expectedContext));
+ assert.equal(delegatedSuffix.slice(expectedContext.length),liveSuffix);
  assert.equal(start.turn_detection,undefined);
  assert.equal(start.audio.output?.voice,undefined);
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');

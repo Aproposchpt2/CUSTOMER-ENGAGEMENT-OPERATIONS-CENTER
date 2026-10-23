@@ -20,7 +20,7 @@ const PUBLIC_PATHS = new Set(['/', '/products', '/login', '/web-chat', '/chat', 
 // /platform/ holds the public capability detail pages linked from the homepage.
 // /live/ holds public read-only mirrors of real CRM data (see pages/live/*), backed only
 // by /api/public/* endpoints — never the authenticated admin API routes.
-const PUBLIC_PREFIXES = ['/products/', '/api/chat/', '/api/intake/', '/api/sms/', '/api/public/', '/platform/', '/live/'];
+const PUBLIC_PREFIXES = ['/solutions/', '/products/', '/api/chat/', '/api/intake/', '/api/sms/', '/api/public/', '/platform/', '/live/'];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
