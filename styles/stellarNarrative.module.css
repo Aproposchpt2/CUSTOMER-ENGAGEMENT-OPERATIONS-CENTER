@@ -4,3 +4,9 @@
 .site .hero h1 em{color:#E4C878!important}
 .site .marqueeTrack,.site .marqueeStatic{font-family:'Cormorant Garamond',Georgia,serif!important;font-weight:400!important;color:#E4C878!important;font-size:clamp(25px,3vw,38px);line-height:1.25}
 .site .marquee b{color:#E4C878!important}
+
+/* Product pages: system identity takes visual priority over the supporting statement. */
+.site .hero .productHeroName{font-family:'Cormorant Garamond',Georgia,serif!important;font-size:clamp(47px,7vw,100px)!important;font-weight:400!important;line-height:1.02!important;letter-spacing:-.02em!important;color:#E4C878!important;max-width:1100px;overflow-wrap:break-word}
+.site .hero .productHeroSubhead{font-family:'Cormorant Garamond',Georgia,serif!important;font-size:clamp(25px,3vw,41px)!important;font-weight:400!important;line-height:1.18!important;letter-spacing:-.015em!important;color:#F7F4EC!important;max-width:950px;margin:0 0 20px}
+.site .hero .productHeroSubhead em{font-family:inherit!important;font-weight:400!important;font-style:normal!important;color:#D3CEC1!important}
+@media(max-width:700px){.site .hero .productHeroName{font-size:clamp(40px,9.4vw,63px)!important}.site .hero .productHeroSubhead{font-size:clamp(24px,5.8vw,32px)!important}}
