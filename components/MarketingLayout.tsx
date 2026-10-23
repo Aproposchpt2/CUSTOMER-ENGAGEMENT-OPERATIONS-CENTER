@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import IntelligentSystemsMenu from '@/components/IntelligentSystemsMenu';
 import { useRouter } from 'next/router';
 import { useState, type ReactNode } from 'react';
 import { BRAND, ATTRIBUTION, products, productHref } from '@/lib/marketingProducts';
@@ -14,7 +15,8 @@ export default function MarketingLayout({children}: {children:ReactNode}) {
       <Link href="/" className={s.navBrand} aria-label={`${BRAND} home`}><span className={s.brandSymbol} aria-hidden="true">✦</span><span>STELLAR<span className={s.brandSub}>INTELLIGENT TECHNOLOGIES</span></span></Link>
       <button className={s.menuButton} type="button" onClick={()=>setOpen(!open)} aria-expanded={open} aria-controls="marketing-navigation">{open ? 'Close −' : 'Menu +'}</button>
       <nav id="marketing-navigation" className={`${s.nav} ${open?s.navOpen:''}`} aria-label="Main navigation">
-        {[['/','Home'],['/products','Products'],['/about','Our Perspective']].map(([href,label])=><Link key={href} href={href} aria-current={pathname===href?'page':undefined} onClick={()=>setOpen(false)}>{label}</Link>)}
+        {[['/','Home'],['/about','Our Perspective']].map(([href,label])=><Link key={href} href={href} aria-current={pathname===href?'page':undefined} onClick={()=>setOpen(false)}>{label}</Link>)}
+        <IntelligentSystemsMenu/>
         <Link href="/intake" className={s.navCta} onClick={()=>setOpen(false)}>Let’s talk <span aria-hidden="true">↗</span></Link>
       </nav>
     </header>
