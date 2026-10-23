@@ -1,0 +1,21 @@
+name: Summit Support intelligence isolation validation
+on:
+  push:
+    branches: [feature/summit-support-intelligence-staging-20261023]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate staging Support catalog and tenant-isolation projection
+        run: |
+          node --test twilio-bridge/tests/support-intent-catalog.test.cjs twilio-bridge/tests/support-intelligence.test.cjs
