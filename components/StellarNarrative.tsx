@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import s from '@/styles/stellarNarrative.module.css';
 
 export const businessFaq = [
- ['Can the system provide me with extended coverage?', 'Customer expectations do not stop when an office closes or an employee becomes occupied. A practical workflow review identifies predictable activities that can receive consistent attention without pulling employees away from relationships and decisions.'],
+ ['Can the system provide my Business with extended coverage?', 'Customer expectations do not stop when an office closes or an employee becomes occupied. A practical workflow review identifies predictable activities that can receive consistent attention without pulling employees away from relationships and decisions.'],
+ ['My staff can’t handle the amount of calls during the day. How can the system help in this regard?', 'The system can answer up to 20 concurrent calls, helping handle incoming call volume when your staff are occupied. Calls requiring human judgment or escalation can be routed according to your approved business rules.'],
  ['What problem does this solve?', 'Missed calls, uneven after-hours coverage, repetitive status questions, interrupted employees, and slow responses can create unnecessary friction. The appropriate solution depends on how your business currently handles these interactions.'],
  ['How much money is this costing me today?', 'Review payroll, overtime, missed inquiries, administrative handling time, training, and recurring interruptions. A useful estimate is specific to your call patterns and staffing model—not a universal savings promise.'],
  ['What are other businesses doing?', 'Some organizations are assigning repeatable customer interactions and routine intake to intelligent systems, while keeping complex decisions, judgment, and personal relationships with their teams.'],
