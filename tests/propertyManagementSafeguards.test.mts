@@ -121,6 +121,6 @@ test('T02/T10: inventory lookup failure propagates and the preserved voice tool 
  const {processVoiceDemo}=require('../lib/voiceDemo/gateway.cjs');
  const adapter=require('../twilio-bridge/pma-adapter.cjs');
  const call='CA00000000000000000000000000000001',session='a0000000-0000-4000-8000-000000000001';
- await assert.rejects(()=>processVoiceDemo({action:'pma_availability',call_sid:call,session_id:session,agentRoute:'property-management-assistant',args:{}},{env:{PMA_ENVIRONMENT:'staging',VOICE_DEMO_IVR_ENABLED:'true',VOICE_DEMO_WORKFLOWS_ENABLED:'true'},record:async()=>({call_sid:call,session_id:session,agentRoute:'property-management-assistant'}),availability:async()=>{throw Error('Synthetic lookup unavailable');}}),/Synthetic lookup unavailable/);
+ await assert.rejects(()=>processVoiceDemo({action:'pma_availability',call_sid:call,session_id:session,agentRoute:'property-management-assistant',args:{}},{env:{PMA_ENVIRONMENT:'staging',VOICE_DEMO_IVR_ENABLED:'true',VOICE_DEMO_WORKFLOWS_ENABLED:'true'},record:async()=>({call_sid:call,session_id:session,agentRoute:'property-management-assistant',start_time:new Date().toISOString()}),availability:async()=>{throw Error('Synthetic lookup unavailable');}}),/Synthetic lookup unavailable/);
  const source=readFileSync('twilio-bridge/pma-adapter.cjs','utf8');assert.match(source,/If lookup fails, say availability could not be verified/);assert.match(source,/pma_check_availability/);
 });

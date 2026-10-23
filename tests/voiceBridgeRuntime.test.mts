@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -15,14 +15,14 @@ async function session(profile, failSave = false, warm = false, staging = false,
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./voice-entry.cjs'&&trustedPma?{...require(n),createVoiceEntry:()=>({openSession:async()=>({agentRoute:'property-management-assistant',knowledgeEntries:[],intents:[]}),closeSession:async()=>({})})}:n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
-    return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:{persisted:true,interactionId:'10000000-0000-4000-8000-000000000001',requestId:'20000000-0000-4000-8000-000000000001',notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
+    return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:supportSave?await supportSave():{success:true,state:'REQUESTED',domainPersisted:true,interactionPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false,notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL');
+  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
@@ -304,7 +304,25 @@ test('PMA staging profile uses the existing voice engine and correlated structur
  assert.equal(s.requests.length,0);
  await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
  const output=JSON.parse(s.outbound.find(x=>x.item?.call_id==='pma-1').item.output);
- assert.equal(output.success,true);assert.equal(output.notificationSent,false);assert.equal(output.requestId,'20000000-0000-4000-8000-000000000001');
+ assert.equal(output.success,false);assert.equal(output.state,'AUTHORIZATION_REQUIRED');assert.equal(output.requestId,undefined);
  await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
- assert.equal(s.requests.length,1);
+ assert.equal(s.requests.length,0);
+});
+
+test('PMA trusted runtime binds session, tolerates interruption, and returns request-only result',async()=>{
+ const s=await session('pma',false,true,true,null,true);
+ await s.tool('pma-bound','pma_property_workflow',{intent:'SHOWING_REQUEST',confidence:1,message:'Request a showing',confirmed:true,showingAt:'2099-12-01T12:00:00-08:00'},true);
+ const output=JSON.parse(s.outbound.find(x=>x.item?.call_id==='pma-bound').item.output);
+ assert.equal(output.state,'REQUESTED');assert.equal(output.bookingConfirmed,false);assert.equal(output.notificationSent,false);
+ assert.equal(s.requests[0].session_id,'a0000000-0000-4000-8000-000000000001');assert.equal(s.requests[0].operationKey,undefined);
+});
+test('PMA deterministic medical/CO transcript safety precedes tools and disconnect suppresses late success',async()=>{
+ const s=await session('pma',false,true,true,null,true);
+ oai(s,{type:'session.input_transcript.delta',delta:'The carbon mon'});oai(s,{type:'session.input_transcript.delta',delta:'oxide alarm is going off'});
+ assert.ok(s.outbound.some(x=>x.type==='session.commentary.append'&&x.content.includes('SAFETY OVERRIDE')));
+ let resolve:any;const pending=new Promise(r=>resolve=r);
+ const d=await session('pma',false,true,true,()=>pending,true);
+ const task=d.tool('late-pma','pma_property_workflow',{message:'Request a tour',confirmed:true},true);
+ phoneEvent(d,{event:'stop'});resolve({success:true,state:'REQUESTED',domainPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false});await task;
+ assert.equal(d.outbound.some(x=>x.item?.call_id==='late-pma'),false);
 });

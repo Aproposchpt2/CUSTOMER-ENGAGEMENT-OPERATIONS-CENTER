@@ -511,7 +511,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
         output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
       } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
-        output = await pmaAdapter.submit(args, { callSid, callId });
+        output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
       } else if (name === 'submit_business_profile') {
         if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
         if(session&&args.confirmed!==true)throw new Error('Lead details require caller confirmation');
@@ -588,6 +588,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       output = { error: e.message };
     }
 
+    if (profile === 'pma' && callEnded) return;
     // GPT-Live Responses delegation requires response.item.create, not legacy conversation.item.create.
     sendToOpenAI({ type: 'response.item.create', item: { type: 'function_call_output', call_id: callId, output: JSON.stringify(output) } });
     sendToOpenAI({ type: 'response.create' });
@@ -597,6 +598,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   function attachOpenAIHandlers() {
     const toolCallBuffers = {};
     const completedToolCalls = new Set();
+    let pmaSafetyText = "", pmaSafetyAnnounced = false;
 
     openaiWs.on('message', (raw) => {
       if (callEnded) return;
@@ -605,6 +607,16 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+      if (STAGING_ONLY && profile === 'pma' && t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+        pmaSafetyText = (pmaSafetyText + msg.delta).slice(-4000);
+        const safety = require('./pma-intents.cjs').classify(pmaSafetyText);
+        if (safety.safety_override && !pmaSafetyAnnounced) {
+          pmaSafetyAnnounced = true;
+          sendToOpenAI({type:'session.commentary.append',delegation_id:null,content:'SAFETY OVERRIDE: Advise moving to safety/fresh air and contacting local emergency services immediately. Do not delay for intake or tools. Do not claim dispatch.'});
+          void pmaAdapter.submit({message:pmaSafetyText,confirmed:false},{callSid,sessionId:session?.session_id}).catch(()=>{});
+        }
+      }
+      if (profile === 'pma' && ['input_audio_buffer.speech_started','session.input_audio.speech_started'].includes(t)) pmaSafetyText = '';
       if (STAGING_ONLY && profile === 'support') {
         if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
           supportInputVersion++;

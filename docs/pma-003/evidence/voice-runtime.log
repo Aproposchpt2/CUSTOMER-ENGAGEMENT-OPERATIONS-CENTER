@@ -1,0 +1,31 @@
+✔ sales transport registers sales tools and initializes the interaction (14.085386ms)
+✔ unconfirmed persistence never authorizes a transfer (1.743292ms)
+✔ support transport retains its support tools and disconnect cleanup (2.5099ms)
+✔ delegated envelope executes once and rejects non-object arguments (1.197237ms)
+✔ Sales mirrors the preferred calm Support Desk behavior without modifying support prompts or Live model (1.988051ms)
+✔ Sales and Support can submit verified support tickets while preserving Sales lead tools (1.958076ms)
+✔ silent caller receives one proactive greeting request for each profile on warm or cold sessions (4.498492ms)
+✔ early caller speech cannot cancel greeting before playback; queued input survives (1.282196ms)
+✔ missing greeting or playback acknowledgement terminates startup (2.367875ms)
+✔ startup audio overflow fails explicitly instead of silently dropping speech (1.930544ms)
+✔ caller disconnect before session ready prevents a late greeting (0.906969ms)
+✔ Railway staging blocks intake writes, notifications and external transfers (2.800809ms)
+✔ staging Support adds the fixed opening while preserving the approved models and persona (0.978207ms)
+✔ restoring the persona retains the current staging telephone greeting transport (1.08584ms)
+✔ staging Support preserves full-duplex acknowledgments without cancelling backend work (0.875021ms)
+✔ staging Support waits for complete delegated tool items and returns one correlated result (0.988563ms)
+✔ pending support save receives progress but no success until persistence resolves (1.229656ms)
+✔ failed and disconnected support saves cannot emit stale success or pending reminders (2.019429ms)
+✔ missed Support delegation gets one backend review after caller inactivity (2.124638ms)
+✔ Support review does not duplicate active backend work or run after disconnect (0.946489ms)
+✔ PMA staging profile uses the existing voice engine and correlated structured workflow tool (3.595324ms)
+✔ PMA trusted runtime binds session, tolerates interruption, and returns request-only result (3.123536ms)
+✔ PMA deterministic medical/CO transcript safety precedes tools and disconnect suppresses late success (3.231559ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 197.643306

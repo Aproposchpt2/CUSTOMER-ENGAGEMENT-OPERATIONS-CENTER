@@ -1,8 +1,10 @@
 'use strict';
 const config=require('./pma-intent-catalog-v1.json');
 const byName=Object.fromEntries(config.intents.map(d=>[d.intent,d]));
+const aliases=Object.fromEntries(config.intents.flatMap(d=>[[d.intent.toLowerCase(),d.intent],[d.id.toLowerCase(),d.intent],[d.intent.toLowerCase().replaceAll('_','-'),d.intent]]));
 const normalize=s=>s.toLowerCase().replace(/[?!.]/g,'').trim();
 function validateModel(v){
+ if(v&&typeof v==='object'&&typeof v.intent==='string'&&aliases[v.intent.toLowerCase()])v={...v,intent:aliases[v.intent.toLowerCase()]};
  if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).some(k=>!['intent','confidence','entities'].includes(k))||!byName[v.intent]||typeof v.confidence!=='number'||!Number.isFinite(v.confidence)||v.confidence<0||v.confidence>1)throw Error('Invalid classification proposal');
  const e=v.entities??{};
  if(!e||typeof e!=='object'||Array.isArray(e)||Object.keys(e).some(k=>!config.modelFields.includes(k)))throw Error('Model cannot supply identity, authority or unknown fields');
@@ -18,7 +20,8 @@ function validateModel(v){
 function classify(message,proposal){
  if(typeof message!=='string'||!message.trim()||message.length>4000)throw Error('Invalid message');
  const exact=config.intents.find(d=>d.examples.some(x=>normalize(x)===normalize(message)));
- const deterministicSafety=(exact?.safety?exact:null)??config.intents.find(d=>d.safety&&new RegExp('\\b(?:'+d.pattern+')\\b','i').test(message));
+ const extraSafety=/\b(carbon monoxide|co alarm|co detector|medical emergency|can'?t breathe|cannot breathe|not breathing|unconscious|chest pain|overdose)\b/i.test(message);
+ const deterministicSafety=(extraSafety?byName.PERSONAL_SAFETY_THREAT:null)??(exact?.safety?exact:null)??config.intents.find(d=>d.safety&&new RegExp('\\b(?:'+d.pattern+')\\b','i').test(message));
  // Untrusted malformed model data cannot suppress deterministic safety handling.
  const model=deterministicSafety?null:proposal===undefined?null:validateModel(proposal);
  const safety=deterministicSafety??(model&&byName[model.intent].safety?byName[model.intent]:null);

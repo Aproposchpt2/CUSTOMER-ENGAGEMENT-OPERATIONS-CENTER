@@ -117,6 +117,105 @@
               "type": "boolean"
             }
           }
+        },
+        "prospect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "consent",
+            "confirmed"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 150
+            },
+            "email": {
+              "type": "string",
+              "maxLength": 254
+            },
+            "phone": {
+              "type": "string",
+              "maxLength": 16
+            },
+            "consent": {
+              "type": "boolean"
+            },
+            "confirmed": {
+              "type": "boolean"
+            },
+            "expectedVersion": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 19
+            }
+          }
+        },
+        "listTourSlots": {
+          "type": "boolean"
+        },
+        "cancelOrReschedule": {
+          "type": "boolean"
+        },
+        "maintenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "category": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "impact": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "urgency": {
+              "type": "string",
+              "enum": [
+                "low",
+                "normal",
+                "high",
+                "emergency"
+              ]
+            },
+            "safetyIndicators": {
+              "type": "array",
+              "maxItems": 10,
+              "items": {
+                "type": "string",
+                "maxLength": 200
+              }
+            },
+            "preferredContactMethod": {
+              "type": "string",
+              "enum": [
+                "phone",
+                "email",
+                "sms"
+              ]
+            },
+            "photos": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {
+                "type": "string",
+                "maxLength": 500
+              }
+            }
+          }
+        },
+        "recoverOperation": {
+          "type": "string",
+          "enum": [
+            "prospect",
+            "showing"
+          ],
+          "description": "Recover the last operation of this kind for this call after timeout/reconnect; do not create a new request."
         }
       }
     }
