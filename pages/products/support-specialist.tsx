@@ -5,7 +5,7 @@ import {Section,ControlCenter,Pricing,FaqNavigator,Consultation} from '@/compone
 import {CALL_RECORDING_NOTICE} from '@/lib/legal';
 import s from '@/styles/stellarNarrative.module.css';
 const questions=[
- ['What does the Support Specialist do?','The Support Specialist gathers the customer's issue, affected service, relevant context, and any troubleshooting already attempted, then follows approved intake and escalation procedures.'],
+ ['What does the Support Specialist do?','The Support Specialist gathers the customer’s issue, affected service, relevant context, and any troubleshooting already attempted, then follows approved intake and escalation procedures.'],
  ['Will customers receive a support ticket number?','A ticket number is provided only after the authorized support system confirms that the ticket was created. An unconfirmed request is never described as completed.'],
  ['How are urgent issues handled?','Your business specifies urgency categories, human escalation destinations, transfer conditions, and out-of-hours procedures. The assistant cannot replace emergency services.'],
  ['Can customers speak with a person?','Approved transfer and escalation paths can connect appropriate calls to available staff or capture information for follow-up when an immediate transfer is unavailable.']
