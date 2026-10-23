@@ -1,15 +1,23 @@
 'use strict';
 const STAGING_URL = 'https://hvzauakkhlivzeqatfqm.supabase.co';
-const STAGING_TENANT = '5885a020-d363-4c27-910a-c035eda132f5';
+// Permitted staging tenants and their RPC endpoints.
+// Add only explicitly authorized staging/demo tenants here; never derive from caller input.
+const TENANT_RPC = {
+  '5885a020-d363-4c27-910a-c035eda132f5': 'stellar_create_phone_support_test_intake',
+  'd7e80001-0000-4000-b000-000000000001': 'stellar_create_hvac_demo_support_intake',
+};
+const PERMITTED_STAGING_TENANTS = new Set(Object.keys(TENANT_RPC));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function readiness(env) {
   if (env.STELLAR_BRIDGE_STAGING !== 'true' && env.RAILWAY_ENVIRONMENT_NAME !== 'staging') return 'NOT_STAGING';
   if (env.STAGING_SUPPORT_WRITES_ENABLED !== 'true') return 'STAGING_WRITES_DISABLED';
-  if (env.STAGING_SUPABASE_URL !== STAGING_URL || env.CSS_TENANT_ID !== STAGING_TENANT) return 'STAGING_TARGET_REJECTED';
+  if (env.STAGING_SUPABASE_URL !== STAGING_URL) return 'STAGING_TARGET_REJECTED';
   if (!env.STAGING_SUPABASE_SERVICE_ROLE_KEY) return 'STAGING_DATABASE_CREDENTIAL_MISSING';
   return 'READY';
 }
-async function submitStagingSupport(args, callSid, env = process.env, request = fetch) {
+async function submitStagingSupport(args, callSid, tenantId, env = process.env, request = fetch) {
+  // Tenant authorization: reject before any DB call.
+  if (typeof tenantId !== 'string' || !PERMITTED_STAGING_TENANTS.has(tenantId)) throw new Error('STAGING_TENANT_NOT_PERMITTED');
   const ready = readiness(env);
   if (ready !== 'READY') throw new Error(ready);
   if (!/^CA[0-9a-f]{32}$/i.test(callSid)) throw new Error('INVALID_STAGING_CALL_ID');
@@ -25,12 +33,13 @@ async function submitStagingSupport(args, callSid, env = process.env, request = 
       !/^\d{4}-\d{2}-\d{2}$/.test(clean.purchaseDate) ||
       Number.isNaN(Date.parse(clean.purchaseDate)) || new Date(clean.purchaseDate).toISOString().slice(0,10)!==clean.purchaseDate)
     throw new Error('INVALID_SUPPORT_ARGUMENTS');
-  const payload = {p_tenant_id:STAGING_TENANT,p_session_id:`phone-staging:${callSid}`,p_name:clean.name,p_email:clean.email,
+  const rpc = TENANT_RPC[tenantId];
+  const payload = {p_tenant_id:tenantId,p_session_id:`phone-staging:${callSid}`,p_name:clean.name,p_email:clean.email,
     p_phone:clean.phone,p_product:clean.product,p_purchase_date:clean.purchaseDate,p_issue:clean.issue,
     p_steps:clean.steps,p_impact:clean.impact,p_priority:clean.priority};
   let response;
   try {
-    response = await request(`${STAGING_URL}/rest/v1/rpc/stellar_create_phone_support_test_intake`, {
+    response = await request(`${STAGING_URL}/rest/v1/rpc/${rpc}`, {
       method:'POST', headers:{'content-type':'application/json',apikey:env.STAGING_SUPABASE_SERVICE_ROLE_KEY,
         authorization:`Bearer ${env.STAGING_SUPABASE_SERVICE_ROLE_KEY}`},
       body:JSON.stringify(payload),signal:AbortSignal.timeout(10000),
@@ -43,4 +52,4 @@ async function submitStagingSupport(args, callSid, env = process.env, request = 
   return {success:true,customerId:row.customer_id,caseId:row.case_id,createdNew:row.created_new,testOnly:true,
     notificationSent:false,technicianFollowupConfirmed:false};
 }
-module.exports={readiness,submitStagingSupport};
+module.exports={readiness,submitStagingSupport,PERMITTED_STAGING_TENANTS};

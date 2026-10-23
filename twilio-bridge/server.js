@@ -127,6 +127,10 @@ After delivering the script, call submit_work_order with priority EMERGENCY. The
 // Direct WebSocket endpoint for Live API (no HTTP pre-auth, same pattern as old pool)
 const LIVE_WS_URL = 'wss://api.openai.com/v1/live/sessions';
 const CSS_TENANT_ID = process.env.CSS_TENANT_ID || '5885a020-d363-4c27-910a-c035eda132f5';
+// HVAC demo tenant — Summit Comfort Heating & Air staging demo only.
+const STAGING_HVAC_TENANT_ID = 'd7e80001-0000-4000-b000-000000000001';
+const STAGING_HVAC_VOICE = 'cedar';
+const STAGING_HVAC_GREETING = 'Thank you for calling Summit Comfort Heating and Air. This is the Summit Comfort Support Desk. To whom do I have the pleasure of speaking?';
 const TRANSFER_NUMBER = process.env.TRANSFER_NUMBER || '+17023087429';
 const MAX_CONCURRENT = parseInt(process.env.MAX_CONCURRENT_CALLS || '10', 10);
 const MAX_CALL_MS = parseInt(process.env.MAX_CALL_DURATION_MS || '2700000', 10); // 45 min
@@ -621,6 +625,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   let salesInputVersion = 0;
   let salesReviewedVersion = 0;
   let salesBackendActive = false;
+  // Per-call resolved support tenant; set to HVAC demo UUID in support+staging path.
+  let resolvedSupportTenantId = CSS_TENANT_ID;
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -685,24 +691,27 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     // An inbound telephone call must be greeted without caller speech.
     // Initialize the session without a developer input turn; issue exactly one
     // response.create once the OpenAI Live session reports session.started.
+    const isHvacDemo = profile === 'support' && STAGING_ONLY && resolvedSupportTenantId === STAGING_HVAC_TENANT_ID;
+    const hvacGreetingInstruction = `Your VERY FIRST audible words on this telephone call must be exactly: "${STAGING_HVAC_GREETING}"\nAsk this question and STOP speaking. After the caller says their name, respond "[Name], how can I help you today?" using their actual name. Subsequent turns follow the Support Specialist instructions.\n\n`;
+    const supportGreeting = isHvacDemo ? hvacGreetingInstruction : SUPPORT_GREETING_INSTRUCTION;
     const sessionInput = {};
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: profile === 'pma' ? PMA_MODEL : LIVE_MODEL,
         ...sessionInput,
-        instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+        instructions: profile === 'support' ? supportGreeting + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
           : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
-        audio: { format: { type: 'audio/pcmu', rate: 8000 } },
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, ...(isHvacDemo ? { output: { voice: STAGING_HVAC_VOICE } } : {}) },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT + '\n\n' + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR + SALES_INTENT_CATALOG : '') + instructions,
+            instructions: profile === 'support' ? supportGreeting + instructions + SUPPORT_TICKET_FLOW : profile === 'pma' ? PMA_LIVE_GREETING_INSTRUCTION + PMA_ORCHESTRATOR_PROMPT + '\n\n' + instructions : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR + SALES_INTENT_CATALOG : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -756,7 +765,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
         }, 4000);
         supportProgressTimers.add(timer);
         try {
-          const result = STAGING_ONLY ? await submitStagingSupport(args, callSid) : await callSupportIntake({ ...args, callSid });
+          const result = STAGING_ONLY ? await submitStagingSupport(args, callSid, resolvedSupportTenantId) : await callSupportIntake({ ...args, callSid });
           if (!STAGING_ONLY && (!result || typeof result.customerId !== 'string' || !result.customerId.trim()
             || typeof result.caseId !== 'string' || !result.caseId.trim()))
             throw new Error('Support ticket database confirmation missing');
@@ -1073,6 +1082,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = PMA_ORCHESTRATOR_PROMPT + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = pmaTools;
         } else {
+          if (STAGING_ONLY) resolvedSupportTenantId = STAGING_HVAC_TENANT_ID;
           instructions = APPROVED_SUPPORT_INSTRUCTIONS;
           tools = supportTools;
         }

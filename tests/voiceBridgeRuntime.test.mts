@@ -170,20 +170,20 @@ test('Railway staging blocks intake writes, notifications and external transfers
   assert.match(s.outbound.find(x=>x.item?.call_id==='transfer').item.output,/STAGING_TRANSFERS_DISABLED/);
  }
 });
-test('staging Support adds the fixed opening while preserving the approved models and persona',async()=>{
+test('staging Support uses HVAC demo greeting and Cedar voice, preserving approved models and persona',async()=>{
  const s=await session('support',false,false,true);
  const start=s.outbound.find(x=>x.type==='session.start').session;
  const approved=JSON.parse(readFileSync(new URL('./fixtures/approved-support-persona.json',import.meta.url),'utf8'));
  assert.equal(start.model,'gpt-live-1');
  assert.equal(start.delegation.responses.model,'gpt-5.6-terra');
- const greeting = 'Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?';
- const prefix = `At the start of the call say exactly: "${greeting}" Then pause and WAIT for the caller's name. Only after the caller gives their name say "[Name], how can I help you today?" using the actual name. Do not speak both sentences before the caller answers; never invent a name. Never repeat the opening once it has been delivered.\n\n`;
- // Frozen original persona remains intact; owner-approved workflow is a separate suffix.
- assert.ok(start.instructions.startsWith(prefix+approved.brief));
- assert.ok(start.delegation.responses.instructions.startsWith(prefix+approved.instructions));
- assert.equal(start.instructions.slice((prefix+approved.brief).length),start.delegation.responses.instructions.slice((prefix+approved.instructions).length));
+ // In staging, the Support Desk is the Summit Comfort HVAC demo; greeting and voice are HVAC-specific.
+ const hvacGreeting = 'Thank you for calling Summit Comfort Heating and Air. This is the Summit Comfort Support Desk. To whom do I have the pleasure of speaking?';
+ const hvacPrefix = `Your VERY FIRST audible words on this telephone call must be exactly: "${hvacGreeting}"\nAsk this question and STOP speaking. After the caller says their name, respond "[Name], how can I help you today?" using their actual name. Subsequent turns follow the Support Specialist instructions.\n\n`;
+ assert.ok(start.instructions.startsWith(hvacPrefix+approved.brief));
+ assert.ok(start.delegation.responses.instructions.startsWith(hvacPrefix+approved.instructions));
+ assert.equal(start.instructions.slice((hvacPrefix+approved.brief).length),start.delegation.responses.instructions.slice((hvacPrefix+approved.instructions).length));
  assert.equal(start.turn_detection,undefined);
- assert.equal(start.audio.output?.voice,undefined);
+ assert.equal(start.audio.output?.voice,'cedar');
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
  assert.equal(intake.parameters.required.length,9);
 });
