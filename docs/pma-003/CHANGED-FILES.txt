@@ -1,6 +1,7 @@
 docs/pma-003/CHANGED-FILES.txt
 docs/pma-003/HANDOFF.md
 docs/pma-003/INTENT-MATRIX.md
+docs/pma-003/PUBLICATION.md
 docs/pma-003/evidence/function-readback.json
 docs/pma-003/evidence/integration-test.log
 docs/pma-003/evidence/local-verification.json
