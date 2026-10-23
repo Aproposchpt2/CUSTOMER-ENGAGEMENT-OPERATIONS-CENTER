@@ -8,6 +8,7 @@ const { readiness: supportWriteReadiness, submitStagingSupport } = require('./st
 const { detectSafetyIntent } = require('./safety-intents.cjs');
 const { validateIntentId } = require('./sales-intents.cjs');
 const { lookupSalesKnowledge } = require('./sales-knowledge-retrieval.cjs');
+const { routeIntent } = require('./sales-orchestration.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -331,6 +332,12 @@ Never ask for passwords or payment information. Never promise specific fix timel
 // transfer_to_specialist always present; bridge enforces transferAllowed at execution time
 function salesTools(interactionId) {
   return [
+    ...(STAGING_ONLY && process.env.STELLAR_SALES_INTENT_ASSESSMENT_ENABLED === 'true' ? [{
+      type: 'function',
+      name: 'assess_sales_intent',
+      description: 'Assess the current Sales caller request using one canonical SLS, UNI or CTL reference ID, classification confidence (0..1), and captured entities. This checks the intent against the server-side catalog. A high-confidence result never independently authorizes a business write; continue to use the specific authorized workflow tool.',
+      parameters: { type: 'object', properties: { intentId: { type: 'string' }, confidence: { type: 'number' }, entities: { type: 'object', additionalProperties: { type: 'string' } } }, required: ['intentId','confidence'], additionalProperties: false },
+    }] : []),
     ...(STAGING_ONLY && process.env.STELLAR_SALES_KB_READ_ENABLED === 'true' ? [{
       type: 'function',
       name: 'search_approved_sales_knowledge',
@@ -726,7 +733,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'search_approved_sales_knowledge') {
+      if (name === 'assess_sales_intent') {
+        if (profile !== 'sales' || !STAGING_ONLY || process.env.STELLAR_SALES_INTENT_ASSESSMENT_ENABLED !== 'true') {
+          output = {action:'DISABLED',mayExecute:false};
+        } else {
+          output = routeIntent({intentId:args.intentId,confidence:args.confidence,entities:args.entities || {}});
+        }
+      } else if (name === 'search_approved_sales_knowledge') {
         if (profile !== 'sales' || !STAGING_ONLY) { output = {status:'DISABLED',entries:[]}; }
         else { output = await lookupSalesKnowledge({query:args.query,tenantId:CSS_TENANT_ID}); }
       } else if (name === 'submit_business_profile') {
