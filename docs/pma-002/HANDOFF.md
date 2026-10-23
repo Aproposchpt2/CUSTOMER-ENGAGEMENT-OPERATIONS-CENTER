@@ -28,13 +28,13 @@ Current GitHub comparison for this repository reports release/pma-fly-staging-20
 
 ## Staging migrations
 
-Project is exclusively `hvzauakkhlivzeqatfqm`. All three migrations were applied and read back. Local filenames and server history versions differ because the migration tool assigns its own version.
+Project is exclusively `hvzauakkhlivzeqatfqm`. All three migrations were applied and read back. Final source filenames match the server history versions. Initial draft filenames were reconciled to the versions assigned by the migration tool, preventing duplicate application of this work. Earlier base-history drift remains outside this change.
 
 | Local migration | Staging history version | State |
 | --- | --- | --- |
-| 20261023172852_pma_002_controlled_domain_safeguards.sql | 20261023175722 | APPLIED / VERIFIED |
-| 20261023175818_pma_002_public_listing_gate.sql | 20261023175954 | APPLIED / VERIFIED |
-| 20261023180027_pma_002_prospect_audit_authority.sql | 20261023180048 | APPLIED / VERIFIED |
+| 20261023175722_pma_002_controlled_domain_safeguards.sql | 20261023175722 | APPLIED / VERIFIED |
+| 20261023175954_pma_002_public_listing_gate.sql | 20261023175954 | APPLIED / VERIFIED |
+| 20261023180048_pma_002_prospect_audit_authority.sql | 20261023180048 | APPLIED / VERIFIED |
 
 Additions: knowledge schema reconciliation columns only if absent; PMA unit DATE/property timezone/metadata reconciliation; maintenance intake_details; private pm_tour_slots_v1 and pm_tour_operations_v1; PMA-scoped function/policy replacements and versioned RPCs. No knowledge content or publication state was changed. No new CRM contact model was created.
 
