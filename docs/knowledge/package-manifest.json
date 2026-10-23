@@ -1,0 +1,33 @@
+{
+  "version": "1.3",
+  "source_commit": "5626f35abac3c36d7d47f675e5da94de529d4347",
+  "records": 160,
+  "scenario_specs": 640,
+  "production_authorized": false,
+  "files": [
+    {
+      "path": "docs/knowledge/source/STELLAR_Combined_Sales_and_Support_KB_Population_FINAL_v1.2_Corrected.docx",
+      "sha256": "0b787275db7e6d0985b80ae98d40a8d2eb94ba74f98287a30b6038f0a18178f9"
+    },
+    {
+      "path": "docs/knowledge/source/Sales_Specialist_Expanded_Intent_Catalog_with_Detailed_Examples_v1.1.docx",
+      "sha256": "55bdc8458b3ae4a870db569be0b048864c649df79baff68767aad4e0bf664ea2"
+    },
+    {
+      "path": "docs/knowledge/source/Support_Specialist_Expanded_Intent_Catalog_with_Detailed_Examples_v1.1.docx",
+      "sha256": "31362019269cc37f4881d01b3ed9766a2ed1a7d1710f5d9c44c8d91686eb8962"
+    },
+    {
+      "path": "twilio-bridge/knowledge/specialist-intents-v1.3.json",
+      "sha256": "0a9ff23719f4bdaf54835b8df7d5ace33d1cabb1d978bf8d4514929b2ae25df0"
+    },
+    {
+      "path": "twilio-bridge/knowledge/specialist-kb-v1.3.json",
+      "sha256": "fd17dbf0aac6a29b615f53f59a8cdc4cc90599ef51212ad3c186dcf33d67a3d8"
+    },
+    {
+      "path": "twilio-bridge/knowledge/specialist-scenarios-v1.3.json",
+      "sha256": "16b9cfdfd527ff07f0c614f861d82a14cc7d6ac55dde5948ef2ba78b958d8e7c"
+    }
+  ]
+}
