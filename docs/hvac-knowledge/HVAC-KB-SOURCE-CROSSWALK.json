@@ -1,0 +1,190 @@
+{
+  "status": "SOURCE_INDEX_NOT_PUBLISHED",
+  "source": "docs/hvac-knowledge/source/CoPilot-HVAC-Support-v1.1-complete-extracted.md",
+  "section_count": 24,
+  "sections": [
+    {
+      "section": 1,
+      "title": "Demonstration Scope",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 2,
+      "title": "Fictional Company Profile",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 3,
+      "title": "Supported Service Categories",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 4,
+      "title": "Safety Classification",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 5,
+      "title": "Emergency Scripts",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 6,
+      "title": "Required Intake Data",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 7,
+      "title": "Approved Basic Checks",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 8,
+      "title": "Knowledge Articles and Approved Answers",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 9,
+      "title": "Support Intents",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 10,
+      "title": "Ticket Workflow",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 11,
+      "title": "Priority Rules",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 12,
+      "title": "Prohibited Actions",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 13,
+      "title": "Database Mapping",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 14,
+      "title": "RLS Requirements",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 15,
+      "title": "Demo Conversation Patterns",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 16,
+      "title": "Test Cases",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 17,
+      "title": "Ruflo Implementation Directive",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 18,
+      "title": "Safety Sources",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 19,
+      "title": "HVAC Voice Personality and Standards",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 20,
+      "title": "HVAC Support Voice System Prompt",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 21,
+      "title": "HVAC Call Flows",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 22,
+      "title": "HVAC Spoken Scripts",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 23,
+      "title": "HVAC Voice Recovery and Safety Overrides",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    },
+    {
+      "section": 24,
+      "title": "HVAC Voice Acceptance Tests",
+      "provenance": "Co-Pilot HVAC Support Demo v1.1",
+      "review": "PENDING",
+      "public_retrieval_allowed": false
+    }
+  ],
+  "knowledge_review_rules": [
+    "Preserve all fictional demo facts as DEMO, not verified real tenant policy",
+    "Safety rules supersede conflicting breaker-reset instructions; do not coach reset",
+    "No cross-tenant inheritance of main STELLAR KB",
+    "Published and approved are independently required",
+    "Human review of all 24 source sections and recovered draft records before approval"
+  ],
+  "acceptance": [
+    "13 SUP and 22 HVC IDs mapped to behaviors, entities, and tools",
+    "Emergency SAFE-001..008 precedence verified",
+    "Tenant UUID immutable and enforced per service boundary",
+    "Case persistence confirmed under Summit Comfort tenant",
+    "Exact owner-approved Cedar greeting verified",
+    "No real-world notifications or prod deployment"
+  ]
+}
