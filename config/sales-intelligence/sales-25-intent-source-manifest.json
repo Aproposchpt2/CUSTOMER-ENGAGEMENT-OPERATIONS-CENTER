@@ -1,0 +1,235 @@
+{
+  "schema_version": "1.0",
+  "kind": "STELLAR_SALES_INTENT_SOURCE_MANIFEST",
+  "deployment_status": "REFERENCE_ONLY_NOT_EXECUTABLE",
+  "owner_approval_required": true,
+  "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+  "note": "Fields faithfully extracted from source catalog. Runtime classifier, retrieval, policy checks, orchestration, and tests must be implemented separately. This file is not a working intent router.",
+  "intents": [
+    {
+      "id": "PRODUCT_OVERVIEW",
+      "reference_id": "SLS-001",
+      "purpose": "Portfolio question",
+      "action": "Explain portfolio and discover need",
+      "required_entities": "business_need",
+      "data_effect": "Interaction",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "PRODUCT_COMPARISON",
+      "reference_id": "SLS-002",
+      "purpose": "Compare offerings",
+      "action": "Compare approved scope",
+      "required_entities": "products",
+      "data_effect": "Interaction",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "PRODUCT_RECOMMENDATION",
+      "reference_id": "SLS-003",
+      "purpose": "Best-fit request",
+      "action": "Qualify then recommend",
+      "required_entities": "problem, coverage, current_process",
+      "data_effect": "Lead notes",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "CEOC_INQUIRY",
+      "reference_id": "SLS-004",
+      "purpose": "CEOC question",
+      "action": "Explain connected operations foundation",
+      "required_entities": "topic",
+      "data_effect": "Interaction",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "SALES_SPECIALIST_INQUIRY",
+      "reference_id": "SLS-005",
+      "purpose": "Sales agent question",
+      "action": "Explain engagement and lead capture",
+      "required_entities": "coverage_need",
+      "data_effect": "Lead optional",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "SUPPORT_SPECIALIST_INQUIRY",
+      "reference_id": "SLS-006",
+      "purpose": "Support product question",
+      "action": "Explain structured support intake",
+      "required_entities": "support_need",
+      "data_effect": "Lead optional",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "PROPERTY_MANAGEMENT_INQUIRY",
+      "reference_id": "SLS-007",
+      "purpose": "PMA question",
+      "action": "Explain communication-centered scope",
+      "required_entities": "portfolio/use_case",
+      "data_effect": "Lead optional",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "COMBINED_SYSTEM_INQUIRY",
+      "reference_id": "SLS-008",
+      "purpose": "Sales + support need",
+      "action": "Explain shared CEOC and distinct workflows",
+      "required_entities": "sales_need, support_need",
+      "data_effect": "Lead",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "PRICING_QUESTION",
+      "reference_id": "SLS-009",
+      "purpose": "Price/fees question",
+      "action": "Use approved commercial knowledge or consultation",
+      "required_entities": "product, usage context",
+      "data_effect": "Lead/follow-up",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "ROI_QUESTION",
+      "reference_id": "SLS-010",
+      "purpose": "Savings/return question",
+      "action": "Discuss value without guarantee",
+      "required_entities": "current_cost context",
+      "data_effect": "Lead note",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "FEATURE_QUESTION",
+      "reference_id": "SLS-011",
+      "purpose": "Specific capability",
+      "action": "Return truth-classified answer",
+      "required_entities": "product, feature",
+      "data_effect": "Interaction/gap",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "INTEGRATION_QUESTION",
+      "reference_id": "SLS-012",
+      "purpose": "CRM/telephony/etc.",
+      "action": "Capture requirement; technical review",
+      "required_entities": "system, workflow, data need",
+      "data_effect": "Technical follow-up",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "DEMO_REQUEST",
+      "reference_id": "SLS-013",
+      "purpose": "Demo requested",
+      "action": "Create verified demo request",
+      "required_entities": "contact, products, preferred_time",
+      "data_effect": "Demo request",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "CONSULTATION_REQUEST",
+      "reference_id": "SLS-014",
+      "purpose": "Consultation requested",
+      "action": "Create verified consultation request",
+      "required_entities": "contact, need",
+      "data_effect": "Consultation request",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "LEAD_QUALIFICATION",
+      "reference_id": "SLS-015",
+      "purpose": "Qualification in progress",
+      "action": "Collect structured fit data",
+      "required_entities": "contact, business, problem, urgency",
+      "data_effect": "Lead",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "BUSINESS_DISCOVERY",
+      "reference_id": "SLS-016",
+      "purpose": "Operational discovery",
+      "action": "Ask one question at a time",
+      "required_entities": "coverage, volume, process, goals",
+      "data_effect": "Lead notes",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "COVERAGE_QUESTION",
+      "reference_id": "SLS-017",
+      "purpose": "Coverage schedule",
+      "action": "Explain configurable coverage caveat",
+      "required_entities": "hours/periods",
+      "data_effect": "Interaction",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "AFTER_HOURS_QUESTION",
+      "reference_id": "SLS-018",
+      "purpose": "After-hours operation",
+      "action": "Explain approved after-hours model",
+      "required_entities": "schedule",
+      "data_effect": "Lead optional",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "MISSED_CALL_QUESTION",
+      "reference_id": "SLS-019",
+      "purpose": "Missed-call problem",
+      "action": "Quantify pain and recommend fit",
+      "required_entities": "missed periods, call types",
+      "data_effect": "Lead",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "IMPLEMENTATION_QUESTION",
+      "reference_id": "SLS-020",
+      "purpose": "Deployment process",
+      "action": "Describe approved discovery/config/testing process",
+      "required_entities": "product",
+      "data_effect": "Follow-up",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "ONBOARDING_QUESTION",
+      "reference_id": "SLS-021",
+      "purpose": "Setup inputs",
+      "action": "List approved setup information",
+      "required_entities": "business info, KB, routing",
+      "data_effect": "Follow-up",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "OBJECTION_COST",
+      "reference_id": "SLS-022",
+      "purpose": "Cost objection",
+      "action": "Value response; no pressure/guarantee",
+      "required_entities": "concern",
+      "data_effect": "Lead note",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "OBJECTION_ALREADY_HAVE_STAFF",
+      "reference_id": "SLS-023",
+      "purpose": "Staff objection",
+      "action": "Position augmentation",
+      "required_entities": "coverage gap",
+      "data_effect": "Lead note",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "OBJECTION_ALREADY_HAVE_VOICEMAIL",
+      "reference_id": "SLS-024",
+      "purpose": "Voicemail objection",
+      "action": "Contrast structured conversation/capture",
+      "required_entities": "current_process",
+      "data_effect": "Lead note",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    },
+    {
+      "id": "OBJECTION_AI_CONCERNS",
+      "reference_id": "SLS-025",
+      "purpose": "AI accuracy/control concern",
+      "action": "Explain approved knowledge and fallback",
+      "required_entities": "concern",
+      "data_effect": "Lead note",
+      "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx"
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "status": "OWNER_REVIEW_REQUIRED",
+  "notice": "Source-derived inventory, NOT customer-published knowledge. A source reference does not prove deployed capability.",
+  "company": "STELLAR INTELLIGENT TECHNOLOGIES",
+  "operator": "Apropos Group LLC",
+  "products": [
+    {
+      "name": "Customer Engagement Operations Center",
+      "slug": "customer-engagement-operations-center",
+      "category": "FOUNDATION",
+      "source": "lib/marketingProducts.ts",
+      "source_claim": "Configured customer/prospect information, engagement history, lead activity, Customer 360, Agent Workspace, administrative visibility; actual availability must be validated",
+      "publication": "OWNER_REVIEW_REQUIRED",
+      "feature_availability": "VERIFY_AGAINST_DEPLOYED_PRODUCT",
+      "source_status": "SOURCE_DOCUMENTED_NOT_RUNTIME_VERIFIED"
+    },
+    {
+      "name": "Sales Specialist Service System",
+      "slug": "sales-service-system",
+      "category": "SALES",
+      "source": "lib/marketingProducts.ts",
+      "source_claim": "Inbound sales engagement, approved Q&A, opportunity capture, follow-up context, compatible call forwarding; agent execution and integrations require runtime confirmation",
+      "publication": "OWNER_REVIEW_REQUIRED",
+      "feature_availability": "VERIFY_AGAINST_DEPLOYED_PRODUCT",
+      "source_status": "SOURCE_DOCUMENTED_NOT_RUNTIME_VERIFIED"
+    },
+    {
+      "name": "Support Specialist Service System",
+      "slug": "support-specialist",
+      "category": "SUPPORT",
+      "source": "lib/marketingProducts.ts",
+      "source_claim": "Customer support intake, impact and prior steps, case workflow, human handoff; implementation and production readiness must be separately verified",
+      "publication": "OWNER_REVIEW_REQUIRED",
+      "feature_availability": "VERIFY_AGAINST_DEPLOYED_PRODUCT",
+      "source_status": "SOURCE_DOCUMENTED_NOT_RUNTIME_VERIFIED"
+    },
+    {
+      "name": "Property Management Assistant",
+      "slug": null,
+      "category": "VERTICAL_APP",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md §3–4",
+      "source_claim": "Property inquiries, tenant questions, maintenance intake, vendor coordination and owner visibility; not a full accounting system; implementation-specific capabilities require confirmation",
+      "publication": "OWNER_REVIEW_REQUIRED",
+      "feature_availability": "VERIFY_AGAINST_DEPLOYED_PRODUCT",
+      "source_status": "SOURCE_DOCUMENTED_NOT_RUNTIME_VERIFIED"
+    },
+    {
+      "name": "Combined CEOC + Sales + Support",
+      "slug": null,
+      "category": "COMBINED_CONFIGURATION",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md §3–4",
+      "source_claim": "Shared customer context and workspace for distinct Sales and Support workflows; integration/configuration must be verified",
+      "publication": "OWNER_REVIEW_REQUIRED",
+      "feature_availability": "VERIFY_AGAINST_DEPLOYED_PRODUCT",
+      "source_status": "SOURCE_DOCUMENTED_NOT_RUNTIME_VERIFIED"
+    }
+  ],
+  "source_sections": [
+    {
+      "section": 1,
+      "title": "Operating Identity and Mission",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 2,
+      "title": "Truth Classification",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 3,
+      "title": "Product Portfolio",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 4,
+      "title": "Product Relationship Model",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 5,
+      "title": "Qualification Framework",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 6,
+      "title": "Product Recommendation Logic",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 7,
+      "title": "Approved Core Answers",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 8,
+      "title": "Objection Handling",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 9,
+      "title": "Lead Capture Data",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 10,
+      "title": "Sales Conversation Flow",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 11,
+      "title": "Agent Guardrails",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 12,
+      "title": "Unknown Question Workflow",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 13,
+      "title": "Intent Catalog",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 14,
+      "title": "Database and Workflow Mapping",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 15,
+      "title": "Sales Demo Test Cases",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 16,
+      "title": "Ruflo Implementation Directive",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 17,
+      "title": "Source Notes",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 18,
+      "title": "Voice Personality and Conversation Standards",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 19,
+      "title": "Sales Voice System Prompt",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 20,
+      "title": "Sales Call Flows",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 21,
+      "title": "Sales Call Scripts",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 22,
+      "title": "Voice Recovery Behaviors",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    },
+    {
+      "section": 23,
+      "title": "Sales Voice Acceptance Tests",
+      "source": "docs/sales-intelligence/source/sales-specialist-full-v1.1.md",
+      "approved_for_voice": false
+    }
+  ],
+  "additional_source_documents": [
+    "lib/marketingProducts.ts",
+    "lib/salesFaqs.ts"
+  ],
+  "source_gaps": [
+    "Marketing module lists only three products; source KB defines five options.",
+    "Check current deployment for each claimed feature, integration, and availability.",
+    "Verify actual approved commercial terms; no prices or guarantees inferred.",
+    "Retain all full answers, objection handling and voice flow detail in the original Co-Pilot source, not short substitute text."
+  ]
+}

@@ -1,0 +1,16 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {routeIntent, requireApprovedKnowledge, acceptedWorkflowResult, SALES, SAFETY, CONTROL} = require('../twilio-bridge/sales-orchestration.cjs');
+const tenantId='11111111-1111-4111-8111-111111111111';
+test('all 25 canonical sales references loaded',()=>{assert.equal(SALES.size,25);assert.ok(SALES.has('SLS-001'));assert.ok(SALES.has('SLS-025'));});
+test('all eight safety overrides loaded',()=>assert.equal(SAFETY.size,8));
+test('all nine conversation controls loaded',()=>assert.equal(CONTROL.size,9));
+test('0.90 classified, never authorizes backend write',()=>{const r=routeIntent({intentId:'SLS-001',confidence:0.90});assert.equal(r.action,'SALES_INTENT');assert.equal(r.mayExecute,false);});
+test('ambiguous and low confidence do not execute',()=>{assert.equal(routeIntent({intentId:'SLS-001',confidence:0.8}).action,'CLARIFY');assert.equal(routeIntent({intentId:'SLS-001',confidence:0.69}).action,'UNKNOWN');assert.equal(routeIntent({intentId:'SLS-001',confidence:NaN}).action,'CLARIFY_CONFIDENCE');});
+test('unrecognized and workflow refs cannot be caller intents',()=>{assert.equal(routeIntent({intentId:'SLS-026',confidence:1}).action,'UNKNOWN');assert.equal(routeIntent({intentId:'WF-001',confidence:1}).action,'UNKNOWN');});
+test('deterministic safety event wins even if sales intent confident',()=>{const r=routeIntent({intentId:'SLS-001',confidence:0.99,safetyIntentId:'SAFE-001'});assert.equal(r.action,'SAFETY_OVERRIDE');assert.equal(r.mayExecute,false);});
+const base={id:'k1',tenant_id:tenantId,approved:true,publication_state:'published',visibility:'public',audience_scope:'public',source_status:'VERIFIED',title:'Test',content:'Verified approved FAQ'};
+test('knowledge requires owner approval, publication, public scope and verified facts',()=>{assert.equal(requireApprovedKnowledge(base,{tenantId}).id,'k1');for(const update of [{approved:false},{publication_state:'draft'},{visibility:'staff'},{audience_scope:'staff'},{source_status:'PROPOSED'},{tenant_id:'foreign'}]){assert.equal(requireApprovedKnowledge({...base,...update},{tenantId}),null);}});
+test('knowledge rejects expired and future-dated records',()=>{assert.equal(requireApprovedKnowledge({...base,expires_at:'2020-01-01T00:00:00Z'},{tenantId}),null);assert.equal(requireApprovedKnowledge({...base,effective_at:'2999-01-01T00:00:00Z'},{tenantId}),null);});
+test('only persisted COMPLETED records permit verified readback',()=>{assert.equal(acceptedWorkflowResult({state:'ACCEPTED',persisted:true,leadId:'x'},'leadId').completed,false);assert.equal(acceptedWorkflowResult({state:'COMPLETED',persisted:false,leadId:'x'},'leadId').completed,false);assert.equal(acceptedWorkflowResult({state:'COMPLETED',persisted:true,leadId:'x'},'leadId').completed,true);});
