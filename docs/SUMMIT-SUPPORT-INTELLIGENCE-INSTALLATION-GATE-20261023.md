@@ -27,3 +27,11 @@ Scope: synthetic Support staging tenant only. NOT a deployment authorization for
 
 ## Current disposition
 Catalog file and validation test committed to development branch. Deployment BLOCKED due to unverified dedicated Support Fly target and backend tenant mismatch. No KB publication or Fly deployment performed by this change.
+
+## 2026-10-23 owner Fly bridge evidence and additional implementation
+- Owner supplied Fly overview showing `stellar-twilio-bridge` with one LAX app machine, 256 MB. Existing `twilio-bridge/fly.toml` targets this Fly app. **Not proven Support-exclusive:** this config and source are historically shared; confirm call DID / health metadata / actual routes before deploying.
+- `twilio-bridge/voice-entry.cjs` in this branch still hardcodes PMA bridge `ai4-pma-bridge-staging.fly.dev` for IVR routing, demonstrating shared source can route cross-app. Do not deploy it blindly to `stellar-twilio-bridge`.
+- Existing `voice-agent-catalog.json` has 71 transcribed entries: 13 Support and 8 safety. The 19-intent HVAC file is a supplemental staging draft, not a replacement and not yet active in runtime.
+- Added `twilio-bridge/support-intelligence.cjs` with a pure authenticated tenant-locked projection; only approved, published, verified/demo, effective, unexpired Summit KB rows can reach model context. No database write or runtime activation.
+- Added `twilio-bridge/tests/support-intelligence.test.cjs` to reject cross-tenant, draft, unknown and expired records. Tests are committed but the repository's automated CI has not run on this feature branch yet.
+- The old Support adapter hardcoded tenant `5885a020-d363-4c27-910a-c035eda132f5`. Must replace with authenticated routing for Summit tenant before enabling ticket writes or Knowledge API.
