@@ -484,7 +484,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
-        audio: { format: { type: 'audio/pcmu', rate: 8000 } },
+        // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'sage' : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
@@ -777,7 +778,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         if(session)instructions=boundInstructions(instructions,session,assets);
-        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
+        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already spoke with the Stellar Intelligent Technologies IVR receptionist. You are a DIFFERENT specialist voice agent. Do not repeat the IVR menu. If property-management-assistant, your first words MUST be exactly: "You have reached Desert Ridge Apartments. How can I help you?" Then wait. For Sales or Support, introduce your department briefly and ask one useful question. This overrides any preceding first-turn instructions.';
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
