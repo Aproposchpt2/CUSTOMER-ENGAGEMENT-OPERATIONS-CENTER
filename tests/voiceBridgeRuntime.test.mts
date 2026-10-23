@@ -76,7 +76,9 @@ test('Sales mirrors the preferred calm Support Desk behavior without modifying s
  assert.equal(u.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
  assert.equal(u.delegation.responses.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
  assert.equal(s.model,u.model);
- assert.deepEqual(s.audio,u.audio);
+ assert.equal(s.audio.output.voice,'echo');
+ assert.equal(u.audio.output.voice,'cedar');
+ assert.deepEqual(s.audio.format,u.audio.format);
 });
 
 test('Sales and Support can submit verified support tickets while preserving Sales lead tools',async()=>{
@@ -185,7 +187,7 @@ test('staging Support adds the fixed opening while preserving the approved model
  // Current upstream main supplies explicit call context before the unchanged workflow suffix.
  assert.equal(start.instructions.slice((prefix+approved.brief).length),reasoningSuffix.replace('\n\n# CALL CONTEXT\nCALL_SID: TEST_CALL\nCALLER_PHONE: +12025550199',''));
  assert.equal(start.turn_detection,undefined);
- assert.equal(start.audio.output?.voice,undefined);
+ assert.equal(start.audio.output?.voice,'cedar');
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
  assert.equal(intake.parameters.required.length,9);
 });

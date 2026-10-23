@@ -484,7 +484,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
-        audio: { format: { type: 'audio/pcmu', rate: 8000 } },
+        // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'sage' : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
@@ -507,7 +508,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+      if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
+        output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
+      } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, callId });
       } else if (name === 'submit_business_profile') {
         if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
@@ -775,7 +778,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         if(session)instructions=boundInstructions(instructions,session,assets);
-        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
+        if(session?.receptionHandoff){
+          const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
+          instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
+        }
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
