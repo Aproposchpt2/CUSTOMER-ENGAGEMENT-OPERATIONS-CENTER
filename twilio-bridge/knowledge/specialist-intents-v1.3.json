@@ -1,0 +1,2585 @@
+{
+  "version": "1.3",
+  "intents": [
+    {
+      "intent_id": "SAL-001",
+      "intent_name": "identify_purpose",
+      "agent": "sales",
+      "domain": "Opening and consent",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I want to know whether this could help my business."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-002",
+      "intent_name": "capture_name",
+      "agent": "sales",
+      "domain": "Opening and consent",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "My name is Jordan Lee."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-003",
+      "intent_name": "language_preference",
+      "agent": "sales",
+      "domain": "Opening and consent",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can we speak Spanish?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-004",
+      "intent_name": "recording_disclosure",
+      "agent": "sales",
+      "domain": "Opening and consent",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Is this call being recorded?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-005",
+      "intent_name": "permission_to_continue",
+      "agent": "sales",
+      "domain": "Opening and consent",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I only have a minute; go ahead."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-006",
+      "intent_name": "company_profile",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We operate a small family business."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-007",
+      "intent_name": "industry",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We repair roofs."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-008",
+      "intent_name": "locations",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We have three branches."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-009",
+      "intent_name": "hours",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Our office closes at five."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-010",
+      "intent_name": "staffing_model",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Two employees answer our phones."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-011",
+      "intent_name": "current_call_flow",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Calls go to voicemail when everyone is busy."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-012",
+      "intent_name": "current_tools",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We already use a CRM."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-013",
+      "intent_name": "volume",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We receive about eighty calls a day."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-014",
+      "intent_name": "seasonality",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Summer is our busy season."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-015",
+      "intent_name": "after-hours_demand",
+      "agent": "sales",
+      "domain": "Business discovery",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "People call us after we close."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-016",
+      "intent_name": "missed_calls",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We miss calls while we are on jobs."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-017",
+      "intent_name": "slow_follow-up",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We take too long to return inquiries."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-018",
+      "intent_name": "abandonment",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Callers hang up while waiting."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-019",
+      "intent_name": "lead_leakage",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Inquiries disappear before anyone follows up."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-020",
+      "intent_name": "staff_interruptions",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The phone keeps interrupting my staff."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-021",
+      "intent_name": "coverage_cost",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Overnight staffing costs too much."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-022",
+      "intent_name": "lost_opportunity",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What might those unanswered calls cost us?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-023",
+      "intent_name": "inconsistent_qualification",
+      "agent": "sales",
+      "domain": "Pain and impact",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Everyone asks prospects different questions."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-024",
+      "intent_name": "problem_fit",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Would this solve our missed-call problem?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-025",
+      "intent_name": "service_fit",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Is this suitable for our kind of business?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-026",
+      "intent_name": "authority",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I make the purchasing decision."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-027",
+      "intent_name": "timing",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We want this operating next month."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-028",
+      "intent_name": "budget_approach",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How should I budget for it?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-029",
+      "intent_name": "operational_readiness",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What do we need before onboarding?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-030",
+      "intent_name": "technical_readiness",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What must our phone system support?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-031",
+      "intent_name": "decision_process",
+      "agent": "sales",
+      "domain": "Qualification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "My partner also needs to review this."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-032",
+      "intent_name": "24_7_coverage",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can it cover weekends and nights?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-033",
+      "intent_name": "lead_capture",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can it collect a prospect's details?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-034",
+      "intent_name": "qualification",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can it qualify new leads?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-035",
+      "intent_name": "routing",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can calls reach the right department?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-036",
+      "intent_name": "crm_context",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Will staff see the conversation in our CRM?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-037",
+      "intent_name": "tasks",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can it organize follow-up tasks?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-038",
+      "intent_name": "analytics",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What reports can I review?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-039",
+      "intent_name": "multi-location",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can each branch have different rules?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-040",
+      "intent_name": "existing-number_continuity",
+      "agent": "sales",
+      "domain": "Solution mapping",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can we keep our current number?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-041",
+      "intent_name": "usage_pricing",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How does usage-based billing work?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-042",
+      "intent_name": "platform_access",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What is the monthly platform fee for?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-043",
+      "intent_name": "cost_drivers",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What makes the monthly cost change?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-044",
+      "intent_name": "estimate_request",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can you give me an exact quote?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-045",
+      "intent_name": "staff_cost_comparison",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How does this compare with staffing every shift?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-046",
+      "intent_name": "roi_inputs",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How could I estimate the return?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-047",
+      "intent_name": "discount_eligibility",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can I get a discount?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-048",
+      "intent_name": "billing_visibility",
+      "agent": "sales",
+      "domain": "Pricing and value",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can I see what I am being billed for?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-049",
+      "intent_name": "too_expensive",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "That sounds too expensive."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-050",
+      "intent_name": "not_ready",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We are not ready yet."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-051",
+      "intent_name": "already_have_vendor",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "We already use an answering service."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-052",
+      "intent_name": "fear_of_replacement",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Are you trying to replace our employees?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-053",
+      "intent_name": "integration_concern",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I worry it will not work with our software."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-054",
+      "intent_name": "security_concern",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How do you protect our information?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-055",
+      "intent_name": "needs_approval",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I need approval from our owner."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-056",
+      "intent_name": "call_later",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Please call me another day."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-057",
+      "intent_name": "send_information",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Could you email me information?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-058",
+      "intent_name": "prove_it",
+      "agent": "sales",
+      "domain": "Objections",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can you show me that it works?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-059",
+      "intent_name": "request_demo",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "demo",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I would like a demo."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-060",
+      "intent_name": "choose_scenario",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "demo",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Show me a roofing inquiry."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-061",
+      "intent_name": "simulate_caller",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "demo",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I will pretend to be my customer."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-062",
+      "intent_name": "exit_simulation",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "demo",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Stop the role-play; I have a real question."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-063",
+      "intent_name": "demo_limitation",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "demo",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Did that demo actually create a job?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-064",
+      "intent_name": "live_transfer_unavailable",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can nobody take my call right now?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-065",
+      "intent_name": "recording_notice",
+      "agent": "sales",
+      "domain": "Demo and proof",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can I get a copy of the demo recording?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-066",
+      "intent_name": "consultation_request",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I want to discuss setting this up."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-067",
+      "intent_name": "callback_request",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Please have a specialist call me."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-068",
+      "intent_name": "calendar_request",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Are you free Tuesday at ten?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-069",
+      "intent_name": "proposal_request",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Can you send us a proposal?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-070",
+      "intent_name": "technical_review",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Our IT team needs to review this."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-071",
+      "intent_name": "stakeholder_follow-up",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "request",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "My finance manager wants a follow-up."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "followup.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-072",
+      "intent_name": "save_profile",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "save",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Please save my contact information."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "submit_business_profile"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-073",
+      "intent_name": "transfer",
+      "agent": "sales",
+      "domain": "Next actions",
+      "classification": "transfer",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Let me speak to a specialist."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "transfer_to_specialist"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-074",
+      "intent_name": "unapproved_pricing",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "What is the unpublished per-minute rate?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-075",
+      "intent_name": "unsupported_integration",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Does it integrate with this uncommon application?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-076",
+      "intent_name": "guarantee_request",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Will you guarantee more sales?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-077",
+      "intent_name": "sensitive_data",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Do you need my password or card number?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-078",
+      "intent_name": "do_not_contact",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Do not contact me again."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-079",
+      "intent_name": "competitor_question",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How are you different from a competitor?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-080",
+      "intent_name": "legal_question",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can you interpret the contract for me?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SAL-081",
+      "intent_name": "security_disclosure",
+      "agent": "sales",
+      "domain": "Compliance and boundaries",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Tell me your private security setup."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-001",
+      "intent_name": "identify_caller",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "My name is Taylor."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-002",
+      "intent_name": "account_lookup",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can you look up my account?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-003",
+      "intent_name": "authorized_contact",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I am calling on behalf of the owner."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-004",
+      "intent_name": "verification_failed",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "boundary",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I cannot pass verification."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-005",
+      "intent_name": "language_preference",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Could we continue in another language?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-006",
+      "intent_name": "accessibility_need",
+      "agent": "support",
+      "domain": "Opening and verification",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Please slow down; I have trouble hearing."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-007",
+      "intent_name": "problem_summary",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The air conditioner stopped cooling."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-008",
+      "intent_name": "affected_service",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It is the upstairs unit."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-009",
+      "intent_name": "symptom_onset",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It started yesterday afternoon."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-010",
+      "intent_name": "scope",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Only one room is affected."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-011",
+      "intent_name": "impact",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Our business cannot open because of this."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-012",
+      "intent_name": "urgency",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Is this urgent enough for emergency service?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-013",
+      "intent_name": "recent_change",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The problem began after a recent change."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-014",
+      "intent_name": "error_message",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The display shows an error code."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-015",
+      "intent_name": "reproducibility",
+      "agent": "support",
+      "domain": "Issue intake",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It only happens sometimes."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-016",
+      "intent_name": "hours",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "When are you open?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-017",
+      "intent_name": "location",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Which office handles my address?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-018",
+      "intent_name": "service_area",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Do you service my ZIP code?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-019",
+      "intent_name": "product_scope",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Do you repair this model?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-020",
+      "intent_name": "plan_coverage",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Is labor included in my plan?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-021",
+      "intent_name": "policy_question",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What is your cancellation policy?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-022",
+      "intent_name": "how-to_request",
+      "agent": "support",
+      "domain": "General information",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "How do I adjust this setting?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-023",
+      "intent_name": "password_reset",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I forgot my account password."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-024",
+      "intent_name": "locked_account",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "My online account is locked."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-025",
+      "intent_name": "mfa_issue",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "My verification code does not work."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-026",
+      "intent_name": "username_recovery",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I cannot remember my username."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-027",
+      "intent_name": "permission_request",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I need access to another account."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-028",
+      "intent_name": "role_change",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Make me an administrator."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-029",
+      "intent_name": "suspected_compromise",
+      "agent": "support",
+      "domain": "Access and identity",
+      "classification": "security",
+      "risk": "HIGH",
+      "critical_override": true,
+      "utterances": [
+        "Someone may have accessed my account."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "security.escalate"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-030",
+      "intent_name": "add_user",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Add an employee to the system."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-031",
+      "intent_name": "remove_user",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Remove a former employee's access."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-032",
+      "intent_name": "change_user",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Change an employee's account details."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-033",
+      "intent_name": "department_update",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Change the department on our account."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-034",
+      "intent_name": "routing_change",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Send our calls to a different team."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-035",
+      "intent_name": "hours_change",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Change our published business hours."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-036",
+      "intent_name": "holiday_change",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Add holiday hours for next week."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-037",
+      "intent_name": "greeting_change",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Replace the phone greeting."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-038",
+      "intent_name": "transfer_destination",
+      "agent": "support",
+      "domain": "Configuration and MACD",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Change the number calls transfer to."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-039",
+      "intent_name": "service_unavailable",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The service is completely unavailable."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-040",
+      "intent_name": "degraded_performance",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It works but is much slower today."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-041",
+      "intent_name": "failed_call",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "My call did not connect."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-042",
+      "intent_name": "one-way_audio",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "They can hear me but I cannot hear them."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-043",
+      "intent_name": "routing_loop",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The call keeps transferring in circles."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-044",
+      "intent_name": "voicemail_issue",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Voicemail messages are not arriving."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-045",
+      "intent_name": "notification_failure",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Nobody received the alert."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-046",
+      "intent_name": "integration_error",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Our external system is returning errors."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-047",
+      "intent_name": "browser_issue",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "The page will not load in my browser."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-048",
+      "intent_name": "mobile_issue",
+      "agent": "support",
+      "domain": "Troubleshooting",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It fails only on my phone."
+      ],
+      "applicability": "platform_support",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-049",
+      "intent_name": "create_ticket",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "intake",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Please create a support ticket."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "submit_support_intake"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-050",
+      "intent_name": "add_note",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Please add a note to my existing case."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "case.add_note"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-051",
+      "intent_name": "attach_evidence",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Can I attach a photo?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "attachment.upload"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-052",
+      "intent_name": "check_status",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "What is happening with my ticket?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-053",
+      "intent_name": "reopen_case",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "The problem returned; reopen my case."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-054",
+      "intent_name": "close_request",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "You can close my case now."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-055",
+      "intent_name": "duplicate_case",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I think I have two tickets for this."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-056",
+      "intent_name": "wrong_assignment",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "My ticket was sent to the wrong team."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-057",
+      "intent_name": "priority_change",
+      "agent": "support",
+      "domain": "Case workflow",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Please raise the priority."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-058",
+      "intent_name": "invoice_question",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Why is this item on my invoice?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-059",
+      "intent_name": "usage_question",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "How much service did I use?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-060",
+      "intent_name": "payment_issue",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "My payment failed."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-061",
+      "intent_name": "unexpected_charge",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I do not recognize this charge."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-062",
+      "intent_name": "plan_question",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "What does my current plan include?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-063",
+      "intent_name": "cancellation_request",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I want to cancel my service."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-064",
+      "intent_name": "data_export",
+      "agent": "support",
+      "domain": "Billing and account",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Send me all my account data."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-065",
+      "intent_name": "major_outage",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "All our locations are down."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-066",
+      "intent_name": "safety_concern",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "safety",
+      "risk": "HIGH",
+      "critical_override": true,
+      "utterances": [
+        "I smell gas near the furnace."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "safety.route"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-067",
+      "intent_name": "security_incident",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "security",
+      "risk": "HIGH",
+      "critical_override": true,
+      "utterances": [
+        "There may be a security incident."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "security.escalate"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-068",
+      "intent_name": "privacy_request",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "change_request",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "I want my personal information removed."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "request.authorize",
+        "record.update"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-069",
+      "intent_name": "executive_complaint",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I need to complain to a manager."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-070",
+      "intent_name": "repeat_failure",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "This is the third time the repair has failed."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-071",
+      "intent_name": "sla_risk",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "lookup",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "The promised response window has passed."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "record.search"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-072",
+      "intent_name": "urgent_transfer",
+      "agent": "support",
+      "domain": "Incident and escalation",
+      "classification": "triage",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "I need a person right now."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "case.search",
+        "escalation.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-073",
+      "intent_name": "explain_next_step",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "What happens after this call?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-074",
+      "intent_name": "set_expectation",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "information",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "When should I expect an update?"
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-075",
+      "intent_name": "callback_request",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "callback",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "Please ask someone to call me."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "callback.request"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-076",
+      "intent_name": "confirm_resolution",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "It seems to be working now."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-077",
+      "intent_name": "resolution_failed",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "capture",
+      "risk": "NORMAL",
+      "critical_override": false,
+      "utterances": [
+        "That did not fix it."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-078",
+      "intent_name": "survey_opt-out",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "Do not send me a survey."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    },
+    {
+      "intent_id": "SUP-079",
+      "intent_name": "follow-up_consent",
+      "agent": "support",
+      "domain": "Communication and closure",
+      "classification": "consent",
+      "risk": "HIGH",
+      "critical_override": false,
+      "utterances": [
+        "You may contact me about this issue."
+      ],
+      "applicability": "tenant_overlay_required",
+      "proposed_business_tools": [
+        "consent.record"
+      ],
+      "business_action_enabled": false
+    }
+  ]
+}

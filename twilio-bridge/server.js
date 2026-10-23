@@ -6,6 +6,8 @@ const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
+const specialistKnowledge = require('./specialist-knowledge.cjs');
+const specialistKnowledgeEnabled = specialistKnowledge.enabled(process.env);
 const ORCH_STAGING_URL='https://hvzauakkhlivzeqatfqm.supabase.co';
 const ORCH_STAGING_TENANT='5885a020-d363-4c27-910a-c035eda132f5';
 const ORCH_RPC_ALLOW=new Set(['stellar_orch_lookup_staging','stellar_orch_accept_staging','stellar_orch_transition_staging','stellar_orch_reconcile_case_staging','stellar_create_phone_support_test_intake']);
@@ -466,6 +468,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
   // ── Send session.start to configure the Live API session ──────────────────
   // Called once: after WS is open AND intake is complete
   function startSession(instructions, tools) {
+    const knowledgeInstructions = specialistKnowledgeEnabled ? specialistKnowledge.instructions(profile) : '';
+    if (knowledgeInstructions) {
+      instructions += knowledgeInstructions;
+      tools = [...tools, specialistKnowledge.tool];
+    }
     // An inbound telephone call must be greeted without caller speech.
     // Initialize the session without a developer input turn; issue exactly one
     // response.create once the OpenAI Live session reports session.started.
@@ -475,10 +482,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+        instructions: profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW + knowledgeInstructions
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
-            : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
+            : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.') + knowledgeInstructions,
         audio: { format: { type: 'audio/pcmu', rate: 8000 } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
@@ -502,7 +509,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+      if (name === 'specialist_knowledge' && specialistKnowledgeEnabled) {
+        output = specialistKnowledge.lookup({ authenticated: true, staging: STAGING_ONLY, profile, tenantId: specialistKnowledge.bindings[profile] }, args);
+      } else if (name === 'submit_support_intake' && profile === 'support' && specialistKnowledgeEnabled) {
+        output = { success: false, state: 'BLOCKED', code: 'SUPPORT_WRITE_TENANT_MISMATCH', notificationSent: false, technicianFollowupConfirmed: false };
+      } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, callId });
       } else if (name === 'submit_business_profile') {
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
@@ -809,6 +820,7 @@ function start() {
   const app = express();
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || null,
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
+    specialistKnowledge: { enabled: specialistKnowledgeEnabled, version: specialistKnowledge.version, guidanceOnly: true, supportWriteStatus: specialistKnowledgeEnabled ? 'BLOCKED_LEGACY_TENANT_MISMATCH' : 'LEGACY_UNCHANGED' },
     pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,
