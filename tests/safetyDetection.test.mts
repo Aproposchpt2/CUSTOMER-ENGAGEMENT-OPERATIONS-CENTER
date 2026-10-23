@@ -104,6 +104,7 @@ async function session(profile: string, staging = false) {
       n === './staging-support-intake.cjs' ? { readiness: () => 'STAGING_WRITES_DISABLED', submitStagingSupport: async () => { throw new Error('STAGING_WRITES_DISABLED'); } } :
       n === './safety-intents.cjs' ? require('../twilio-bridge/safety-intents.cjs') :
       n === './sales-intents.cjs' ? require('../twilio-bridge/sales-intents.cjs') :
+      n === './support-intents.cjs' ? require('../twilio-bridge/support-intents.cjs') :
       n === 'express' ? () => ({}) :
       n === 'ws' ? { WebSocket: Socket, WebSocketServer: class {} } :
       require(n),

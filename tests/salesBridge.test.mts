@@ -15,7 +15,7 @@ async function session(profile:string, failSave=false, warm=false, staging=false
     close(){this.readyState=3;}
   }
   const timers:any[]=[];
-  const context:any={require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=>'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='./safety-intents.cjs'?require('../twilio-bridge/safety-intents.cjs'):n==='./sales-intents.cjs'?require('../twilio-bridge/sales-intents.cjs'):n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n),console:{log(){},error(){}},process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}},Buffer,URL,AbortSignal,setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any={require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=>'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='./safety-intents.cjs'?require('../twilio-bridge/safety-intents.cjs'):n==='./sales-intents.cjs'?require('../twilio-bridge/sales-intents.cjs'):n==='./support-intents.cjs'?require('../twilio-bridge/support-intents.cjs'):n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n),console:{log(){},error(){}},process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}},Buffer,URL,AbortSignal,setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body);requests.push(body);
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
@@ -37,10 +37,10 @@ test('RUF-006: sales delegation instructions include the full intent catalog',as
   const s=await session('sales');
   const inst=s.outbound.find((x:any)=>x.type==='session.start').session.delegation.responses.instructions;
   assert.match(inst,/SALES INTENT CATALOG/);
-  assert.match(inst,/SLS-001/);
-  assert.match(inst,/SLS-015/);
-  assert.match(inst,/SLS-022/);
-  assert.match(inst,/SLS-025/);
+  assert.match(inst,/SAL-001/);
+  assert.match(inst,/SAL-040/);
+  assert.match(inst,/SAL-065/);
+  assert.match(inst,/SAL-081/);
 });
 
 test('RUF-009: callerName required — rejects missing callerName',async()=>{

@@ -7,6 +7,7 @@ const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 const { detectSafetyIntent } = require('./safety-intents.cjs');
 const { validateIntentId } = require('./sales-intents.cjs');
+const { validateSupportIntentId } = require('./support-intents.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -41,18 +42,21 @@ Be warm, calm, attentive, confident and professionally conversational, matching 
 `;
 
 const SALES_INTENT_CATALOG = `
-# SALES INTENT CATALOG v1.0
+# SALES INTENT CATALOG v2.0 (SAL-001..081)
 Classify every caller turn. Confidence ≥0.90 → execute workflow. 0.70–0.89 → ask one clarifying question. <0.70 → treat as UNKNOWN and ask an open question.
 
-SLS-001 PRODUCT_OVERVIEW | SLS-002 PRODUCT_COMPARISON | SLS-003 PRODUCT_RECOMMENDATION | SLS-004 CEOC_INQUIRY
-SLS-005 SALES_SPECIALIST_INQUIRY | SLS-006 SUPPORT_SPECIALIST_INQUIRY | SLS-007 PROPERTY_MANAGEMENT_INQUIRY | SLS-008 COMBINED_SYSTEM_INQUIRY
-SLS-009 PRICING_QUESTION | SLS-010 ROI_QUESTION | SLS-011 FEATURE_QUESTION | SLS-012 INTEGRATION_QUESTION
-SLS-013 DEMO_REQUEST | SLS-014 CONSULTATION_REQUEST | SLS-015 LEAD_QUALIFICATION | SLS-016 BUSINESS_DISCOVERY
-SLS-017 COVERAGE_QUESTION | SLS-018 AFTER_HOURS_QUESTION | SLS-019 MISSED_CALL_QUESTION
-SLS-020 IMPLEMENTATION_QUESTION | SLS-021 ONBOARDING_QUESTION
-SLS-022 OBJECTION_COST | SLS-023 OBJECTION_ALREADY_HAVE_STAFF | SLS-024 OBJECTION_ALREADY_HAVE_VOICEMAIL | SLS-025 OBJECTION_AI_CONCERNS
+Opening and consent: SAL-001 identify_purpose | SAL-002 capture_name | SAL-003 language_preference | SAL-004 recording_disclosure | SAL-005 permission_to_continue
+Business discovery: SAL-006 company_profile | SAL-007 industry | SAL-008 locations | SAL-009 hours | SAL-010 staffing_model | SAL-011 current_call_flow | SAL-012 current_tools | SAL-013 volume | SAL-014 seasonality | SAL-015 after-hours_demand
+Pain and impact: SAL-016 missed_calls | SAL-017 slow_follow-up | SAL-018 abandonment | SAL-019 lead_leakage | SAL-020 staff_interruptions | SAL-021 coverage_cost | SAL-022 lost_opportunity | SAL-023 inconsistent_qualification
+Qualification: SAL-024 problem_fit | SAL-025 service_fit | SAL-026 authority | SAL-027 timing | SAL-028 budget_approach | SAL-029 operational_readiness | SAL-030 technical_readiness | SAL-031 decision_process
+Solution mapping: SAL-032 24_7_coverage | SAL-033 lead_capture | SAL-034 qualification | SAL-035 routing | SAL-036 crm_context | SAL-037 tasks | SAL-038 analytics | SAL-039 multi-location | SAL-040 existing-number_continuity
+Pricing and value: SAL-041 usage_pricing | SAL-042 platform_access | SAL-043 cost_drivers | SAL-044 estimate_request | SAL-045 staff_cost_comparison | SAL-046 roi_inputs | SAL-047 discount_eligibility | SAL-048 billing_visibility
+Objections: SAL-049 too_expensive | SAL-050 not_ready | SAL-051 already_have_vendor | SAL-052 fear_of_replacement | SAL-053 integration_concern | SAL-054 security_concern | SAL-055 needs_approval | SAL-056 call_later | SAL-057 send_information | SAL-058 prove_it
+Demo and proof: SAL-059 request_demo | SAL-060 choose_scenario | SAL-061 simulate_caller | SAL-062 exit_simulation | SAL-063 demo_limitation | SAL-064 live_transfer_unavailable | SAL-065 recording_notice
+Next actions: SAL-066 consultation_request | SAL-067 callback_request | SAL-068 calendar_request | SAL-069 proposal_request | SAL-070 technical_review | SAL-071 stakeholder_follow-up | SAL-072 save_profile | SAL-073 transfer
+Compliance and boundaries: SAL-074 unapproved_pricing | SAL-075 unsupported_integration | SAL-076 guarantee_request | SAL-077 sensitive_data | SAL-078 do_not_contact | SAL-079 competitor_question | SAL-080 legal_question | SAL-081 security_disclosure
 
-Before calling submit_business_profile, confirm: callerName, businessName, serviceInterest, problem statement, urgency, and next action. Set intentId to the best matching SLS-### code.
+Before calling submit_business_profile, confirm: callerName, businessName, serviceInterest, problem statement, urgency, and next action. Set intentId to the best matching SAL-### code.
 `;
 
 // Owner-approved ticket conversation flow; frozen persona/model/voice remain unchanged.
