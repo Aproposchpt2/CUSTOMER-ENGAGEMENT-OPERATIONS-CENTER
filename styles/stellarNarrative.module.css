@@ -37,3 +37,41 @@
   .site .hero .productHeroName,
   .site .hero .productHeroSubhead{font-size:clamp(40px,9.4vw,63px)!important}
 }
+
+/* Unified product hero: system name is the FIRST line of the real H1, not an eyebrow. */
+.site .hero .productHeroUnified{
+ font-family:'Cormorant Garamond',Georgia,serif!important;
+ font-size:clamp(48px,7vw,100px)!important;
+ font-weight:400!important;
+ line-height:1.03!important;
+ letter-spacing:-.025em!important;
+ max-width:1120px;
+ margin:25px 0 30px!important;
+ color:#F7F4EC!important;
+ text-wrap:balance;
+ overflow-wrap:break-word;
+}
+.site .hero .productHeroUnified .productHeroTitle,
+.site .hero .productHeroUnified .productHeroMessage{
+ display:block;
+ font:inherit!important;
+ font-size:inherit!important;
+ font-weight:inherit!important;
+ line-height:inherit!important;
+ letter-spacing:inherit!important;
+}
+.site .hero .productHeroUnified .productHeroTitle{
+ color:#E4C878!important;
+ padding-bottom:.24em;
+}
+.site .hero .productHeroUnified .productHeroMessage{color:#F7F4EC!important}
+.site .hero .productHeroUnified .productHeroMessage em{
+ font-family:inherit!important;
+ font-size:inherit!important;
+ font-weight:inherit!important;
+ font-style:normal!important;
+ color:#E4C878!important;
+}
+@media(max-width:700px){
+ .site .hero .productHeroUnified{font-size:clamp(40px,9.4vw,63px)!important}
+}
