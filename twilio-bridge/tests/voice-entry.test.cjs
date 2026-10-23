@@ -126,3 +126,15 @@ test('INTERNAL ORCHESTRATION TRACE: PMA tool invokes signed gateway, executes in
  assert.equal(result.units[0].unit,'Unit 415');
  assert.equal(result.units[0].earliestRecordedDate,'2026-10-25');
 });
+
+test('staging voice agents retain distinct departmental identities and acoustic voice settings',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const server=fs.readFileSync(path.join(__dirname,'../server.js'),'utf8');
+ const adapter=require('../pma-adapter.cjs');
+ const receptionist=require('../voice-receptionist.cjs');
+ assert.match(receptionist.INSTRUCTIONS,/AI receptionist/);
+ assert.match(server,/profile === 'pma' \? 'sage' : profile === 'sales' \? 'echo' : 'cedar'/);
+ assert.match(server,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.doesNotMatch(adapter.createPmaAdapter({}).instructions,/Start by saying: "Hello, this is the AI4Businesses/);
+});
