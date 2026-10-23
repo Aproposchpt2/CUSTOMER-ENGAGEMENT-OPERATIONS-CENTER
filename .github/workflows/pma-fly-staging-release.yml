@@ -1,0 +1,53 @@
+name: PMA Fly isolated staging bridge release
+on:
+  push:
+    branches: [release/pma-staging-validation]
+    paths: [.github/workflows/pma-fly-staging-release.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pma-fly-isolated-staging
+  cancel-in-progress: false
+jobs:
+  release-fly:
+    if: github.repository_id == '1296163902' && github.ref == 'refs/heads/release/pma-staging-validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: stellaruc-voice-poc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 40b306cfaa25eae1d332a60140e50412de74580f
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Verify exact reviewed source
+        run: |
+          test "$(git rev-parse HEAD)" = "40b306cfaa25eae1d332a60140e50412de74580f"
+          test "$(grep -c 'ai4-pma-bridge-staging' twilio-bridge/fly.pma-staging.toml)" -ge 1
+          npm ci --no-audit --no-fund
+          node --test twilio-bridge/tests/voice-*.test.cjs
+      - name: Verify isolated Fly credentials are available
+        env:
+          FLY_API_TOKEN: ${{ secrets.PMA_FLY_API_TOKEN }}
+        run: |
+          if test -z "$FLY_API_TOKEN"; then
+            echo "::error::PMA_FLY_API_TOKEN not provisioned in protected environment. No deployment attempted."
+            exit 1
+          fi
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Deploy only PMA staging Fly app
+        working-directory: twilio-bridge
+        env:
+          FLY_API_TOKEN: ${{ secrets.PMA_FLY_API_TOKEN }}
+        run: |
+          flyctl deploy --config fly.pma-staging.toml --ha=false --remote-only --env BRIDGE_RELEASE_SHA=40b306cfaa25eae1d332a60140e50412de74580f
+      - name: Verify Fly release
+        env:
+          FLY_API_TOKEN: ${{ secrets.PMA_FLY_API_TOKEN }}
+        run: |
+          flyctl status --app ai4-pma-bridge-staging
+          curl --fail --silent --show-error https://ai4-pma-bridge-staging.fly.dev/health
