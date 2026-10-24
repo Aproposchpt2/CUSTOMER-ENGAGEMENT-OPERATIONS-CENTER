@@ -9,7 +9,7 @@ export function emergencyDispatchIntent(intent:string):string|null{
 export function isEmergencyIntent(intent:string):boolean{return emergencyDispatchIntent(intent)!==null;}
 
 interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;callerNumber?:string;testMode?:boolean;}
-export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;}
+export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;attempts?:{channel:string;state:'SUBMITTED'|'FAILED'|'NOT_CONFIGURED';destinationSuffix?:string}[];state?:'SUBMITTED'|'FAILED'|'NOT_CONFIGURED'|'NOT_REQUIRED';}
 
 async function twilioSms(accountSid:string,authToken:string,from:string,to:string,body:string):Promise<void>{
  const url=`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
@@ -23,7 +23,7 @@ async function twilioSms(accountSid:string,authToken:string,from:string,to:strin
 }
 
 export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.ProcessEnv):Promise<DispatchReceipt>{
- const channels:string[]=[];let incidentId:string|null=null;
+ const channels:string[]=[];const attempts:NonNullable<DispatchReceipt['attempts']>=[];let incidentId:string|null=null;
  const dispatchIntent=emergencyDispatchIntent(ctx.intent);
  if(env.PMA_ENVIRONMENT!=='staging'||env.NEXT_PUBLIC_SUPABASE_URL!=='https://hvzauakkhlivzeqatfqm.supabase.co'||!dispatchIntent)return {dispatched:false,channels,incidentId};
  const label=ctx.intent.replace(/_/g,' ');
@@ -38,7 +38,7 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
  const data=prepared.data;
  if(!data||typeof data.incidentId!=='string'||!Array.isArray(data.preferences))throw new Error('EMERGENCY_PREPARE_INVALID');
  incidentId=data.incidentId;
- if(data.notify!==true)return {dispatched:false,channels,incidentId};
+ if(data.notify!==true)return {dispatched:false,channels,incidentId,attempts,state:'NOT_REQUIRED'};
  const prefs=data.preferences;
  const {TWILIO_ACCOUNT_SID:sid,TWILIO_AUTH_TOKEN:tok}=env;
  // An approved SMS sender can differ from the inbound IVR DID.
@@ -48,12 +48,14 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
  for(const pref of prefs){
   if(pref.channel==='sms'&&sid&&tok&&from){
    const body=`[PMA STAGING] ${label} at Desert Ridge. ${callerRef}. Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. Owner action required. This is a staging test.`;
-   try{await twilioSms(sid,tok,from,pref.destination,body);channels.push('sms:…'+pref.destination.slice(-4));}catch{}
+   try{await twilioSms(sid,tok,from,pref.destination,body);channels.push('sms:…'+pref.destination.slice(-4));attempts.push({channel:'sms',state:'SUBMITTED',destinationSuffix:pref.destination.slice(-4)});}catch{attempts.push({channel:'sms',state:'FAILED',destinationSuffix:pref.destination.slice(-4)});}
   }else if(pref.channel==='email'){
-   // No email sender configured in staging; recorded in incident metadata only
-   channels.push('email:logged');
-  }
+   // No email transport exists here: do not mistake metadata for submission.
+   attempts.push({channel:'email',state:'NOT_CONFIGURED'});
+  }else{attempts.push({channel:String(pref.channel||'unknown'),state:'NOT_CONFIGURED'});}
  }
-
- return {dispatched:!!incidentId&&channels.some(c=>c.startsWith('sms:')),channels,incidentId};
+ const dispatched=!!incidentId&&attempts.some(a=>a.state==='SUBMITTED');
+ const state=dispatched?'SUBMITTED':attempts.some(a=>a.state==='FAILED')?'FAILED':'NOT_CONFIGURED';
+ // SUBMITTED means Twilio accepted a request; it does not prove delivery or vendor acknowledgment.
+ return {dispatched,channels,incidentId,attempts,state};
 }
