@@ -4,7 +4,7 @@ const TRADE:Record<string,string>={FIRE_EMERGENCY:'fire_safety',FLOOD_EMERGENCY:
 
 export function isEmergencyIntent(intent:string):boolean{return EMERGENCY_INTENTS.has(intent);}
 
-interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;}
+interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;callerNumber?:string;}
 export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;}
 
 async function twilioSms(accountSid:string,authToken:string,from:string,to:string,body:string):Promise<void>{
@@ -54,9 +54,10 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
 
  const {TWILIO_ACCOUNT_SID:sid,TWILIO_AUTH_TOKEN:tok,PMA_STAGING_DID:from}=env;
  const incRef=incidentId?incidentId.slice(0,8):'—';
+ const callerRef=ctx.callerNumber?`Caller: ${ctx.callerNumber}`:'Caller: unknown';
  for(const pref of prefs){
   if(pref.channel==='sms'&&sid&&tok&&from){
-   const body=`[PMA STAGING] ${label} at Desert Ridge. Call: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. Owner action required. This is a staging test — no real emergency.`;
+   const body=`[PMA STAGING] ${label} at Desert Ridge. ${callerRef}. Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. Owner action required. This is a staging test.`;
    try{await twilioSms(sid,tok,from,pref.destination,body);channels.push('sms:…'+pref.destination.slice(-4));}catch{}
   }else if(pref.channel==='email'){
    // No email sender configured in staging; recorded in incident metadata only

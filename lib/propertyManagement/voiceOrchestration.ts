@@ -75,7 +75,7 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
  }
  // Fire emergency dispatch non-blocking after safety turn completes
  if(prepared.action==='safety'&&'safety' in prepared&&isEmergencyIntent(String(prepared.safety))){
-  void dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.message)},admin,env).catch(()=>{});
+  void dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.message),callerNumber:env.PMA_STAGING_TEST_CALLER},admin,env).catch(()=>{});
  }
  return projectVoiceResult(response.data);
 }
