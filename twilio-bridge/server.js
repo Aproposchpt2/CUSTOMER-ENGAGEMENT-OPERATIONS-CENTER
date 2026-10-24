@@ -485,7 +485,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
-        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'sage' : profile === 'sales' ? 'echo' : 'cedar' } },
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'ash' : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
@@ -808,7 +808,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
         if(session)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
-          const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
+          if(profile==='pma')instructions+='\n# PMA CUSTOMER EXPERIENCE PERSONA\nSpeak with the energy of a terrific front-desk hospitality professional: cheerful, enthusiastic, upbeat, friendly, warmly confident, naturally expressive and responsive. Use a lively, masculine-sounding voice while remaining clear and respectful. Sound genuinely pleased to help the caller; avoid a drab, flat, sleepy, monotone, mechanical or overly formal delivery. Smile in the voice, vary natural intonation and pace, and acknowledge each request positively without repetitive fillers or exaggerated excitement. Preserve all factual, authorization, privacy, emergency, consent, booking and no-fabrication requirements. This style affects delivery only and never changes which tools or facts are permitted.';
+      const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
           instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
         }
 
