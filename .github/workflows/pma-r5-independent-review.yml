@@ -3,7 +3,7 @@ on:
   push:
     branches: ['review/pma-005-r5-agent06-20261023']
   pull_request:
-    branches: ['review/pma-005-r4-agent05-20261023']
+    branches: ['review/pma-005-r4-agent05-20261023', 'review/pma-005-r5-agent06-20261023']
 permissions:
   contents: read
 env:
