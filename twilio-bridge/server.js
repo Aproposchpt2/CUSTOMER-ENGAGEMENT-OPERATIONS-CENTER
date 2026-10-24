@@ -775,7 +775,14 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         if(session)instructions=boundInstructions(instructions,session,assets);
-        if(session?.receptionHandoff)instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
+        if(session?.receptionHandoff){
+          if(profile==='support'||profile==='sales'){
+            const opening=profile==='support'
+              ? 'Welcome, you have reached the support desk for Summit Comfort Heating & Air.'
+              : 'Welcome to STELLAR INTELLIGENT TECHNOLOGIES. Are you interested in any particular product? Our solutions include the Customer Engagement Operations Center, Sales Specialist, Support Specialist, and Property Management Assistant. What business solution are you interested in?';
+            instructions+='\n# OWNER-APPROVED DEPARTMENT OPENING\nThe caller has completed the Apropos Group IVR welcome. Your first spoken words must be exactly: "'+opening+'" Then stop and listen. This exact opening takes precedence over all earlier mandatory opening sentences and first-turn brevity rules. Do not repeat the IVR name question or keypad menu. Begin directly with Welcome, without a sigh, breath, yawn, hum or filler. Be cheerful, enthusiastic, confident, welcoming and conversational. After the opening, resume your existing specialist workflow, factual accuracy, permissions and confirmation rules. The greeting does not authenticate the caller or create a record.';
+          }else instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies AI receptionist and selected this specialist. Start with a brief specialist introduction and one useful question. Do not repeat the company welcome or keypad menu. This handoff instruction supersedes any mandatory brand-opening sentence above.';
+        }
 
         startSession(instructions, tools);
       }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
