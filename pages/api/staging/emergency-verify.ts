@@ -13,7 +13,7 @@ function gate(env:NodeJS.ProcessEnv){
 async function twilioMessages(accountSid:string,authToken:string,limit=5):Promise<any[]>{
  try{
   const messages=await twilio(accountSid,authToken,{timeout:6000}).messages.list({to:'+17753508039',limit});
-  return messages.map(m=>({sid:m.sid,to:m.to,from:m.from,status:m.status,dateSent:m.dateSent}));
+  return messages.map(m=>({sid:m.sid,to:m.to,from:m.from,status:m.status,errorCode:m.errorCode,errorMessage:m.errorMessage,dateSent:m.dateSent}));
  }catch{return [];}
 }
 
