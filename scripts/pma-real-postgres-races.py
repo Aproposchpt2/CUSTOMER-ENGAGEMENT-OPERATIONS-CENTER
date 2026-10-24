@@ -126,7 +126,12 @@ def main():
             run(admin, migration.read_text())
         evidence['bootstrapPhase'] = 'synthetic fixtures'
         run(admin, Path('supabase/tests/pma_acceptance.sql').read_text().split('set local role authenticated;')[0] + '\ncommit;')
-        admin.execute("update public.pm_properties set accepts_inquiries=true,timezone='America/Los_Angeles',metadata=metadata||'{\"pma_synthetic_tours\":true}'::jsonb where id=%s", (P,))
+        # The fixture's transaction-local set_config reverts on commit; PostgreSQL custom GUCs default to ''
+        # (empty string), not NULL, causing auth.uid()'s ''::jsonb cast to fail inside pm_audit().
+        # Set the session-level claims before any admin DML that triggers the audit function.
+        admin.execute("select set_config('request.jwt.claims',%s,false)", (json.dumps({'sub': OWNER, 'role': 'service_role'}),))
+        # metadata was added without a DEFAULT; NULL||jsonb = NULL so use coalesce to initialise it.
+        admin.execute("update public.pm_properties set accepts_inquiries=true,timezone='America/Los_Angeles',metadata=coalesce(metadata,'{}'::jsonb)||'{\"pma_synthetic_tours\":true}'::jsonb where id=%s", (P,))
         admin.execute('insert into private.pm_voice_config_v1 values(%s,%s,%s,true)', (T, P, OWNER))
         for sid, call in ((SID, CALL), (SID2, CALL2)):
             admin.execute("insert into public.ai4cc_interactions(id,tenant_id,channel,status,started_at,metadata) values(%s,%s,'voice','active',now(),%s::jsonb)",
