@@ -66,6 +66,7 @@ def main():
                 conn.execute("select set_config('request.jwt.claims',%s,true)", (json.dumps({'sub': OWNER, 'role': role}),))
                 if synthetic:
                     conn.execute("select set_config('pma.synthetic_tours_enabled','on',true)")
+                    proof.setdefault('syntheticGates', []).append(conn.execute("select current_setting('pma.synthetic_tours_enabled'),(select metadata->>'pma_synthetic_tours' from public.pm_properties where id=%s),private.pm_synthetic_tours_v1(%s,%s)", (P, T, P)).fetchone())
             proof['left'] = identity(a)
             left = a.execute(sql, left_args).fetchone()[0]
             proof['left']['outcome'] = safe(left)
