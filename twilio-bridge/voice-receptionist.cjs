@@ -11,7 +11,7 @@ const TOOL={type:'function',name:'select_agent',description:'Connect this caller
 
 // Uses the shared bridge's pooled OpenAI transport and existing specialist handler.
 // The Twilio stream stays open across handoff, so no intermediate stop callback ends the call.
-function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,reasoningModel,handoff,release,log=()=>{},maxMs=120000}){
+function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,reasoningModel,handoff,release,routeAvailable=()=>true,log=()=>{},maxMs=120000}){
  let live,ready=false,done=false,selecting=false,silence,deadline,opening,validated=false,pendingDigit=null,streamSid=startMessage.start.streamSid||startMessage.streamSid;
  const completed=new Set();let queued=[],queuedBytes=0;
  const sendTwilio=o=>{if(twilioWs.readyState===1)twilioWs.send(JSON.stringify(o));};
@@ -22,6 +22,7 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
  async function choose(agentRoute,callId){
   if(done||selecting)return;
   if(!Object.hasOwn(byAgent,agentRoute)){if(callId)toolError(callId,'Please choose support, sales or property management.');return;}
+  if(!routeAvailable(agentRoute)){if(callId)toolError(callId,'That specialist is temporarily unavailable. Offer another destination.');else send({type:'session.instructions.append',content:'That specialist is temporarily unavailable. Briefly offer another destination.'});return;}
   selecting=true;
   try{
    const chosen=await entry.reception(session,agentRoute);
@@ -52,7 +53,6 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
    await entry.reception(session);
    if(done)return;
    validated=true;
-   if(pendingDigit!==null){void choose(routes[pendingDigit].agent);return;}
    live=openLive();
    live.on('message',raw=>{
     if(done)return;let m;try{m=JSON.parse(raw.toString());}catch{return;}
@@ -70,6 +70,9 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
    live.on('close',()=>{if(!done)close('RECEPTION_OPENAI_CLOSE');});live.on('error',()=>close('RECEPTION_OPENAI_ERROR'));
    const configure=()=>{if(done)return;send({type:'session.start',session:{model,instructions:INSTRUCTIONS,audio:{format:{type:'audio/pcmu',rate:8000},output:{voice:'marin'}},delegation:{type:'responses',responses:{model:reasoningModel,instructions:INSTRUCTIONS,tools:[TOOL],tool_choice:'auto'}}}});};
    if(live.readyState===1)configure();else live.once('open',configure);
+   // Keep the receptionist transport alive if an early keypad selection fails.
+   // Previously this returned before opening Live, leaving the caller in silence.
+   if(pendingDigit!==null)void choose(routes[pendingDigit].agent);
   }catch{close('RECEPTION_START_FAILED');}
  }
  twilioWs.on('message',onTwilio);twilioWs.on('close',onClose);twilioWs.on('error',onClose);
