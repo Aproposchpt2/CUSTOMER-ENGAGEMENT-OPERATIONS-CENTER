@@ -32,13 +32,13 @@ async function session(profile, failSave = false, warm = false, staging = false,
   return {outbound,requests,phone,ws,tool,timers,phoneOutbound,logs};
 }
 test('PMA-005: voice protocol returns distinct inventory outcomes and correlated safe tool logs',async()=>{
- for(const state of ['NO_VERIFIED_MATCH','INVENTORY_STALE','LOOKUP_FAILED']){
-  const inventory=state==='LOOKUP_FAILED'?{success:false}: {success:true,state,stagingOnly:true,requestedBedrooms:2,availabilityMaxAgeHours:24,units:[]};
+ for(const state of ['NO_VERIFIED_MATCH','UNAVAILABLE_UNITS','INVENTORY_STALE','INVALID_INVENTORY','LOOKUP_FAILED']){
+  const inventory=state==='LOOKUP_FAILED'?{success:false}: {success:state!=='INVALID_INVENTORY',state,stagingOnly:true,requestedBedrooms:2,availabilityMaxAgeHours:24,units:[]};
   const s=await session('pma',false,false,true,null,true,inventory);
   await s.tool('synthetic-availability','pma_check_availability',{bedrooms:2});
   const sent=s.requests.find(x=>x.action==='pma_availability');assert.equal(sent.args.bedrooms,2);assert.equal(sent.session_id,'a0000000-0000-4000-8000-000000000001');
   const item=s.outbound.find(x=>x.item?.call_id==='synthetic-availability');assert.ok(item);
-  const result=JSON.parse(item.item.output);assert.equal(result.state,state);assert.equal(result.units.length,0);assert.match(result.reply,/2-bedroom|lookup could not be verified/);
+  const result=JSON.parse(item.item.output);assert.equal(result.state,state);assert.equal(result.units.length,0);assert.match(result.reply,/2-bedroom|lookup could not be verified|data is missing or invalid/);
   const logged=s.logs.filter(x=>x.startsWith('{')).map(x=>JSON.parse(x));
   assert.equal(logged[0].event,'pma_availability_started');assert.equal(logged[1].event,'pma_availability_completed');assert.equal(logged[1].state,state);assert.equal(logged[1].requestedBedrooms,2);assert.equal(logged[1].toolCallId,'synthetic-availability');assert.equal(logged[1].unitCount,0);
   assert.doesNotMatch(JSON.stringify(logged),/12025550199|transcript|secret|authorization/i);

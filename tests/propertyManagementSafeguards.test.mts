@@ -15,7 +15,7 @@ const owner='10000000-0000-4000-8000-000000000001',resident='10000000-0000-4000-
 
 test('T02/T05: SQL DATE fidelity, property-local day, stale/invalid/occupied exclusion and DST',()=>{
  const now=new Date('2026-10-23T00:30:00Z');
- const rows=[{label:'415',status:'vacant',availability_date:'2026-10-25',updated_at:'2026-10-22T20:00:00Z'}, {label:'301',status:'vacant',availability_date:'2026-11-01',updated_at:'2026-10-22T20:00:00Z'}, {label:'205',status:'occupied',availability_date:'2026-10-22',updated_at:'2026-10-22T20:00:00Z'}, {label:'stale',status:'vacant',availability_date:'2026-10-25',updated_at:'2026-10-21T20:00:00Z'}, {label:'invalid',status:'vacant',availability_date:'2026-02-30',updated_at:'2026-10-22T20:00:00Z'}];
+ const rows=[{label:'415',bedrooms:1,status:'vacant',availability_date:'2026-10-25',updated_at:'2026-10-22T20:00:00Z'}, {label:'301',bedrooms:3,status:'vacant',availability_date:'2026-11-01',updated_at:'2026-10-22T20:00:00Z'}, {label:'205',bedrooms:2,status:'occupied',availability_date:'2026-10-22',updated_at:'2026-10-22T20:00:00Z'}, {label:'stale',bedrooms:1,status:'vacant',availability_date:'2026-10-25',updated_at:'2026-10-21T20:00:00Z'}, {label:'invalid',bedrooms:1,status:'vacant',availability_date:'2026-02-30',updated_at:'2026-10-22T20:00:00Z'}];
  const out=availability.inventorySnapshot(rows,now);assert.equal(out.units.length,2);assert.equal(out.units[0].earliestRecordedDate,'2026-10-25');assert.equal(out.units[1].earliestRecordedDate,'2026-11-01');assert.equal(out.asOf,'2026-10-22');
  assert.equal(availability.calendarDate('2026-10-25'),'October 25, 2026');assert.equal(scheduling.requestedDay('tomorrow',now),'2026-10-23');assert.equal(availability.inventorySnapshot([],now).requiresHumanReview,true);assert.throws(()=>availability.sqlDate('2026-02-30'));
  assert.throws(()=>scheduling.showingInstant('2099-03-08T02:30:00'));assert.throws(()=>scheduling.showingInstant('2099-03-08T02:30:00-08:00')); // DST gap
@@ -30,7 +30,7 @@ test('PMA-005: incident fixture, bedroom defense and stale versus successful emp
  const incident=availability.inventorySnapshot(rows,now,2);
  assert.equal(incident.state,'INVENTORY_STALE');assert.equal(incident.units.length,0);assert.match(incident.reply,/2-bedroom/);assert.doesNotMatch(incident.reply,/415|301/);
  const occupied=availability.inventorySnapshot(rows.map(u=>({...u,updated_at:now.toISOString()})),now,2);
- assert.equal(occupied.state,'NO_VERIFIED_MATCH');assert.equal(occupied.units.length,0);
+ assert.equal(occupied.state,'UNAVAILABLE_UNITS');assert.equal(occupied.units.length,0);
  const fresh=availability.inventorySnapshot([...rows,{label:'Synthetic 2B',bedrooms:2,status:'vacant',availability_date:'2026-11-01',updated_at:now.toISOString()}],now,2);
  assert.equal(fresh.state,'AVAILABLE');assert.deepEqual(Array.from(fresh.units,(u:any)=>u.unit),['Synthetic 2B']);
  assert.equal(availability.inventorySnapshot([],now,2).state,'NO_VERIFIED_MATCH');

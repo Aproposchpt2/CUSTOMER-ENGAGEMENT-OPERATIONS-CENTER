@@ -43,3 +43,15 @@ test('PMA-005: HTTP errors, timeout, invalid JSON and legacy responses are unkno
   assert.equal(out.state,'LOOKUP_FAILED');assert.match(out.reply,/do not know/);assert.deepEqual(out.units,[]);
  }
 });
+test('PMA-005 R3: malformed and unauthorized requests return explicit safe speech without transport',async()=>{
+ const env={STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',BRIDGE_HMAC_SECRET:'synthetic-secret'};
+ const ctx={callSid:'CA'+'1'.repeat(32),sessionId:'a0000000-0000-4000-8000-000000000001'};
+ let calls=0;const fetcher=async()=>{calls++;throw Error('must not fetch');};
+ for(const args of [null,[],{bedrooms:-1},{bedrooms:2,tenantId:'foreign'}]){
+  const out=await createPmaAdapter(env,fetcher).checkAvailability(args,ctx);assert.equal(out.state,'INVALID_FILTER');assert.match(out.reply,/clarify/);assert.deepEqual(out.units,[]);
+ }
+ for(const [config,context] of [[{...env,STELLAR_BRIDGE_STAGING:'false'},ctx],[env,{...ctx,sessionId:'invalid'}],[env,{...ctx,callSid:'invalid'}]]){
+  const out=await createPmaAdapter(config,fetcher).checkAvailability({bedrooms:2},context);assert.equal(out.state,'UNAVAILABLE');assert.match(out.reply,/could not be verified/);
+ }
+ assert.equal(calls,0);
+});

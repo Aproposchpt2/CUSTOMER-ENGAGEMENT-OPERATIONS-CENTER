@@ -5,7 +5,7 @@ kill_signal = "SIGTERM"
 kill_timeout = "10s"
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = "Dockerfile.pma-staging"
 
 [env]
   NODE_ENV = "production"

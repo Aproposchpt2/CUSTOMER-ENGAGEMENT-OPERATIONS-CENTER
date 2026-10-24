@@ -40,7 +40,8 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
       // The extra row detects truncation rather than announcing an incomplete negative.
       .order('id',{ascending:true}).limit(201);
     if(args.bedrooms!==undefined)query=query.eq('bedrooms',args.bedrooms);
-    const units=result(await query)??[];
+    const units=result(await query);
+    if(!Array.isArray(units))throw new PmaError('Inventory lookup returned invalid data',503);
     if(units.length>200)throw new PmaError('Inventory lookup incomplete; staff review required',503);
     return {...inventorySnapshot(units,now,args.bedrooms),property:property.name};
   };
