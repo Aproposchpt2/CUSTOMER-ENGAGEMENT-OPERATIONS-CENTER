@@ -68,7 +68,7 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
     }else if(m.type==='error'){log('Reception OpenAI request failed');close('RECEPTION_OPENAI_ERROR');}
    });
    live.on('close',()=>{if(!done)close('RECEPTION_OPENAI_CLOSE');});live.on('error',()=>close('RECEPTION_OPENAI_ERROR'));
-   const configure=()=>{if(done)return;send({type:'session.start',session:{model,instructions:INSTRUCTIONS,audio:{format:{type:'audio/pcmu',rate:8000},output:{voice:'marin'}},delegation:{type:'responses',responses:{model:reasoningModel,instructions:INSTRUCTIONS,tools:[TOOL],tool_choice:'auto'}}}});};
+   const configure=()=>{if(done)return;send({type:'session.start',session:{model,instructions:INSTRUCTIONS,audio:{format:{type:'audio/pcmu',rate:8000},output:{voice:process.env.IVR_VOICE||'marin'}},delegation:{type:'responses',responses:{model:reasoningModel,instructions:INSTRUCTIONS,tools:[TOOL],tool_choice:'auto'}}}});};
    if(live.readyState===1)configure();else live.once('open',configure);
   }catch{close('RECEPTION_START_FAILED');}
  }

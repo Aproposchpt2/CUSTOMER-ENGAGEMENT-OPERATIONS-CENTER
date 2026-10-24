@@ -27,6 +27,8 @@ const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./vo
 const voiceEntry=createVoiceEntry(process.env);
 const voicePrompts=require('./voice-system-prompts.json');
 const {startReceptionist}=require('./voice-receptionist.cjs');
+const { LatencyLogger } = require('./latency-logger.js');
+const { VoiceQualityAnalyzer } = require('./voice-quality-analyzer.js');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -414,6 +416,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   let greetingAudioSent = false;
   let greetingPlayed = false;
   let streamStartedAt = null;
+  const voiceLogger = new LatencyLogger(callSid, profile);
+  const qaInbound  = STAGING_ONLY ? new VoiceQualityAnalyzer('inbound')  : null;
+  const qaOutbound = STAGING_ONLY ? new VoiceQualityAnalyzer('outbound') : null;
   let greetingDeadline = null;
   let startupSilence = null;
   const supportProgressTimers = new Set();
@@ -436,7 +441,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
     supportProgressTimers.clear();
     audioBuffer.length = 0;
     activeCalls = Math.max(0, activeCalls - 1);
+    voiceLogger.markCallEnd();
     logEvent(`[${callSid}] cleanup: ${reason}`);
+    if (STAGING_ONLY) {
+      logEvent(voiceLogger.logLine('cert', voiceLogger.certify()));
+      if (qaInbound)  logEvent(voiceLogger.logLine('audio_qa', { inbound:  qaInbound.diagnose()  }));
+      if (qaOutbound) logEvent(voiceLogger.logLine('audio_qa', { outbound: qaOutbound.diagnose() }));
+    }
     if(session)void voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
     if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
@@ -485,7 +496,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
-        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'sage' : profile === 'sales' ? 'echo' : 'cedar' } },
+        // PMA_VOICE env var overrides the PMA voice for live A/B testing without redeploy.
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? (process.env.PMA_VOICE||'verse') : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
@@ -656,6 +668,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
         if (t === 'session.started' && !sessionStarted) {
           sessionStarted = true;
+          voiceLogger.markSessionReady();
           logEvent(`[${callSid}] greeting startup ready streamElapsedMs=${Date.now() - streamStartedAt}`);
           // Production and staging: ask the agent to speak as soon as the call
           // session is ready. This does not wait for caller VAD or a transcript.
@@ -670,6 +683,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           }, 20);
         }
       } else if (t === 'response.created' || t === 'response.done') {
+        if (t === 'response.created') voiceLogger.turnStart();
+        else if (t === 'response.done') voiceLogger.turnEnd();
         if(profile==='pma')logEvent(JSON.stringify({event:'pma_response_event',callSid,type:t,status:['completed','in_progress','incomplete','failed','cancelled'].includes(msg.response?.status)?msg.response.status:'unknown'}));
         else logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
@@ -694,8 +709,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
       // Audio out → Twilio (Live API: session.output_audio.delta; Realtime: response.output_audio.delta)
       if ((t === 'session.output_audio.delta' || t === 'response.output_audio.delta') && msg.delta) {
-        if (!audioDeltaCount) { logEvent(`[${callSid}] first audio delta streamElapsedMs=${Date.now() - streamStartedAt}`); }
+        if (!audioDeltaCount) { voiceLogger.markFirstAudio(); voiceLogger.turnFirstAudio(); logEvent(`[${callSid}] first audio delta streamElapsedMs=${Date.now() - streamStartedAt}`); }
+        else voiceLogger.turnFirstAudio();
         audioDeltaCount++;
+        if (qaOutbound && audioDeltaCount % 5 === 0) qaOutbound.addFrame(msg.delta);
         sendToTwilio({ event: 'media', streamSid, media: { payload: msg.delta } });
         if (!greetingAudioSent) {
           greetingAudioSent = true;
@@ -748,6 +765,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
     if (msg.event === 'start') {
       if (streamSid) return;
       streamStartedAt = Date.now();
+      voiceLogger.markStreamStarted();
       greetingDeadline = setTimeout(() => cleanup('GREETING_START_TIMEOUT'), 10000);
       streamSid = msg.start?.streamSid || msg.streamSid;
       logEvent(profile==='pma'?JSON.stringify({event:'pma_stream_started',callSid}):`[${callSid}] stream started sid=${streamSid}`);
@@ -808,7 +826,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
         if(session)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
-          const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
+          if(profile==='pma'){instructions=instructions.replace(/Start by saying: "[^"]*"\n?/,'');}
+          if(profile==='pma')instructions+='\n# PMA CUSTOMER EXPERIENCE PERSONA\nDeliver every response in a grounded, resonant, distinctly male register — low, full, and confident, never light, breathy, or high-pitched. Speak with the energy of an outstanding front-desk hospitality professional: genuinely warm, cheerful, and enthusiastic, as if you enjoy this work. Project steady confidence and natural authority without stiffness. Vary your pace naturally — slow down to land important details, pick up energy when welcoming the caller. Smile in the voice. Avoid a flat, monotone, mechanical, overly formal, or exaggerated delivery. Acknowledge each request positively, keep sentences short and punchy, and let the caller feel heard. Preserve all factual, authorization, privacy, emergency, consent, booking and no-fabrication requirements. This persona affects delivery only and never changes which tools or facts are permitted.';
+      const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
           instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
         }
 
@@ -820,6 +840,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
     } else if (msg.event === 'media' && openaiWs) {
       const payload = msg.media?.payload;
       if (payload) {
+        if (qaInbound) qaInbound.addFrame(payload);
         if (!greetingPlayed) {
           startupAudioBytes += Buffer.byteLength(payload, 'base64');
           if (startupAudioBytes > MAX_STARTUP_AUDIO_BYTES || audioBuffer.length >= 500) {
