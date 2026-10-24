@@ -20,7 +20,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
     if(body.action==='pma_availability')return {ok:true,json:async()=>({result:{availability:inventory}})};
     return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:supportSave?await supportSave():{success:true,state:'REQUESTED',domainPersisted:true,interactionPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false,notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
-  const logs:string[]=[];context.console.log=(msg:string)=>logs.push(msg);
+  const logs:string[]=[];context.console.log=(msg:string)=>logs.push(msg);context.console.error=(...parts:any[])=>logs.push(parts.join(' '));
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
@@ -39,8 +39,8 @@ test('PMA-005: voice protocol returns distinct inventory outcomes and correlated
   const sent=s.requests.find(x=>x.action==='pma_availability');assert.equal(sent.args.bedrooms,2);assert.equal(sent.session_id,'a0000000-0000-4000-8000-000000000001');
   const item=s.outbound.find(x=>x.item?.call_id==='synthetic-availability');assert.ok(item);
   const result=JSON.parse(item.item.output);assert.equal(result.state,state);assert.equal(result.units.length,0);assert.match(result.reply,/2-bedroom|lookup could not be verified|data is missing or invalid/);
-  const logged=s.logs.filter(x=>x.startsWith('{')).map(x=>JSON.parse(x));
-  assert.equal(logged[0].event,'pma_availability_started');assert.equal(logged[1].event,'pma_availability_completed');assert.equal(logged[1].state,state);assert.equal(logged[1].requestedBedrooms,2);assert.equal(logged[1].toolCallId,'synthetic-availability');assert.equal(logged[1].unitCount,0);
+  const logged=s.logs.filter(x=>x.startsWith('{')).map(x=>JSON.parse(x)).filter(x=>x.event.startsWith('pma_availability_'));
+  assert.equal(logged[0].event,'pma_availability_started');assert.equal(logged[1].event,'pma_availability_completed');assert.equal(logged[1].state,state);assert.equal(logged[1].requestedBedrooms,2);assert.equal(logged[1].toolCallId,'sha256:'+require('node:crypto').createHash('sha256').update('synthetic-availability').digest('hex'));assert.equal(logged[1].unitCount,0);
   assert.doesNotMatch(JSON.stringify(logged),/12025550199|transcript|secret|authorization/i);
   if(process.env.PMA_QA_TRACE==='true')console.log(JSON.stringify({evidenceType:'SYNTHETIC_LOCAL_PROTOCOL_REPLAY_NOT_TELEPHONE',toolResult:result,bridgeEvents:logged}));
  }
@@ -66,6 +66,30 @@ test('PMA-005 R3: provider transcripts, model text and errors cannot expose cust
  s.ws.emit('error',new Error(sensitive));
  assert.doesNotMatch(s.logs.join('\n'),/Synthetic Customer|12025550199|synthetic-private-value|credential=/);
  assert.ok(s.logs.some(x=>x.includes('pma_provider_error')));assert.ok(s.logs.some(x=>x.includes('pma_provider_transport_error')));
+});
+test('PMA-005 R4: malformed tool JSON and lifecycle metadata never enter PMA logs',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ const sensitive='Synthetic Customer +12025550199 credential=synthetic-private-value';
+ for(const event of [
+  {type:'session.updated',session:{model:sensitive}},
+  {type:'response.done',response:{status:sensitive,output:[{type:sensitive}]}},
+  {type:'response.output_item.done',item:{type:'function_call',call_id:'malformed',name:'pma_property_workflow',arguments:'{"private":"'+sensitive+'", BAD}'}},
+  {type:'response.output_item.done',item:{type:'function_call',call_id:'wrong-tool',name:sensitive,arguments:'null'}}
+ ])s.ws.emit('message',Buffer.from(JSON.stringify(event)));
+ for(let i=0;i<12;i++)await Promise.resolve();
+ await s.tool(sensitive,'pma_check_availability',{});
+ s.phone.emit('error',new Error(sensitive));
+ assert.doesNotMatch(s.logs.join('\n'),/Synthetic Customer|12025550199|synthetic-private-value|credential=/);
+ assert.ok(s.logs.some(x=>x.includes('pma_tool_failed')));
+ assert.ok(s.logs.some(x=>x.includes('pma_phone_transport_error')));
+});
+test('PMA-005 R4: PMA cannot dispatch hidden Sales or Support tools',async()=>{
+ let saves=0;
+ const s=await session('pma',false,false,true,async()=>{saves++;return {};},true);
+ for(const name of ['submit_support_intake','submit_business_profile','transfer_to_specialist','end_call'])await s.tool('forbidden-'+name,name,{});
+ assert.equal(saves,0);assert.equal(s.requests.length,0);
+ assert.equal(s.timers.some(x=>x.ms===1500),false);
+ for(const output of s.outbound.filter(x=>x.item?.type==='function_call_output'))assert.equal(JSON.parse(output.item.output).success,false);
 });
 test('unconfirmed persistence never authorizes a transfer',async()=>{
  const s=await session('sales',true); await s.tool('save','submit_business_profile');await s.tool('transfer','transfer_to_specialist');

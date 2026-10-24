@@ -49,6 +49,7 @@ test('Netlify cancels implementation-branch builds and preserves other branches'
  const {spawnSync}=await import('node:child_process');
  assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'feature/property-management-assistant-mvp'}}).status,0);
  assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'repair/pma-005-availability-incident-20261023'}}).status,0);
+ assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'review/pma-005-r4-agent05-20261023'}}).status,0);
  assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'main',BRANCH:'repair/pma-005-availability-incident-20261023'}}).status,0);
  assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'release/pma-staging-validation'}}).status,1);
  assert.equal(spawnSync(process.execPath,['scripts/netlify-build-guard.cjs'],{env:{...process.env,HEAD:'main'}}).status,1);

@@ -506,13 +506,15 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
     try {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
+      if(profile==='pma'&&!['pma_check_availability','pma_property_workflow'].includes(name))throw new Error('PMA tool unavailable');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
       if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
         const started=Date.now();
-        logEvent(JSON.stringify({event:'pma_availability_started',callSid,sessionId:session.session_id,toolCallId:callId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null}));
+        const toolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
+        logEvent(JSON.stringify({event:'pma_availability_started',callSid,sessionId:session.session_id,toolCallId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null}));
         output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
-        logEvent(JSON.stringify({event:'pma_availability_completed',callSid,sessionId:session.session_id,toolCallId:callId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null,state:output.state,success:output.success,unitCount:output.units?.length??0,returnedBedrooms:output.units?.map(u=>u.bedrooms)??[],elapsedMs:Date.now()-started}));
+        logEvent(JSON.stringify({event:'pma_availability_completed',callSid,sessionId:session.session_id,toolCallId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null,state:output.state,success:output.success,unitCount:output.units?.length??0,returnedBedrooms:output.units?.map(u=>u.bedrooms)??[],elapsedMs:Date.now()-started}));
       } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
       } else if (name === 'submit_business_profile') {
@@ -587,8 +589,13 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         output = { error: 'unknown_tool' };
       }
     } catch (e) {
-      console.error(`[${callSid}] tool ${name} failed:`, e.message);
-      output = { error: e.message };
+      if(profile==='pma'){
+        logEvent(JSON.stringify({event:'pma_tool_failed',callSid,tool:['pma_check_availability','pma_property_workflow'].includes(name)?name:'unknown'}));
+        output = {success:false,state:'LOOKUP_FAILED',error:'Tool execution could not be verified. No result or saved request is confirmed.'};
+      }else{
+        console.error(`[${callSid}] tool ${name} failed:`, e.message);
+        output = { error: e.message };
+      }
     }
 
     if (profile === 'pma' && callEnded) return;
@@ -635,7 +642,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
       // Lifecycle
       if (t === 'session.started' || t === 'session.created' || t === 'session.updated') {
-        logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
+        if(profile==='pma')logEvent(JSON.stringify({event:'pma_session_event',callSid,type:t}));
+        else logEvent(`[${callSid}] ${t} model=${msg.session?.model || '?'}`);
         if (STAGING_ONLY && profile === 'support' && msg.session) {
           // Keep only non-sensitive provider-resolved settings; never retain the full session.
           const safeId = value => typeof value === 'string' && /^[a-zA-Z0-9_.-]{1,80}$/.test(value) ? value : null;
@@ -662,7 +670,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           }, 20);
         }
       } else if (t === 'response.created' || t === 'response.done') {
-        logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
+        if(profile==='pma')logEvent(JSON.stringify({event:'pma_response_event',callSid,type:t,status:['completed','in_progress','incomplete','failed','cancelled'].includes(msg.response?.status)?msg.response.status:'unknown'}));
+        else logEvent(`[${callSid}] ${t} status=${msg.response?.status} items=${JSON.stringify((msg.response?.output || []).map(i => i.type))}`);
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
         logEvent(`[${callSid}] speech_started`);
       } else if (t === 'error') {
@@ -741,7 +750,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       streamStartedAt = Date.now();
       greetingDeadline = setTimeout(() => cleanup('GREETING_START_TIMEOUT'), 10000);
       streamSid = msg.start?.streamSid || msg.streamSid;
-      logEvent(`[${callSid}] stream started sid=${streamSid}`);
+      logEvent(profile==='pma'?JSON.stringify({event:'pma_stream_started',callSid}):`[${callSid}] stream started sid=${streamSid}`);
 
       // Resolve sales context before exposing sales tools; support keeps its own intake.
       const intakeStartedAt = Date.now();
@@ -804,7 +813,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         }
 
         startSession(instructions, tools);
-      }).catch(e => { logEvent(`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
+      }).catch(e => { logEvent(profile==='pma'?JSON.stringify({event:'pma_session_open_failed',callSid}):`[${callSid}] WS open error: ${e.message}`); cleanup('WS_OPEN_ERROR'); });
 
       await new Promise(res => setTimeout(res, 0)); // yield so handlers are registered before any messages
 
@@ -837,7 +846,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   });
 
   twilioWs.on('close', () => cleanup('TWILIO_CLOSE'));
-  twilioWs.on('error', (e) => { console.error(`[${callSid}] Twilio ws error`, e.message); cleanup('TWILIO_WS_ERROR'); });
+  twilioWs.on('error', (e) => { if(profile==='pma')logEvent(JSON.stringify({event:'pma_phone_transport_error',callSid}));else console.error(`[${callSid}] Twilio ws error`, e.message); cleanup('TWILIO_WS_ERROR'); });
 }
 
 // ─── Express + WebSocket server ───────────────────────────────────────────────

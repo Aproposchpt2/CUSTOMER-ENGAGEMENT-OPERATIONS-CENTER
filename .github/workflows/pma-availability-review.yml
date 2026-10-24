@@ -1,9 +1,9 @@
 name: PMA Availability Independent Review
 on:
   push:
-    branches: ['repair/pma-005-availability-incident-20261023']
+    branches: ['repair/pma-005-availability-incident-20261023', 'review/pma-005-*']
   pull_request:
-    branches: ['repair/pma-003-agent05-qa-20261023']
+    branches: ['repair/pma-003-agent05-qa-20261023', 'repair/pma-005-availability-incident-20261023']
 permissions:
   contents: read
 jobs:
@@ -20,6 +20,7 @@ jobs:
       - run: npm test
       - run: node --test twilio-bridge/tests/*.test.cjs
       - run: npx tsc --noEmit
+      - run: npm run build
       - name: Build local staging image and verify immutable revision
         run: |
           source_sha=$(git rev-parse HEAD)
