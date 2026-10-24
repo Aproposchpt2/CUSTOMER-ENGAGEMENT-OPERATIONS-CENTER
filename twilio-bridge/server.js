@@ -485,7 +485,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
         // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
-        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'verse' : profile === 'sales' ? 'echo' : 'cedar' } },
+        // PMA_VOICE env var overrides the PMA voice for live A/B testing without redeploy.
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? (process.env.PMA_VOICE||'verse') : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',

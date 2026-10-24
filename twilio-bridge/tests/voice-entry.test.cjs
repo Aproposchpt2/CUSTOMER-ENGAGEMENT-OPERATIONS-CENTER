@@ -133,7 +133,7 @@ test('staging voice agents retain distinct departmental identities and acoustic 
  const adapter=require('../pma-adapter.cjs');
  const receptionist=require('../voice-receptionist.cjs');
  assert.match(receptionist.INSTRUCTIONS,/AI receptionist/);
- assert.match(server,/profile === 'pma' \? 'verse' : profile === 'sales' \? 'echo' : 'cedar'/);
+ assert.match(server,/profile === 'pma' \? \(process\.env\.PMA_VOICE\|\|'verse'\) : profile === 'sales' \? 'echo' : 'cedar'/);
  assert.match(server,/You have reached Desert Ridge Apartments\. How can I help you\?/);
  assert.match(server,/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
  assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
