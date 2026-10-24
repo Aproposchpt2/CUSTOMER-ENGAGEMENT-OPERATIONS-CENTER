@@ -111,7 +111,7 @@ test('INTERNAL ORCHESTRATION TRACE: PMA tool invokes signed gateway, executes in
   assert.equal(body.agentRoute,'property-management-assistant');
   const answer=await processVoiceDemo(body,dependencies({
    env:activeEnv,record:async()=>{trace.push('validated_session');return pma;},
-   availability:async args=>{trace.push('inventory_query');assert.equal(args.bedrooms,1);return {success:true,stagingOnly:true,units:[{unit:'Unit 415',earliestRecordedDate:'2026-10-25'}]};}
+   availability:async args=>{trace.push('inventory_query');assert.equal(args.bedrooms,1);return {success:true,state:'AVAILABLE',requestedBedrooms:1,availabilityMaxAgeHours:24,stagingOnly:true,units:[{unit:'Unit 415',bedrooms:1,recordUpdatedAt:new Date().toISOString(),earliestRecordedDate:'2026-10-25'}]};}
   }));
   trace.push('gateway_response');
   return {ok:true,json:async()=>({result:answer})};
