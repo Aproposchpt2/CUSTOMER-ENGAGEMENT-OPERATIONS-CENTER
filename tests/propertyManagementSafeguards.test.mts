@@ -24,6 +24,19 @@ test('T02/T05: SQL DATE fidelity, property-local day, stale/invalid/occupied exc
  assert.throws(()=>domain.futureTime('2099-02-31T12:00:00Z'));
 });
 
+test('PMA-005: incident fixture, bedroom defense and stale versus successful empty snapshots',()=>{
+ const now=new Date('2026-10-23T22:57:35Z');
+ const rows=[{label:'Unit 415',bedrooms:1,status:'vacant',availability_date:'2026-10-25',updated_at:'2026-10-22T04:52:24Z'},{label:'Unit 301',bedrooms:3,status:'vacant',availability_date:'2026-11-01',updated_at:'2026-10-22T04:52:24Z'},{label:'Unit 101',bedrooms:2,status:'occupied',availability_date:null,updated_at:'2026-10-22T04:52:24Z'},{label:'Unit 205',bedrooms:2,status:'occupied',availability_date:'2026-10-22',updated_at:'2026-10-22T06:50:08Z'}];
+ const incident=availability.inventorySnapshot(rows,now,2);
+ assert.equal(incident.state,'INVENTORY_STALE');assert.equal(incident.units.length,0);assert.match(incident.reply,/2-bedroom/);assert.doesNotMatch(incident.reply,/415|301/);
+ const occupied=availability.inventorySnapshot(rows.map(u=>({...u,updated_at:now.toISOString()})),now,2);
+ assert.equal(occupied.state,'NO_VERIFIED_MATCH');assert.equal(occupied.units.length,0);
+ const fresh=availability.inventorySnapshot([...rows,{label:'Synthetic 2B',bedrooms:2,status:'vacant',availability_date:'2026-11-01',updated_at:now.toISOString()}],now,2);
+ assert.equal(fresh.state,'AVAILABLE');assert.deepEqual(Array.from(fresh.units,(u:any)=>u.unit),['Synthetic 2B']);
+ assert.equal(availability.inventorySnapshot([],now,2).state,'NO_VERIFIED_MATCH');
+ assert.throws(()=>availability.inventorySnapshot(rows,now,-1));
+});
+
 test('Trusted call contract rejects cross-call/closed/model identity; server operation keys survive rephrasing',()=>{
  const binding={tenantId:t,propertyId:p,sessionId:'a0000000-0000-4000-8000-000000000001',callSid:'CA00000000000000000000000000000001',actorId:owner};
  const row={id:binding.sessionId,tenant_id:t,channel:'voice',status:'active',ended_at:null,metadata:{synthetic:true,voice_demo:true,selected_route:'property-management-assistant',property_id:p,call_sid:binding.callSid}};

@@ -509,7 +509,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
       if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
+        const started=Date.now();
+        logEvent(JSON.stringify({event:'pma_availability_started',callSid,sessionId:session.session_id,toolCallId:callId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null}));
         output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
+        logEvent(JSON.stringify({event:'pma_availability_completed',callSid,sessionId:session.session_id,toolCallId:callId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null,state:output.state,success:output.success,unitCount:output.units?.length??0,returnedBedrooms:output.units?.map(u=>u.bedrooms)??[],elapsedMs:Date.now()-started}));
       } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
         output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
       } else if (name === 'submit_business_profile') {

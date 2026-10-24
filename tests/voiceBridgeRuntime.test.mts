@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -17,8 +17,10 @@ async function session(profile, failSave = false, warm = false, staging = false,
   const timers:any[]=[];
   const context:any = { require:(n:string)=>n==='./voice-entry.cjs'&&trustedPma?{...require(n),createVoiceEntry:()=>({openSession:async()=>({agentRoute:'property-management-assistant',knowledgeEntries:[],intents:[]}),closeSession:async()=>({})})}:n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
+    if(body.action==='pma_availability')return {ok:true,json:async()=>({result:{availability:inventory}})};
     return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:supportSave?await supportSave():{success:true,state:'REQUESTED',domainPersisted:true,interactionPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false,notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
+  const logs:string[]=[];context.console.log=(msg:string)=>logs.push(msg);
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
@@ -27,8 +29,22 @@ async function session(profile, failSave = false, warm = false, staging = false,
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
   const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event=(staging && profile==='support')||profile==='pma'?{type:'response.output_item.done',item:{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}}:{type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
-  return {outbound,requests,phone,ws,tool,timers,phoneOutbound};
+  return {outbound,requests,phone,ws,tool,timers,phoneOutbound,logs};
 }
+test('PMA-005: voice protocol returns distinct inventory outcomes and correlated safe tool logs',async()=>{
+ for(const state of ['NO_VERIFIED_MATCH','INVENTORY_STALE','LOOKUP_FAILED']){
+  const inventory=state==='LOOKUP_FAILED'?{success:false}: {success:true,state,stagingOnly:true,requestedBedrooms:2,availabilityMaxAgeHours:24,units:[]};
+  const s=await session('pma',false,false,true,null,true,inventory);
+  await s.tool('synthetic-availability','pma_check_availability',{bedrooms:2});
+  const sent=s.requests.find(x=>x.action==='pma_availability');assert.equal(sent.args.bedrooms,2);assert.equal(sent.session_id,'a0000000-0000-4000-8000-000000000001');
+  const item=s.outbound.find(x=>x.item?.call_id==='synthetic-availability');assert.ok(item);
+  const result=JSON.parse(item.item.output);assert.equal(result.state,state);assert.equal(result.units.length,0);assert.match(result.reply,/2-bedroom|lookup could not be verified/);
+  const logged=s.logs.filter(x=>x.startsWith('{')).map(x=>JSON.parse(x));
+  assert.equal(logged[0].event,'pma_availability_started');assert.equal(logged[1].event,'pma_availability_completed');assert.equal(logged[1].state,state);assert.equal(logged[1].requestedBedrooms,2);assert.equal(logged[1].toolCallId,'synthetic-availability');assert.equal(logged[1].unitCount,0);
+  assert.doesNotMatch(JSON.stringify(logged),/12025550199|transcript|secret|authorization/i);
+  if(process.env.PMA_QA_TRACE==='true')console.log(JSON.stringify({evidenceType:'SYNTHETIC_LOCAL_PROTOCOL_REPLAY_NOT_TELEPHONE',toolResult:result,bridgeEvents:logged}));
+ }
+});
 test('sales transport registers sales tools and initializes the interaction',async()=>{
  const s=await session('sales'); const start=s.outbound.find(x=>x.type==='session.start');
  assert.ok(start.session.delegation.responses.tools.some((x:any)=>x.name==='submit_business_profile'));

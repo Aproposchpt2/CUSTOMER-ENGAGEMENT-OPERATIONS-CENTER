@@ -3,7 +3,7 @@ import {createClient} from '@supabase/supabase-js';
 import {validateRequest} from 'twilio';
 import {verifyPmaBridge} from '@/lib/propertyManagement/transport';
 import {privateResponse,fail,result} from '@/lib/propertyManagement/server';
-import {inventorySnapshot,AVAILABILITY_MAX_AGE_HOURS} from '@/lib/propertyManagement/availability';
+import {inventorySnapshot} from '@/lib/propertyManagement/availability';
 import {PmaError} from '@/lib/propertyManagement/domain';
 // The bridge sends the original Twilio signature; validation stays server-side here.
 const {processVoiceDemo}=require('@/lib/voiceDemo/gateway.cjs');
@@ -36,12 +36,13 @@ export async function executeVoiceDemoBody(body:Record<string,unknown>){
     let query=admin.from('pm_units').select('label,bedrooms,bathrooms,status,availability_date,updated_at')
       .eq('tenant_id',process.env.AI4CC_VOICE_DEMO_TENANT_ID)
       .eq('property_id',process.env.PMA_STAGING_PROPERTY_ID)
-      .eq('status','vacant').not('availability_date','is',null)
-      .gt('updated_at',new Date(now.getTime()-AVAILABILITY_MAX_AGE_HOURS*3600000).toISOString()).lte('updated_at',now.toISOString())
-      .order('availability_date',{ascending:true}).limit(20);
+      // Inspect stale/occupied matching rows internally, never expose them as availability.
+      // The extra row detects truncation rather than announcing an incomplete negative.
+      .order('id',{ascending:true}).limit(201);
     if(args.bedrooms!==undefined)query=query.eq('bedrooms',args.bedrooms);
     const units=result(await query)??[];
-    return {...inventorySnapshot(units,now),property:property.name};
+    if(units.length>200)throw new PmaError('Inventory lookup incomplete; staff review required',503);
+    return {...inventorySnapshot(units,now,args.bedrooms),property:property.name};
   };
   const workflow=async(body:{action:string;operation?:string;operationId?:string;args:Record<string,unknown>},session:{call_sid:string;session_id:string})=>{
    const tenant=process.env.AI4CC_VOICE_DEMO_TENANT_ID;
