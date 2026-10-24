@@ -96,7 +96,8 @@ export const config = {
      * - _next/image   (image optimization)
      * - favicon.ico, site assets
      * - api/twilio/*  (Twilio webhooks — requests come from Twilio servers, no session)
+     * - api/staging/* (staging test harness — auth handled by HMAC secret, not session)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/twilio/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/twilio/|api/staging/).*)',
   ],
 };
