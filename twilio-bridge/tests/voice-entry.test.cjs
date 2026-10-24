@@ -147,3 +147,14 @@ for(const [label,start_time]of [['missing',undefined],['invalid','invalid'],['ex
  for(const action of ['stream_start','pma_availability'])await assert.rejects(processVoiceDemo({action,call_sid:pma.call_sid,session_id:pma.session_id,agentRoute:pma.agentRoute,args:{}},deps),/expired or missing lifetime/);
  assert.equal(reads,0);
 });
+
+for(const field of ['session_id','call_sid','account_sid','caller_number','agentRoute'])test('stream assets reject mismatched persisted '+field,async()=>{
+ const mismatch={...session,[field]:'foreign'};
+ const entry=createVoiceEntry(env,async()=>({ok:true,json:async()=>({result:{session:mismatch,assets:{agentRoute:session.agentRoute}}})}));
+ await assert.rejects(entry.openSession(session),/Route binding rejected/);
+});
+test('stream assets accept the exact persisted call identity',async()=>{
+ const assets={agentRoute:session.agentRoute,knowledgeEntries:[]};
+ const entry=createVoiceEntry(env,async()=>({ok:true,json:async()=>({result:{session,assets}})}));
+ assert.equal((await entry.openSession(session)).agentRoute,session.agentRoute);
+});
