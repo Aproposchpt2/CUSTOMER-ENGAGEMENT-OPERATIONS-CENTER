@@ -9,7 +9,7 @@ The final publication receipt/PR identifies the resulting full commit and matchi
 
 | Local validation | Evidence |
 | --- | --- |
-| `npm test` | 263 tests pass; 0 fail/cancelled/skipped |
+| `npm test` | 264 tests pass; 0 fail/cancelled/skipped |
 | `node --test twilio-bridge/tests/*.test.cjs` | 55 tests pass; 0 fail/cancelled/skipped |
 | `npx tsc --noEmit` | Exit 0 |
 | `NEXT_TELEMETRY_DISABLED=1 npm run build` | Exit 0; optimized compilation, 72/72 static pages, final route/build trace output |
@@ -21,7 +21,7 @@ The first build attempt did not provide a complete build trace. A subsequent bui
 
 Application regression includes isolated PostgreSQL/PGlite tenant isolation, RPC permissions, cross-owner/property denial, resident identity, all 25 intents, trusted voice session and transport authorization, consent, prospect corrections, request-only tours, safety overrides and disconnect behavior. It does not prove the separate independently connected real PostgreSQL concurrency gate.
 
-Targeted acceptance includes two-bedroom matching and rejection of 415/one-bedroom and 301/three-bedroom substitutions; any-size omitted filter versus studio zero; fresh occupied/unavailable records; stale, future and strict freshness boundary timestamps; null/missing/non-array database payloads; invalid/missing unit label/count/status/date/timestamp; HTTP errors, timeout and invalid JSON; legacy/malformed responses; explicit spoken classifications; bounded response truncation; rejection of model tenant/property injection and wrong call/session/route/lifetime; correlated tool logging without customer text/phone/credentials. Local protocol replay is distinct from telephone QA.
+Targeted acceptance includes two-bedroom matching and rejection of 415/one-bedroom and 301/three-bedroom substitutions; any-size omitted filter versus studio zero; fresh occupied/unavailable records; stale, future and strict freshness boundary timestamps; null/missing/non-array database payloads; invalid/missing unit label/count/status/date/timestamp; HTTP errors, timeout and invalid JSON; legacy/malformed responses; explicit spoken classifications; bounded response truncation; rejection of model tenant/property injection and wrong call/session/route/lifetime; correlated tool logging without customer text/phone/credentials. A final privacy regression also verifies PMA generic transcript/text/delegation/error payloads cannot leak customer data through provider logs. Local protocol replay is distinct from telephone QA.
 
 No migration, live database write, deployment, machine operation, secret/configuration activation, voice-write enablement, routing change or production change was performed by this engineering assignment. Historical incident evidence is retained in the earlier assessment and provider addendum, with contact details redacted from the separately saved evidence.
 

@@ -59,6 +59,14 @@ test('sales transport registers sales tools and initializes the interaction',asy
  await s.tool('transfer','transfer_to_specialist');
  assert.deepEqual(JSON.parse(s.outbound.find(x=>x.item?.call_id==='transfer').item.output),{success:true});
 });
+test('PMA-005 R3: provider transcripts, model text and errors cannot expose customer data in logs',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ const sensitive='Synthetic Customer +12025550199 credential=synthetic-private-value';
+ for(const type of ['session.input_transcript.delta','session.output_transcript.delta','response.output_text.delta','response.output_text.done','session.delegation.created','error'])s.ws.emit('message',Buffer.from(JSON.stringify({type,delta:sensitive,text:sensitive,delegation:{message:sensitive},error:{message:sensitive}})));
+ s.ws.emit('error',new Error(sensitive));
+ assert.doesNotMatch(s.logs.join('\n'),/Synthetic Customer|12025550199|synthetic-private-value|credential=/);
+ assert.ok(s.logs.some(x=>x.includes('pma_provider_error')));assert.ok(s.logs.some(x=>x.includes('pma_provider_transport_error')));
+});
 test('unconfirmed persistence never authorizes a transfer',async()=>{
  const s=await session('sales',true); await s.tool('save','submit_business_profile');await s.tool('transfer','transfer_to_specialist');
  assert.match(s.outbound.find(x=>x.item?.call_id==='save').item.output,/not confirmed/);

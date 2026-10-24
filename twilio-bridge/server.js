@@ -666,7 +666,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       } else if (t === 'input_audio_buffer.speech_started' || t === 'session.speech_started') {
         logEvent(`[${callSid}] speech_started`);
       } else if (t === 'error') {
-        logEvent(`[${callSid}] OpenAI error: ${msg.error?.message || JSON.stringify(msg.error)}`);
+        if(profile==='pma')logEvent(JSON.stringify({event:'pma_provider_error',callSid}));
+        else logEvent(`[${callSid}] OpenAI error: ${msg.error?.message || JSON.stringify(msg.error)}`);
       } else if (!['session.output_audio.delta','response.output_audio.delta',
         'response.output_audio_transcript.delta','response.function_call_arguments.delta',
         'response.function_call_arguments.done','response.output_item.added',
@@ -675,7 +676,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         'response.text.delta','response.text.done','input_audio_buffer.committed',
         'input_audio_buffer.speech_stopped','session.speech_stopped',
         'conversation.item.created','conversation.item.done','rate_limits.updated'].includes(t)) {
-        logEvent(`[${callSid}] oai: ${t} ${JSON.stringify(msg).slice(0, 120)}`);
+        if(profile==='pma'){
+          // Provider text/transcript/delegation payloads may contain customer data.
+          // Availability execution has its own safe correlation/outcome telemetry.
+          if(!/(?:transcript|text)\.(?:delta|done)$/.test(t))logEvent(JSON.stringify({event:'pma_provider_event',callSid,type:typeof t==='string'&&/^[a-z0-9_.]{1,100}$/.test(t)?t:'unknown'}));
+        }else logEvent(`[${callSid}] oai: ${t} ${JSON.stringify(msg).slice(0, 120)}`);
       }
 
       // Audio out → Twilio (Live API: session.output_audio.delta; Realtime: response.output_audio.delta)
@@ -721,8 +726,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       }
     });
 
-    openaiWs.on('close', (code, reason) => { logEvent(`[${callSid}] OpenAI ws closed: ${code} ${reason}`); cleanup('OPENAI_CLOSE'); });
-    openaiWs.on('error', (e) => { logEvent(`[${callSid}] OpenAI ws error: ${e.message}`); cleanup('OPENAI_ERROR'); });
+    openaiWs.on('close', (code, reason) => { logEvent(profile==='pma'?JSON.stringify({event:'pma_provider_closed',callSid,code:Number.isInteger(code)?code:null}):`[${callSid}] OpenAI ws closed: ${code} ${reason}`); cleanup('OPENAI_CLOSE'); });
+    openaiWs.on('error', (e) => { logEvent(profile==='pma'?JSON.stringify({event:'pma_provider_transport_error',callSid}):`[${callSid}] OpenAI ws error: ${e.message}`); cleanup('OPENAI_ERROR'); });
   }
 
   // ── Twilio Media Streams handler ───────────────────────────────────────────
