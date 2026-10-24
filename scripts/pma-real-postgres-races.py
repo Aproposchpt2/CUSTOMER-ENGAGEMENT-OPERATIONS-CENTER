@@ -56,6 +56,7 @@ def main():
         a = psycopg.connect(dsn, application_name='pma_r5_left')
         b = psycopg.connect(dsn, application_name='pma_r5_right')
         proof = {'name': name, 'leftCommitted': commit_left}
+        evidence['scenarios'].append(proof)
         pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         pending = None
         try:
@@ -101,7 +102,6 @@ def main():
             right_out = pending.result(timeout=15)
             assert proof['right']['finished'] >= proof['left']['releaseStarted']
             proof['overlapProven'] = True
-            evidence['scenarios'].append(proof)
             return left, right_out
         finally:
             a.rollback()
