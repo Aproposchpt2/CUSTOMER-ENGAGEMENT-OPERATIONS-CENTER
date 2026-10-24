@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
+const stellarIntentCatalog = require('./voice-agent-catalog.json');
+const stellarKnowledgeBase = require('./stellar-kb-v1.json');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -788,6 +790,8 @@ function start() {
     supportRuntime: STAGING_ONLY ? lastStagingSupportSession : null,
     supportGreeting: STAGING_ONLY ? SUPPORT_GREETING : null,
     supportPersonaBaseline: STAGING_ONLY ? 'b8ce29ad04261134e45491c85a42acb0ce038f27' : null,
+    catalogVersion: stellarIntentCatalog.version, catalogIntents: stellarIntentCatalog.intents.length,
+    kbVersion: stellarKnowledgeBase.version, kbRecords: stellarKnowledgeBase.records.length,
   }));
 
   app.get('/debug', async (req, res) => {
