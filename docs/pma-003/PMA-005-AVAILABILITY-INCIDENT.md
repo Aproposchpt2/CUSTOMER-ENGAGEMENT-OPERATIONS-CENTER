@@ -1,5 +1,7 @@
 # STELLAR-PMA-005 — Agent 06 incident assessment
 
+Revision note: read `PMA-005-PROVIDER-EVIDENCE-ADDENDUM.md` first for recovered call transcript fragments, verified Fly release v4/digest, and refined diagnosis. This initial assessment is retained as the earlier evidence record.
+
 Date: October 23, 2026. Recipient: STELLAR-PMA-ORCHESTRATOR.
 Recommendation: **NO GO for staging release/activation. Local remediation passes; incident attribution and telephone verification remain incomplete.**
 

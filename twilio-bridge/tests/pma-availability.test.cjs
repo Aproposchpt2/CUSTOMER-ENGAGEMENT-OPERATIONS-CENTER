@@ -26,6 +26,15 @@ test('PMA-005: stale, boundary, future and invalid vacancy dates fail closed',()
  for(const recordUpdatedAt of ['invalid','2026-10-22T22:57:35Z','2026-10-23T22:57:36Z'])assert.equal(verifiedAvailability({...result,units:[{...unit,recordUpdatedAt}]},2,now).state,'LOOKUP_FAILED');
  assert.equal(verifiedAvailability({...result,units:[{...unit,earliestRecordedDate:'2026-02-30'}]},2,now).state,'LOOKUP_FAILED');
 });
+test('PMA-005: any-size lookup omits bedrooms; zero remains an explicit studio filter',async()=>{
+ const env={STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',BRIDGE_HMAC_SECRET:'synthetic-secret'};
+ const ctx={callSid:'CA'+'1'.repeat(32),sessionId:'a0000000-0000-4000-8000-000000000001'};
+ const sent=[];
+ const adapter=createPmaAdapter(env,async(_url,options)=>{const body=JSON.parse(options.body);sent.push(body.args);return {ok:true,json:async()=>({result:{availability:{success:true,state:'AVAILABLE',requestedBedrooms:body.args.bedrooms??null,availabilityMaxAgeHours:24,stagingOnly:true,units:[{unit:'Synthetic studio',bedrooms:0,recordUpdatedAt:new Date().toISOString(),earliestRecordedDate:'2026-11-01'}]}}})};});
+ assert.equal((await adapter.checkAvailability({},ctx)).requestedBedrooms,null);
+ assert.equal((await adapter.checkAvailability({bedrooms:0},ctx)).requestedBedrooms,0);
+ assert.deepEqual(sent,[{},{bedrooms:0}]);assert.match(adapter.tools.find(t=>t.name==='pma_check_availability').description,/omit bedrooms entirely/);
+});
 test('PMA-005: HTTP errors, timeout, invalid JSON and legacy responses are unknown, not empty inventory',async()=>{
  const env={STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',BRIDGE_HMAC_SECRET:'synthetic-secret'};
  const ctx={callSid:'CA'+'1'.repeat(32),sessionId:'a0000000-0000-4000-8000-000000000001'};
