@@ -2,6 +2,7 @@ import {intentDecision} from './intentCatalog';
 import {PmaError,text,uuid} from './domain';
 import {calendarDate} from './availability';
 import {showingInstant} from './scheduling';
+import {isEmergencyIntent,dispatchEmergency} from './emergencyDispatch';
 
 export const voiceStates=['INFORMATION','CLARIFICATION_REQUIRED','AUTHORIZATION_REQUIRED','REQUESTED','CONFIRMED','CONFLICT','UNKNOWN','FAILED'] as const;
 /** Model arguments carry facts/consent only. Identity and operation IDs never come from them. */
@@ -71,6 +72,10 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
   if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);
   if(response.error.code?.startsWith('23'))return projectVoiceResult({state:'CONFLICT',interactionPersisted:false,domainPersisted:false,reply:'The confirmed details conflict with the original operation. Staff review is needed.'});
   return projectVoiceResult(null);
+ }
+ // Fire emergency dispatch non-blocking after safety turn completes
+ if(prepared.action==='safety'&&'safety' in prepared&&isEmergencyIntent(String(prepared.safety))){
+  void dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.message)},admin,env).catch(()=>{});
  }
  return projectVoiceResult(response.data);
 }
