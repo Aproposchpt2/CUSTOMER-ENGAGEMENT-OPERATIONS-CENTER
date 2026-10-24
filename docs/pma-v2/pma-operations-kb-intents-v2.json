@@ -1,0 +1,487 @@
+{
+  "version": "2.0",
+  "source_file": "STELLAR_PMA_Revised_Knowledge_Base_and_Intent_Catalog_v2.0.docx",
+  "source_sha256": "4e7fdb21f69e4939cf9989b957358846adf62c5135bec3d98df487482dab2b3a",
+  "role": "owner-approved implementation reference",
+  "runtime_activation": "requires explicit workflow bindings; upload does not enable tools",
+  "knowledge_entries": [
+    {
+      "id": "KB-001",
+      "title": "Purpose and service scope",
+      "domain": "General",
+      "guidance": "PMA provides 24/7 tenant communication, maintenance intake, issue classification, stakeholder notification, status communication, and case tracking. PMA does not independently authorize spending, guarantee vendor arrival, or represent emergency services.",
+      "required_configuration": "All modes"
+    },
+    {
+      "id": "KB-002",
+      "title": "Service modes",
+      "domain": "General",
+      "guidance": "FULL_TIME sends designated calls to PMA at all times. AFTER_HOURS activates outside configured business hours, weekends, and holidays. OVERFLOW activates after the configured no-answer or busy condition.",
+      "required_configuration": "Schedule and routing configuration"
+    },
+    {
+      "id": "KB-003",
+      "title": "Caller and property verification",
+      "domain": "Security",
+      "guidance": "Before disclosing property-specific information or dispatching a vendor, collect caller name, callback number, property address, and unit. Use authentication requirements configured by the client.",
+      "required_configuration": "Tenant and property records"
+    },
+    {
+      "id": "KB-004",
+      "title": "Maintenance intake minimum fields",
+      "domain": "Maintenance",
+      "guidance": "Collect property, unit, caller, callback number, issue category, description, when it started, current conditions, access instructions, occupants at risk, and safety indicators.",
+      "required_configuration": "Maintenance ticket schema"
+    },
+    {
+      "id": "KB-005",
+      "title": "Emergency safety boundary",
+      "domain": "Emergency",
+      "guidance": "If there is immediate danger, active fire, smoke, gas odor, sparks, exposed wiring, medical danger, suspected crime, or another life-safety threat, instruct the caller to move to safety and contact 911 or the appropriate local emergency service. PMA must not delay safety action while collecting routine ticket details.",
+      "required_configuration": "Emergency policy"
+    },
+    {
+      "id": "KB-006",
+      "title": "Active water leak or flooding",
+      "domain": "Emergency",
+      "guidance": "Ask whether water is actively flowing, its source if safely visible, standing-water conditions, electrical exposure, and whether a shutoff can be reached safely. Advise the caller not to enter standing water near electrical sources. Create an emergency ticket and start the configured owner and plumbing or restoration notification workflow.",
+      "required_configuration": "Emergency contacts and vendor roster"
+    },
+    {
+      "id": "KB-007",
+      "title": "Sewage backup",
+      "domain": "Emergency",
+      "guidance": "Treat active sewage overflow as urgent or emergency per client policy. Advise the caller to avoid contact, keep people and pets away, and not use affected fixtures when safe to do so. Notify the configured owner and plumbing or restoration vendor.",
+      "required_configuration": "Vendor roster and client severity policy"
+    },
+    {
+      "id": "KB-008",
+      "title": "Gas odor or suspected gas leak",
+      "domain": "Life safety",
+      "guidance": "Do not troubleshoot. Tell the caller to leave the area without operating switches or creating ignition sources, then contact 911 and the gas utility from a safe location. Notify the owner only after immediate safety direction is given.",
+      "required_configuration": "Emergency policy"
+    },
+    {
+      "id": "KB-009",
+      "title": "Fire, smoke, or carbon monoxide alarm",
+      "domain": "Life safety",
+      "guidance": "Tell the caller to evacuate and contact 911. Do not instruct re-entry. Create a critical incident record and notify the configured owner or property manager after safety instructions.",
+      "required_configuration": "Emergency policy"
+    },
+    {
+      "id": "KB-010",
+      "title": "Electrical hazard",
+      "domain": "Emergency",
+      "guidance": "For sparks, smoke, burning odor, exposed live wiring, shock, or water near electrical equipment, direct the caller away from the area and to contact 911 when immediate danger exists. Notify the configured electrical vendor and owner according to policy.",
+      "required_configuration": "Vendor roster and emergency policy"
+    },
+    {
+      "id": "KB-011",
+      "title": "No heat or no cooling",
+      "domain": "Maintenance",
+      "guidance": "Collect indoor conditions, vulnerable occupants, weather exposure, equipment behavior, and whether the entire property or one area is affected. Classify using the client severity matrix and notify the designated HVAC vendor when thresholds are met.",
+      "required_configuration": "Client severity policy and HVAC roster"
+    },
+    {
+      "id": "KB-012",
+      "title": "Lockout and access issue",
+      "domain": "Security",
+      "guidance": "Verify caller identity using client policy. Never disclose lockbox, access, alarm, or door-code information without authorization. Use the approved locksmith or on-call workflow and communicate any client-approved charges before dispatch.",
+      "required_configuration": "Access policy and vendor roster"
+    },
+    {
+      "id": "KB-013",
+      "title": "Security incident",
+      "domain": "Life safety",
+      "guidance": "For an active break-in, threat, assault, or suspicious person creating immediate danger, instruct the caller to move to safety and contact 911. Do not confront anyone. Notify the owner after safety instructions.",
+      "required_configuration": "Emergency policy"
+    },
+    {
+      "id": "KB-014",
+      "title": "Non-emergency maintenance request",
+      "domain": "Maintenance",
+      "guidance": "Create a standard ticket, confirm the request, provide the case number, and communicate the expected next step without promising an unverified completion time.",
+      "required_configuration": "Maintenance workflow"
+    },
+    {
+      "id": "KB-015",
+      "title": "Owner notification",
+      "domain": "Notification",
+      "guidance": "Send the configured owner or property manager an SMS, email, or dashboard alert with ticket ID, property, unit, issue, severity, time reported, safety notes, vendor notification status, and tenant callback details subject to privacy policy.",
+      "required_configuration": "Contact rules"
+    },
+    {
+      "id": "KB-016",
+      "title": "Vendor notification",
+      "domain": "Notification",
+      "guidance": "Notify only approved vendors assigned to the issue category and property. Include ticket ID, property, unit, issue summary, severity, access instructions, tenant callback details when authorized, and acknowledgment instructions.",
+      "required_configuration": "Approved vendor roster"
+    },
+    {
+      "id": "KB-017",
+      "title": "Tenant confirmation",
+      "domain": "Notification",
+      "guidance": "Confirm that the request was received, provide the ticket number, state which next step occurred, and avoid saying the vendor is dispatched, accepted, en route, or completed unless the system contains that exact status.",
+      "required_configuration": "Ticket status"
+    },
+    {
+      "id": "KB-018",
+      "title": "Vendor acknowledgment",
+      "domain": "Workflow",
+      "guidance": "Record ACCEPTED, DECLINED, UNAVAILABLE, or NO_RESPONSE. An outbound SMS does not equal acceptance. If acknowledgment is absent by the configured threshold, invoke the backup-vendor or staff-escalation rule.",
+      "required_configuration": "Escalation configuration"
+    },
+    {
+      "id": "KB-019",
+      "title": "Status updates",
+      "domain": "Workflow",
+      "guidance": "Send event-based updates when the ticket is created, notifications are sent, a vendor acknowledges, arrival is confirmed, work is completed, or escalation occurs. Every message must reflect authoritative case data.",
+      "required_configuration": "Notification preferences"
+    },
+    {
+      "id": "KB-020",
+      "title": "No-response escalation",
+      "domain": "Workflow",
+      "guidance": "If a vendor does not acknowledge within the configured threshold, notify the backup vendor or on-call staff and update the owner. Do not silently close the case.",
+      "required_configuration": "Escalation matrix"
+    },
+    {
+      "id": "KB-021",
+      "title": "Spending and authorization",
+      "domain": "Governance",
+      "guidance": "PMA cannot approve repairs, authorize expenditures, waive charges, or accept contract terms unless explicit limits and authorization rules are configured. Route approvals to the designated human approver.",
+      "required_configuration": "Approval policy"
+    },
+    {
+      "id": "KB-022",
+      "title": "Privacy and minimum necessary disclosure",
+      "domain": "Governance",
+      "guidance": "Share only information required for the assigned workflow. Do not disclose tenant records, access credentials, payment data, or unrelated personal information. Follow configured retention and consent rules.",
+      "required_configuration": "Privacy policy"
+    },
+    {
+      "id": "KB-023",
+      "title": "Duplicate request handling",
+      "domain": "Workflow",
+      "guidance": "Search for an open ticket by property, unit, category, and recent time window. Link the contact to the existing case when appropriate, preserve new facts, and avoid duplicate vendor notifications unless escalation rules require them.",
+      "required_configuration": "Ticket search"
+    },
+    {
+      "id": "KB-024",
+      "title": "Multiple issues in one call",
+      "domain": "Workflow",
+      "guidance": "Identify each issue, prioritize any life-safety issue first, and create separate tickets when categories, vendors, or severity differ. Maintain context without losing property and caller verification.",
+      "required_configuration": "Ticket workflow"
+    },
+    {
+      "id": "KB-025",
+      "title": "Language or accessibility support",
+      "domain": "Accessibility",
+      "guidance": "Use configured language support, offer repetition or slower pacing, and route to staff when the caller cannot effectively complete intake. Do not claim support for unavailable languages or accommodations.",
+      "required_configuration": "Client language settings"
+    },
+    {
+      "id": "KB-026",
+      "title": "Complaint or dissatisfied tenant",
+      "domain": "Resident support",
+      "guidance": "Acknowledge the concern, capture facts, avoid admitting liability, link the complaint to the ticket, and escalate according to policy. Provide only verified status information.",
+      "required_configuration": "Complaint workflow"
+    },
+    {
+      "id": "KB-027",
+      "title": "Vendor cancellation or refusal",
+      "domain": "Workflow",
+      "guidance": "Record the vendor response, notify the owner or manager, invoke the backup vendor rule, and update the tenant without blaming the vendor or promising a new arrival time until confirmed.",
+      "required_configuration": "Escalation matrix"
+    },
+    {
+      "id": "KB-028",
+      "title": "Ticket closure",
+      "domain": "Governance",
+      "guidance": "Close only when the authorized source marks the work completed and required confirmation is received. Record completion time, resolution summary, vendor, tenant notification, and reopen instructions.",
+      "required_configuration": "Closure policy"
+    },
+    {
+      "id": "KB-029",
+      "title": "Audit trail",
+      "domain": "Governance",
+      "guidance": "Log classification, field collection, notifications, delivery results, acknowledgments, escalations, status changes, agent actions, and source timestamps. Preserve traceability for every automated action.",
+      "required_configuration": "Audit schema"
+    },
+    {
+      "id": "KB-030",
+      "title": "Fallback and uncertainty",
+      "domain": "Governance",
+      "guidance": "When PMA cannot confidently classify the issue, ask targeted clarifying questions. If uncertainty remains or required configuration is missing, create an unclassified urgent review and escalate to staff rather than guessing.",
+      "required_configuration": "Fallback policy"
+    },
+    {
+      "id": "KB-031",
+      "title": "Property-specific information",
+      "domain": "General",
+      "guidance": "Hours, contacts, vendors, fees, policies, amenities, restrictions, and emergency procedures must come from the client configuration or approved property KB. Do not invent tenant-specific answers.",
+      "required_configuration": "Property configuration"
+    },
+    {
+      "id": "KB-032",
+      "title": "Holiday and after-hours behavior",
+      "domain": "Routing",
+      "guidance": "Use the configured timezone, business calendar, holidays, on-call roster, and routing schedule. Do not infer that an office is closed solely from local time.",
+      "required_configuration": "Schedule configuration"
+    },
+    {
+      "id": "KB-033",
+      "title": "Notification delivery failure",
+      "domain": "Workflow",
+      "guidance": "If SMS or email delivery fails, log the failure, try the configured alternate channel or contact, and escalate when required. Do not state that a party was notified unless delivery or accepted submission is recorded according to policy.",
+      "required_configuration": "Notification fallback"
+    },
+    {
+      "id": "KB-034",
+      "title": "System outage fallback",
+      "domain": "Resilience",
+      "guidance": "If ticketing, vendor lookup, or messaging is unavailable, collect minimum safe details, provide immediate safety direction, create a recoverable outage record, and route to the configured human fallback. Never fabricate a ticket number or notification.",
+      "required_configuration": "Outage plan"
+    },
+    {
+      "id": "KB-035",
+      "title": "Client-controlled vendor roster",
+      "domain": "Configuration",
+      "guidance": "Each property may have primary and backup vendors by trade, service hours, geography, priority, and spending authority. Changes require authenticated client administration and audit logging.",
+      "required_configuration": "Vendor administration"
+    },
+    {
+      "id": "KB-036",
+      "title": "Client-controlled routing",
+      "domain": "Configuration",
+      "guidance": "The client controls full-time, after-hours, or overflow activation, business hours, holidays, thresholds, owner contacts, on-call contacts, and escalation timing.",
+      "required_configuration": "Routing administration"
+    }
+  ],
+  "intent_catalog": [
+    {
+      "id": "PMA-GEN-001",
+      "intent": "GENERAL_INQUIRY",
+      "purpose": "General request that does not yet identify a workflow",
+      "required_entities": "topic",
+      "kb_mapping": "KB-001, KB-031",
+      "expected_action": "Answer from approved KB or clarify"
+    },
+    {
+      "id": "PMA-ROUTE-001",
+      "intent": "SERVICE_MODE_INQUIRY",
+      "purpose": "Ask when or how PMA answers calls",
+      "required_entities": "property_id",
+      "kb_mapping": "KB-002, KB-032, KB-036",
+      "expected_action": "Read configured mode; no guessing"
+    },
+    {
+      "id": "PMA-MNT-001",
+      "intent": "MAINTENANCE_REQUEST_NEW",
+      "purpose": "Report a non-emergency repair need",
+      "required_entities": "property, unit, callback, issue",
+      "kb_mapping": "KB-003, KB-004, KB-014",
+      "expected_action": "Create standard ticket"
+    },
+    {
+      "id": "PMA-MNT-002",
+      "intent": "MAINTENANCE_STATUS",
+      "purpose": "Ask for an existing request status",
+      "required_entities": "ticket_id or verified property/unit",
+      "kb_mapping": "KB-017, KB-019",
+      "expected_action": "Return authoritative status only"
+    },
+    {
+      "id": "PMA-EMG-001",
+      "intent": "ACTIVE_WATER_LEAK",
+      "purpose": "Active leak, burst pipe, or flooding",
+      "required_entities": "property, unit, source, flow, electrical risk",
+      "kb_mapping": "KB-005, KB-006",
+      "expected_action": "Safety guidance; emergency ticket; notify configured parties"
+    },
+    {
+      "id": "PMA-EMG-002",
+      "intent": "SEWAGE_BACKUP",
+      "purpose": "Active sewage overflow or backup",
+      "required_entities": "property, unit, affected fixtures, exposure",
+      "kb_mapping": "KB-005, KB-007",
+      "expected_action": "Avoid contact; create urgent/emergency ticket"
+    },
+    {
+      "id": "PMA-EMG-003",
+      "intent": "GAS_ODOR",
+      "purpose": "Gas smell or suspected gas leak",
+      "required_entities": "location and safe callback only",
+      "kb_mapping": "KB-005, KB-008",
+      "expected_action": "Evacuate; call 911/gas utility; then notify owner"
+    },
+    {
+      "id": "PMA-EMG-004",
+      "intent": "FIRE_SMOKE_CO",
+      "purpose": "Fire, smoke, or carbon monoxide alarm",
+      "required_entities": "location and safe callback only",
+      "kb_mapping": "KB-005, KB-009",
+      "expected_action": "Evacuate; call 911; no troubleshooting"
+    },
+    {
+      "id": "PMA-EMG-005",
+      "intent": "ELECTRICAL_HAZARD",
+      "purpose": "Sparks, burning odor, shock, exposed wiring",
+      "required_entities": "property, unit, hazard",
+      "kb_mapping": "KB-005, KB-010",
+      "expected_action": "Keep away; emergency direction; notify configured parties"
+    },
+    {
+      "id": "PMA-EMG-006",
+      "intent": "HVAC_OUTAGE",
+      "purpose": "No heat or cooling with possible risk",
+      "required_entities": "property, unit, temperature, occupants, equipment",
+      "kb_mapping": "KB-011",
+      "expected_action": "Classify with client matrix; HVAC workflow"
+    },
+    {
+      "id": "PMA-SEC-001",
+      "intent": "LOCKOUT",
+      "purpose": "Verified occupant cannot enter",
+      "required_entities": "property, unit, identity evidence",
+      "kb_mapping": "KB-012",
+      "expected_action": "Authenticate; locksmith/on-call workflow"
+    },
+    {
+      "id": "PMA-SEC-002",
+      "intent": "ACTIVE_SECURITY_INCIDENT",
+      "purpose": "Break-in, threat, or immediate security danger",
+      "required_entities": "location and safe callback",
+      "kb_mapping": "KB-005, KB-013",
+      "expected_action": "Move to safety; call 911; then notify owner"
+    },
+    {
+      "id": "PMA-NOT-001",
+      "intent": "OWNER_NOTIFICATION",
+      "purpose": "Trigger or verify owner/manager notification",
+      "required_entities": "ticket_id, owner contact rule",
+      "kb_mapping": "KB-015, KB-033",
+      "expected_action": "Send/log configured notification"
+    },
+    {
+      "id": "PMA-NOT-002",
+      "intent": "VENDOR_NOTIFICATION",
+      "purpose": "Trigger vendor notification",
+      "required_entities": "ticket_id, trade, approved vendor",
+      "kb_mapping": "KB-016, KB-035",
+      "expected_action": "Notify approved vendor only"
+    },
+    {
+      "id": "PMA-NOT-003",
+      "intent": "TENANT_CONFIRMATION",
+      "purpose": "Send case confirmation or update",
+      "required_entities": "ticket_id, channel",
+      "kb_mapping": "KB-017, KB-019",
+      "expected_action": "Verified event-based update"
+    },
+    {
+      "id": "PMA-VND-001",
+      "intent": "VENDOR_ACKNOWLEDGMENT",
+      "purpose": "Record vendor response",
+      "required_entities": "ticket_id, vendor_id, response",
+      "kb_mapping": "KB-018",
+      "expected_action": "Update case and communicate status"
+    },
+    {
+      "id": "PMA-VND-002",
+      "intent": "VENDOR_NO_RESPONSE",
+      "purpose": "Vendor fails acknowledgment threshold",
+      "required_entities": "ticket_id, elapsed rule",
+      "kb_mapping": "KB-020",
+      "expected_action": "Backup vendor/staff escalation"
+    },
+    {
+      "id": "PMA-VND-003",
+      "intent": "VENDOR_DECLINED",
+      "purpose": "Vendor refuses or is unavailable",
+      "required_entities": "ticket_id, vendor response",
+      "kb_mapping": "KB-027",
+      "expected_action": "Record; escalate; update owner/tenant"
+    },
+    {
+      "id": "PMA-WF-001",
+      "intent": "MULTIPLE_ISSUES",
+      "purpose": "Caller reports more than one problem",
+      "required_entities": "issue list and priorities",
+      "kb_mapping": "KB-024",
+      "expected_action": "Prioritize safety; split tickets as needed"
+    },
+    {
+      "id": "PMA-WF-002",
+      "intent": "DUPLICATE_REQUEST",
+      "purpose": "Likely repeated report",
+      "required_entities": "property, unit, category, time",
+      "kb_mapping": "KB-023",
+      "expected_action": "Link to open case and preserve new facts"
+    },
+    {
+      "id": "PMA-WF-003",
+      "intent": "NOTIFICATION_FAILURE",
+      "purpose": "SMS/email delivery fails",
+      "required_entities": "ticket_id, channel result",
+      "kb_mapping": "KB-033",
+      "expected_action": "Alternate channel/contact; log failure"
+    },
+    {
+      "id": "PMA-WF-004",
+      "intent": "SYSTEM_OUTAGE",
+      "purpose": "Required backend unavailable",
+      "required_entities": "affected service and fallback contact",
+      "kb_mapping": "KB-034",
+      "expected_action": "Safe intake; human fallback; no fabrication"
+    },
+    {
+      "id": "PMA-GOV-001",
+      "intent": "REPAIR_AUTHORIZATION",
+      "purpose": "Vendor or caller requests spending approval",
+      "required_entities": "ticket_id, amount, approver",
+      "kb_mapping": "KB-021",
+      "expected_action": "Route to authorized approver"
+    },
+    {
+      "id": "PMA-GOV-002",
+      "intent": "PRIVACY_REQUEST",
+      "purpose": "Request for personal or access information",
+      "required_entities": "requester identity and purpose",
+      "kb_mapping": "KB-022",
+      "expected_action": "Minimum necessary disclosure or refusal"
+    },
+    {
+      "id": "PMA-GOV-003",
+      "intent": "CLOSE_TICKET",
+      "purpose": "Request to close maintenance case",
+      "required_entities": "ticket_id, completion evidence",
+      "kb_mapping": "KB-028, KB-029",
+      "expected_action": "Close only with authorized evidence"
+    },
+    {
+      "id": "PMA-RES-001",
+      "intent": "TENANT_COMPLAINT",
+      "purpose": "Complaint about service, delay, or communication",
+      "required_entities": "ticket_id, concern, desired follow-up",
+      "kb_mapping": "KB-026",
+      "expected_action": "Capture, link, escalate, verified status"
+    },
+    {
+      "id": "PMA-ACC-001",
+      "intent": "LANGUAGE_ACCESSIBILITY",
+      "purpose": "Caller needs language or accessibility support",
+      "required_entities": "requested support",
+      "kb_mapping": "KB-025",
+      "expected_action": "Use available support or staff escalation"
+    },
+    {
+      "id": "PMA-FBK-001",
+      "intent": "UNCERTAIN_CLASSIFICATION",
+      "purpose": "Issue cannot be confidently categorized",
+      "required_entities": "collected facts",
+      "kb_mapping": "KB-030",
+      "expected_action": "Clarify then escalate without guessing"
+    }
+  ]
+}
