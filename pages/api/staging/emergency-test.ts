@@ -1,4 +1,5 @@
 import type {NextApiRequest,NextApiResponse} from 'next';
+import {randomBytes} from 'crypto';
 import {createClient} from '@supabase/supabase-js';
 import {dispatchEmergency} from '@/lib/propertyManagement/emergencyDispatch';
 import {privateResponse,fail} from '@/lib/propertyManagement/server';
@@ -39,13 +40,13 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse){
   const propertyId=process.env.PMA_STAGING_PROPERTY_ID!;
   if(!/^[0-9a-f-]{36}$/i.test(tenantId)||!/^[0-9a-f-]{36}$/i.test(propertyId))throw new PmaError('Env binding unavailable',503);
 
-  const fakeCallSid='CA'+'0'.repeat(32);
+  const fakeCallSid='CA'+randomBytes(16).toString('hex');
   const fakeSessionId='00000000-0000-4000-8000-000000000000';
 
   const admin=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false}});
   const t0=Date.now();
   const receipt=await dispatchEmergency({
-   tenantId,propertyId,
+   tenantId,propertyId,testMode:true,
    callSid:fakeCallSid,sessionId:fakeSessionId,
    intent:sc.intent,message:sc.message,
    callerNumber:process.env.PMA_STAGING_TEST_CALLER,

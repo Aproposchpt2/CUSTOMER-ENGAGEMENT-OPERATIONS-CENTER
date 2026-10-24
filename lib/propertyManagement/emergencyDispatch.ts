@@ -1,10 +1,8 @@
 const EMERGENCY_INTENTS=new Set(['FIRE_EMERGENCY','FLOOD_EMERGENCY','GAS_EMERGENCY','SECURITY_EMERGENCY','PERSONAL_SAFETY_THREAT']);
-const SEVERITY:Record<string,string>={FIRE_EMERGENCY:'SEV1',GAS_EMERGENCY:'SEV1',FLOOD_EMERGENCY:'SEV2',SECURITY_EMERGENCY:'SEV2',PERSONAL_SAFETY_THREAT:'SEV2'};
-const TRADE:Record<string,string>={FIRE_EMERGENCY:'fire_safety',FLOOD_EMERGENCY:'plumbing',GAS_EMERGENCY:'hvac',SECURITY_EMERGENCY:'security',PERSONAL_SAFETY_THREAT:'general'};
 
 export function isEmergencyIntent(intent:string):boolean{return EMERGENCY_INTENTS.has(intent);}
 
-interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;callerNumber?:string;}
+interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;callerNumber?:string;testMode?:boolean;}
 export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;}
 
 async function twilioSms(accountSid:string,authToken:string,from:string,to:string,body:string):Promise<void>{
@@ -20,38 +18,21 @@ async function twilioSms(accountSid:string,authToken:string,from:string,to:strin
 
 export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.ProcessEnv):Promise<DispatchReceipt>{
  const channels:string[]=[];let incidentId:string|null=null;
- const severity=SEVERITY[ctx.intent]??'HIGH';
+ if(env.PMA_ENVIRONMENT!=='staging'||env.NEXT_PUBLIC_SUPABASE_URL!=='https://hvzauakkhlivzeqatfqm.supabase.co'||!isEmergencyIntent(ctx.intent))return {dispatched:false,channels,incidentId};
  const label=ctx.intent.replace(/_/g,' ');
 
- // Create incident record
- try{
-  const {data}=await admin.from('platform_incidents').insert({
-   incident_key:`pma:emergency:${ctx.callSid}:${Date.now()}`,
-   severity,status:'OPEN',
-   title:`[STAGING] ${label} — Desert Ridge`,
-   summary:`Caller reported: ${ctx.message.slice(0,500)}`,
-   tenant_id:ctx.tenantId,
-   service:'pma-voice-staging',
-   opened_at:new Date().toISOString(),
-   metadata:{intent:ctx.intent,call_sid:ctx.callSid,session_id:ctx.sessionId,property_id:ctx.propertyId,trade:TRADE[ctx.intent]??'general',staging:true},
-  }).select('id').single();
-  if(data?.id)incidentId=data.id;
- }catch{/* non-blocking; log loss acceptable in staging */}
-
- // Read notification preferences (entity_type='property', entity_id=propertyId)
- let prefs:any[]=[];
- try{
-  const {data}=await admin.from('pm_notification_preferences')
-   .select('channel,destination')
-   .eq('tenant_id',ctx.tenantId)
-   .eq('entity_type','property')
-   .eq('entity_id',ctx.propertyId)
-   .eq('event_type','emergency_escalation')
-   .eq('active',true)
-   .eq('staging_override',true);
-  prefs=data??[];
- }catch{}
-
+ // The tables deliberately deny service_role direct access. Use the narrow,
+ // staging-only operation instead of broad table grants or swallowed DB errors.
+ const prepared=await admin.rpc('pm_staging_emergency_prepare_v1',{
+  t:ctx.tenantId,p:ctx.propertyId,call_sid:ctx.callSid,session_id:ctx.sessionId,
+  intent:ctx.intent,message:ctx.message.slice(0,500),test_mode:ctx.testMode===true,
+ });
+ if(prepared.error)throw new Error('EMERGENCY_PREPARE_FAILED:'+String(prepared.error.code||'UNKNOWN'));
+ const data=prepared.data;
+ if(!data||typeof data.incidentId!=='string'||!Array.isArray(data.preferences))throw new Error('EMERGENCY_PREPARE_INVALID');
+ incidentId=data.incidentId;
+ if(data.notify!==true)return {dispatched:false,channels,incidentId};
+ const prefs=data.preferences;
  const {TWILIO_ACCOUNT_SID:sid,TWILIO_AUTH_TOKEN:tok,PMA_STAGING_DID:from}=env;
  const incRef=incidentId?incidentId.slice(0,8):'—';
  const callerRef=ctx.callerNumber?`Caller: ${ctx.callerNumber}`:'Caller: unknown';
@@ -65,5 +46,5 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
   }
  }
 
- return {dispatched:!!incidentId||channels.length>0,channels,incidentId};
+ return {dispatched:!!incidentId&&channels.some(c=>c.startsWith('sms:')),channels,incidentId};
 }
