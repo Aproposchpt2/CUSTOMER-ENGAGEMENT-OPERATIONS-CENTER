@@ -907,7 +907,8 @@ function start() {
     const receptionPath=url.pathname==='/ivr-stream'&&voiceEntry.enabled;
     const aliasRoute=receptionPath?{profile:'ivr'}:byPath[url.pathname];
     const profile = aliasRoute?.profile || pathParts[1] || url.searchParams.get('profile');
-    logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
+    if(profile==='pma')logEvent(JSON.stringify({event:'pma_upgrade_requested'}));
+    else logEvent(`[upgrade] path=${url.pathname} profile=${profile} from=${req.socket.remoteAddress}`);
     if ((!aliasRoute&&pathParts[0] !== 'ws')||(aliasRoute&&!voiceEntry.enabled)) { logEvent('[upgrade] rejected: wrong or disabled path'); socket.destroy(); return; }
     if (activeCalls >= MAX_CONCURRENT) { logEvent('[upgrade] rejected: concurrent limit'); socket.destroy(); return; }
     if (profile !== 'sales' && profile !== 'support' && !(profile === 'pma' && pmaAdapter.enabled) && !(profile === 'ivr' && receptionPath)) { logEvent(`[upgrade] rejected: bad profile ${profile}`); socket.destroy(); return; }
@@ -920,14 +921,15 @@ function start() {
       const firstMessage = (raw) => {
         let msg;
         try { msg = JSON.parse(raw.toString()); } catch { logEvent('[ws] bad JSON'); ws.close(); return; }
-        logEvent(`[ws] first msg event=${msg.event}`);
+        if(profile==='pma')logEvent(JSON.stringify({event:'pma_transport_event',type:['connected','start'].includes(msg.event)?msg.event:'unknown'}));
+        else logEvent(`[ws] first msg event=${msg.event}`);
         if (msg.event === 'connected') return;
-        if (msg.event !== 'start') { logEvent(`[ws] unexpected ${msg.event}`); ws.close(); return; }
+        if (msg.event !== 'start') { logEvent(profile==='pma'?'[pma] unexpected transport event':`[ws] unexpected ${msg.event}`); ws.close(); return; }
 
         const params = msg.start?.customParameters || {};
         const tokenStr = params.bridge_token || params.token;
         const session=typeof tokenStr==='string'&&/^ivr[01]\./.test(tokenStr)?verifyRouteToken(tokenStr,BRIDGE_HMAC_SECRET,profile,msg.start||{}):null;
-        if(aliasRoute&&!session){logEvent('[bridge] route-bound token rejected');ws.close();return;}
+        if((aliasRoute||profile==='pma')&&!session){logEvent('[bridge] route-bound token rejected');ws.close();return;}
         const tokenProfile = session ? profile : validateBridgeToken(tokenStr);
         if (!tokenProfile || tokenProfile !== profile) {
           logEvent(`[bridge] token rejected: tokenProfile=${tokenProfile} urlProfile=${profile}`);
