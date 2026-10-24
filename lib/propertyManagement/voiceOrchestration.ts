@@ -73,9 +73,10 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
   if(response.error.code?.startsWith('23'))return projectVoiceResult({state:'CONFLICT',interactionPersisted:false,domainPersisted:false,reply:'The confirmed details conflict with the original operation. Staff review is needed.'});
   return projectVoiceResult(null);
  }
- // Fire emergency dispatch non-blocking after safety turn completes
+ // Await the bounded dispatch so serverless teardown cannot discard the alert.
+ let emergencyReceipt=null;
  if(prepared.action==='safety'&&'safety' in prepared&&isEmergencyIntent(String(prepared.safety))){
-  void dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.message),callerNumber:env.PMA_STAGING_TEST_CALLER},admin,env).catch(()=>{});
+  emergencyReceipt=await dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.message),callerNumber:env.PMA_STAGING_TEST_CALLER},admin,env).catch(()=>({dispatched:false,incidentId:null,channels:[],state:'DISPATCH_UNCONFIRMED'}));
  }
- return projectVoiceResult(response.data);
+ return {...projectVoiceResult(response.data),...(emergencyReceipt?{emergencyDispatch:emergencyReceipt}:{})};
 }
