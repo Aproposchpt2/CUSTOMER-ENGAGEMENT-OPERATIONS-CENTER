@@ -3,7 +3,7 @@ const crypto=require('crypto');
 const profile=require('./pma-profile.json');
 const knowledgeModel=require('./pma-knowledge-v1.json');
 const BASE='https://pma-validation--ai4cc-staging.netlify.app';
-function enabled(env){return env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_CHANNELS_ENABLED==='true'&&env.PMA_STAGING_BASE_URL===BASE&&!!env.BRIDGE_HMAC_SECRET;}
+function enabled(env){return env.PMA_CHANNELS_ENABLED==='true'&&env.PMA_STAGING_BASE_URL===BASE&&!!env.BRIDGE_HMAC_SECRET;}
 function createPmaAdapter(env,fetchImpl=fetch){
  return {
   enabled:enabled(env),
