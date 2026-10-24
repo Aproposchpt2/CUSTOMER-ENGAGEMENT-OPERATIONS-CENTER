@@ -126,6 +126,7 @@ def main():
             run(admin, migration.read_text())
         evidence['bootstrapPhase'] = 'synthetic fixtures'
         run(admin, Path('supabase/tests/pma_acceptance.sql').read_text().split('set local role authenticated;')[0] + '\ncommit;')
+        admin.execute("select set_config('request.jwt.claims',%s,false)", (json.dumps({'sub': OWNER, 'role': 'service_role'}),))
         admin.execute("update public.pm_properties set accepts_inquiries=true,timezone='America/Los_Angeles',metadata=metadata||'{\"pma_synthetic_tours\":true}'::jsonb where id=%s", (P,))
         admin.execute('insert into private.pm_voice_config_v1 values(%s,%s,%s,true)', (T, P, OWNER))
         for sid, call in ((SID, CALL), (SID2, CALL2)):
