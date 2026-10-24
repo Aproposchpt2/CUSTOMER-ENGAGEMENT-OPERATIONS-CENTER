@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -15,20 +15,36 @@ async function session(profile, failSave = false, warm = false, staging = false,
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./voice-entry.cjs'&&trustedPma?{...require(n),createVoiceEntry:()=>({openSession:async()=>({agentRoute:'property-management-assistant',knowledgeEntries:[],intents:[]}),closeSession:async()=>({})})}:n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
-    return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:{persisted:true,interactionId:'10000000-0000-4000-8000-000000000001',requestId:'20000000-0000-4000-8000-000000000001',notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
+    if(body.action==='pma_availability')return {ok:true,json:async()=>({result:{availability:inventory}})};
+    return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:supportSave?await supportSave():{success:true,state:'REQUESTED',domainPersisted:true,interactionPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false,notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
+  const logs:string[]=[];context.console.log=(msg:string)=>logs.push(msg);context.console.error=(...parts:any[])=>logs.push(parts.join(' '));
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL');
+  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
   const tool=async(id:string,name:string,args:any={},envelope=false)=>{const event=(staging && profile==='support')||profile==='pma'?{type:'response.output_item.done',item:{type:'function_call',call_id:id,name,arguments:JSON.stringify(args)}}:{type:'response.function_call_arguments.done',call_id:id,name,arguments:JSON.stringify(args)};ws.emit('message',Buffer.from(JSON.stringify(envelope?{type:'response.event',event}:event)));await flush();};
-  return {outbound,requests,phone,ws,tool,timers,phoneOutbound};
+  return {outbound,requests,phone,ws,tool,timers,phoneOutbound,logs};
 }
+test('PMA-005: voice protocol returns distinct inventory outcomes and correlated safe tool logs',async()=>{
+ for(const state of ['NO_VERIFIED_MATCH','UNAVAILABLE_UNITS','INVENTORY_STALE','INVALID_INVENTORY','LOOKUP_FAILED']){
+  const inventory=state==='LOOKUP_FAILED'?{success:false}: {success:state!=='INVALID_INVENTORY',state,stagingOnly:true,requestedBedrooms:2,availabilityMaxAgeHours:24,units:[]};
+  const s=await session('pma',false,false,true,null,true,inventory);
+  await s.tool('synthetic-availability','pma_check_availability',{bedrooms:2});
+  const sent=s.requests.find(x=>x.action==='pma_availability');assert.equal(sent.args.bedrooms,2);assert.equal(sent.session_id,'a0000000-0000-4000-8000-000000000001');
+  const item=s.outbound.find(x=>x.item?.call_id==='synthetic-availability');assert.ok(item);
+  const result=JSON.parse(item.item.output);assert.equal(result.state,state);assert.equal(result.units.length,0);assert.match(result.reply,/2-bedroom|lookup could not be verified|data is missing or invalid/);
+  const logged=s.logs.filter(x=>x.startsWith('{')).map(x=>JSON.parse(x)).filter(x=>x.event.startsWith('pma_availability_'));
+  assert.equal(logged[0].event,'pma_availability_started');assert.equal(logged[1].event,'pma_availability_completed');assert.equal(logged[1].state,state);assert.equal(logged[1].requestedBedrooms,2);assert.equal(logged[1].toolCallId,'sha256:'+require('node:crypto').createHash('sha256').update('synthetic-availability').digest('hex'));assert.equal(logged[1].unitCount,0);
+  assert.doesNotMatch(JSON.stringify(logged),/12025550199|transcript|secret|authorization/i);
+  if(process.env.PMA_QA_TRACE==='true')console.log(JSON.stringify({evidenceType:'SYNTHETIC_LOCAL_PROTOCOL_REPLAY_NOT_TELEPHONE',toolResult:result,bridgeEvents:logged}));
+ }
+});
 test('sales transport registers sales tools and initializes the interaction',async()=>{
  const s=await session('sales'); const start=s.outbound.find(x=>x.type==='session.start');
  assert.ok(start.session.delegation.responses.tools.some((x:any)=>x.name==='submit_business_profile'));
@@ -42,6 +58,38 @@ test('sales transport registers sales tools and initializes the interaction',asy
  assert.equal(s.requests.filter(x=>x.action==='submit').length,1);
  await s.tool('transfer','transfer_to_specialist');
  assert.deepEqual(JSON.parse(s.outbound.find(x=>x.item?.call_id==='transfer').item.output),{success:true});
+});
+test('PMA-005 R3: provider transcripts, model text and errors cannot expose customer data in logs',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ const sensitive='Synthetic Customer +12025550199 credential=synthetic-private-value';
+ for(const type of ['session.input_transcript.delta','session.output_transcript.delta','response.output_text.delta','response.output_text.done','session.delegation.created','error'])s.ws.emit('message',Buffer.from(JSON.stringify({type,delta:sensitive,text:sensitive,delegation:{message:sensitive},error:{message:sensitive}})));
+ s.ws.emit('error',new Error(sensitive));
+ assert.doesNotMatch(s.logs.join('\n'),/Synthetic Customer|12025550199|synthetic-private-value|credential=/);
+ assert.ok(s.logs.some(x=>x.includes('pma_provider_error')));assert.ok(s.logs.some(x=>x.includes('pma_provider_transport_error')));
+});
+test('PMA-005 R4: malformed tool JSON and lifecycle metadata never enter PMA logs',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ const sensitive='Synthetic Customer +12025550199 credential=synthetic-private-value';
+ for(const event of [
+  {type:'session.updated',session:{model:sensitive}},
+  {type:'response.done',response:{status:sensitive,output:[{type:sensitive}]}},
+  {type:'response.output_item.done',item:{type:'function_call',call_id:'malformed',name:'pma_property_workflow',arguments:'{"private":"'+sensitive+'", BAD}'}},
+  {type:'response.output_item.done',item:{type:'function_call',call_id:'wrong-tool',name:sensitive,arguments:'null'}}
+ ])s.ws.emit('message',Buffer.from(JSON.stringify(event)));
+ for(let i=0;i<12;i++)await Promise.resolve();
+ await s.tool(sensitive,'pma_check_availability',{});
+ s.phone.emit('error',new Error(sensitive));
+ assert.doesNotMatch(s.logs.join('\n'),/Synthetic Customer|12025550199|synthetic-private-value|credential=/);
+ assert.ok(s.logs.some(x=>x.includes('pma_tool_failed')));
+ assert.ok(s.logs.some(x=>x.includes('pma_phone_transport_error')));
+});
+test('PMA-005 R4: PMA cannot dispatch hidden Sales or Support tools',async()=>{
+ let saves=0;
+ const s=await session('pma',false,false,true,async()=>{saves++;return {};},true);
+ for(const name of ['submit_support_intake','submit_business_profile','transfer_to_specialist','end_call'])await s.tool('forbidden-'+name,name,{});
+ assert.equal(saves,0);assert.equal(s.requests.length,0);
+ assert.equal(s.timers.some(x=>x.ms===1500),false);
+ for(const output of s.outbound.filter(x=>x.item?.type==='function_call_output'))assert.equal(JSON.parse(output.item.output).success,false);
 });
 test('unconfirmed persistence never authorizes a transfer',async()=>{
  const s=await session('sales',true); await s.tool('save','submit_business_profile');await s.tool('transfer','transfer_to_specialist');
@@ -76,7 +124,9 @@ test('Sales mirrors the preferred calm Support Desk behavior without modifying s
  assert.equal(u.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
  assert.equal(u.delegation.responses.instructions.includes('PREFERRED AGENT CONVERSATIONAL BEHAVIOR'),false);
  assert.equal(s.model,u.model);
- assert.deepEqual(s.audio,u.audio);
+ assert.equal(s.audio.output.voice,'echo');
+ assert.equal(u.audio.output.voice,'cedar');
+ assert.deepEqual(s.audio.format,u.audio.format);
 });
 
 test('Sales and Support can submit verified support tickets while preserving Sales lead tools',async()=>{
@@ -185,7 +235,7 @@ test('staging Support adds the fixed opening while preserving the approved model
  // Current upstream main supplies explicit call context before the unchanged workflow suffix.
  assert.equal(start.instructions.slice((prefix+approved.brief).length),reasoningSuffix.replace('\n\n# CALL CONTEXT\nCALL_SID: TEST_CALL\nCALLER_PHONE: +12025550199',''));
  assert.equal(start.turn_detection,undefined);
- assert.equal(start.audio.output?.voice,undefined);
+ assert.equal(start.audio.output?.voice,'cedar');
  const intake=start.delegation.responses.tools.find((x:any)=>x.name==='submit_support_intake');
  assert.equal(intake.parameters.required.length,9);
 });
@@ -302,7 +352,25 @@ test('PMA staging profile uses the existing voice engine and correlated structur
  assert.equal(s.requests.length,0);
  await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
  const output=JSON.parse(s.outbound.find(x=>x.item?.call_id==='pma-1').item.output);
- assert.equal(output.success,true);assert.equal(output.notificationSent,false);assert.equal(output.requestId,'20000000-0000-4000-8000-000000000001');
+ assert.equal(output.success,false);assert.equal(output.state,'AUTHORIZATION_REQUIRED');assert.equal(output.requestId,undefined);
  await s.tool('pma-1','pma_property_workflow',{intent:'maintenance_request',message:'Synthetic leaking tap',confirmed:true},true);
- assert.equal(s.requests.length,1);
+ assert.equal(s.requests.length,0);
+});
+
+test('PMA trusted runtime binds session, tolerates interruption, and returns request-only result',async()=>{
+ const s=await session('pma',false,true,true,null,true);
+ await s.tool('pma-bound','pma_property_workflow',{intent:'SHOWING_REQUEST',confidence:1,message:'Request a showing',confirmed:true,showingAt:'2099-12-01T12:00:00-08:00'},true);
+ const output=JSON.parse(s.outbound.find(x=>x.item?.call_id==='pma-bound').item.output);
+ assert.equal(output.state,'REQUESTED');assert.equal(output.bookingConfirmed,false);assert.equal(output.notificationSent,false);
+ assert.equal(s.requests[0].session_id,'a0000000-0000-4000-8000-000000000001');assert.equal(s.requests[0].operationKey,undefined);
+});
+test('PMA deterministic medical/CO transcript safety precedes tools and disconnect suppresses late success',async()=>{
+ const s=await session('pma',false,true,true,null,true);
+ oai(s,{type:'session.input_transcript.delta',delta:'The carbon mon'});oai(s,{type:'session.input_transcript.delta',delta:'oxide alarm is going off'});
+ assert.ok(s.outbound.some(x=>x.type==='session.commentary.append'&&x.content.includes('SAFETY OVERRIDE')));
+ let resolve:any;const pending=new Promise(r=>resolve=r);
+ const d=await session('pma',false,true,true,()=>pending,true);
+ const task=d.tool('late-pma','pma_property_workflow',{message:'Request a tour',confirmed:true},true);
+ phoneEvent(d,{event:'stop'});resolve({success:true,state:'REQUESTED',domainPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false});await task;
+ assert.equal(d.outbound.some(x=>x.item?.call_id==='late-pma'),false);
 });

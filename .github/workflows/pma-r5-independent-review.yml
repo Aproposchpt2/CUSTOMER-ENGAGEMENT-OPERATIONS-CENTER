@@ -1,0 +1,66 @@
+name: PMA R5 Pinned Audit and Real PostgreSQL
+on:
+  push:
+    branches: ['review/pma-005-r5-agent06-20261023']
+  pull_request:
+    branches: ['review/pma-005-r4-agent05-20261023', 'review/pma-005-r5-agent06-20261023']
+permissions:
+  contents: read
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+jobs:
+  original-pinned-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a8eddd6eced144815f3e847f271feeac7d97faf3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: test "$(git rev-parse HEAD)" = a8eddd6eced144815f3e847f271feeac7d97faf3
+      - run: npm test
+      - run: node --test twilio-bridge/tests/*.test.cjs
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - name: Independently build and test pinned original source provenance
+        run: |
+          source_sha=$(git rev-parse HEAD)
+          docker build -f twilio-bridge/Dockerfile.pma-staging --build-arg "PMA_SOURCE_SHA=$source_sha" -t pma-r5-original twilio-bridge
+          test "$(docker image inspect pma-r5-original --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$source_sha"
+          docker run --rm --entrypoint node pma-r5-original -e "if(process.env.BRIDGE_RELEASE_SHA!==process.argv[1])process.exit(1); require('./pma-adapter.cjs')" "$source_sha"
+          if docker build -f twilio-bridge/Dockerfile.pma-staging -t pma-r5-missing twilio-bridge; then exit 1; fi
+  real-postgres-races:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_DB: pma005_r5_qa
+          POSTGRES_USER: pma_qa_admin
+          POSTGRES_PASSWORD: synthetic-ci-only
+        ports: ['55432:5432']
+        options: --health-cmd "pg_isready -U pma_qa_admin -d pma005_r5_qa" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'psycopg[binary]==3.2.10'
+      - name: Prove distinct backends, overlapping locks, recovery and domain counts
+        env:
+          PMA_QA_EPHEMERAL: 'true'
+          PMA_QA_DATABASE_URL: postgresql://pma_qa_admin:synthetic-ci-only@127.0.0.1:55432/pma005_r5_qa
+        run: python scripts/pma-real-postgres-races.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pma-r5-real-postgres-${{ github.run_id }}
+          path: artifacts/pma-qa/real-postgres-races.json
+          if-no-files-found: error

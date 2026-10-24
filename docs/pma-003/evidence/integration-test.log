@@ -1,0 +1,56 @@
+✔ PMA voice is disabled in production and refuses unconfirmed details (3.516359ms)
+✔ PMA voice signs the body, preserves business identity and returns only verified results (2.49481ms)
+✔ PMA voice timeout and malformed return cannot announce a saved request (0.717281ms)
+✔ PMA voice forwards validated catalog proposals and never delays safety for confirmation (4.45564ms)
+(node:14) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///workspace/scratch/b9c031d67d8e/pma-integration/lib/propertyManagement/domain.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /workspace/scratch/b9c031d67d8e/pma-integration/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ PMA-003 bounded dispatch: LEASING_INQUIRY (4.535906ms)
+✔ PMA-003 bounded dispatch: UNIT_AVAILABILITY (0.25219ms)
+✔ PMA-003 bounded dispatch: SHOWING_REQUEST (0.2124ms)
+✔ PMA-003 bounded dispatch: APPLICATION_QUESTION (0.235836ms)
+✔ PMA-003 bounded dispatch: PROPERTY_POLICY (0.299201ms)
+✔ PMA-003 bounded dispatch: PET_POLICY (0.135034ms)
+✔ PMA-003 bounded dispatch: PARKING_QUESTION (0.109264ms)
+✔ PMA-003 bounded dispatch: MOVE_IN (0.349867ms)
+✔ PMA-003 bounded dispatch: MOVE_OUT (0.284208ms)
+✔ PMA-003 bounded dispatch: MAINTENANCE_REQUEST (0.425191ms)
+✔ PMA-003 bounded dispatch: MAINTENANCE_STATUS (0.186631ms)
+✔ PMA-003 bounded dispatch: FIRE_OR_SMOKE (0.145359ms)
+✔ PMA-003 bounded dispatch: SUSPECTED_GAS_LEAK (0.114032ms)
+✔ PMA-003 bounded dispatch: ELECTRICAL_HAZARD (0.124378ms)
+✔ PMA-003 bounded dispatch: MAJOR_FLOODING (0.080081ms)
+✔ PMA-003 bounded dispatch: PERSONAL_SAFETY_THREAT (0.649419ms)
+✔ PMA-003 bounded dispatch: VENDOR_RESPONSE (0.250197ms)
+✔ PMA-003 bounded dispatch: VENDOR_STATUS_UPDATE (0.151929ms)
+✔ PMA-003 bounded dispatch: OWNER_REQUEST (0.10667ms)
+✔ PMA-003 bounded dispatch: OWNER_OVERRIDE (0.089464ms)
+✔ PMA-003 bounded dispatch: PAYMENT_QUESTION (0.085479ms)
+✔ PMA-003 bounded dispatch: LEASE_QUESTION (0.086991ms)
+✔ PMA-003 bounded dispatch: UNKNOWN_QUESTION (0.103666ms)
+✔ PMA-003 bounded dispatch: HELP_REQUEST (0.141233ms)
+✔ PMA-003 bounded dispatch: GENERAL_GREETING (0.100882ms)
+✔ medical and carbon monoxide override malformed proposals and extra authority (2.195298ms)
+✔ consent, spelling confirmation, safe cancellation, and missing time (0.607686ms)
+✔ interaction-only and malformed results never confirm a domain write (0.184878ms)
+▶ PMA-003 private session/ledger/domain integration on PostgreSQL
+  ✔ session cross-call/property/ended/expired/route denial and no arbitrary actor (21.385149ms)
+  ✔ private storage and RPC are unavailable to anon/authenticated; service cannot provision actor (4.949249ms)
+  ✔ consent denial writes no prospect; showing needs session-linked capture (10.587267ms)
+  ✔ consented capture commits once; transport loss/rephrasing/reconnect recovers stable ID (11.59186ms)
+  ✔ corrections need expected version and retain contact; stale revision conflicts (6.028345ms)
+  ✔ showing is REQUESTED only; retry ignores wording; changed time conflicts (13.48301ms)
+  ✔ prospect is never resident; no staff/owner/vendor or maintenance status disclosure (5.857048ms)
+  ✔ freshness and eligibility; DATE retained and occupied/stale withheld (6.779338ms)
+  ✔ atomic rollback before commit and durable replay after commit; no duplicates (7.04661ms)
+  ✔ safety logs interaction without claiming maintenance/dispatch (1.610828ms)
+✔ PMA-003 private session/ledger/domain integration on PostgreSQL (1915.299878ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2486.481566

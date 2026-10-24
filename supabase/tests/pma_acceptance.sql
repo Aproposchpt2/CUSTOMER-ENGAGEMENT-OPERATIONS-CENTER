@@ -1,5 +1,6 @@
 -- Synthetic security and workflow acceptance; everything is rolled back.
 begin;
+select set_config('request.jwt.claims','{}',true);
 insert into auth.users(id,email) values
  ('10000000-0000-4000-8000-000000000001','pma-owner-a@example.invalid'),
  ('10000000-0000-4000-8000-000000000002','pma-owner-b@example.invalid'),
@@ -85,9 +86,9 @@ update public.pm_maintenance_requests set status='Scheduled',scheduled_at=now()+
 update public.pm_maintenance_requests set status='In Progress' where id='70000000-0000-4000-8000-000000000001';
 update public.pm_maintenance_requests set status='Completed',resolution='Synthetic repair confirmed by owner' where id='70000000-0000-4000-8000-000000000001';
 update public.pm_maintenance_requests set status='Closed' where id='70000000-0000-4000-8000-000000000001';
-insert into public.ai4cc_knowledge_entries(tenant_id,property_id,title,content,visibility,approved) values
- ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Resident FAQ','Synthetic policy','resident',true),
- ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Staff FAQ','Private staff policy','staff',true);
+insert into public.ai4cc_knowledge_entries(tenant_id,property_id,title,content,visibility,approved,source_status,publication_state) values
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Resident FAQ','Synthetic policy','resident',true,'VERIFIED','published'),
+ ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','Staff FAQ','Private staff policy','staff',true,'VERIFIED','published');
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated"}',true);
 do $$ begin if (select count(*) from public.ai4cc_knowledge_entries)<>1 then raise exception 'Knowledge visibility failed'; end if; end $$;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000005","role":"authenticated"}',true);
@@ -101,8 +102,8 @@ end $$;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 do $$ declare ch text; a jsonb; b jsonb; counts jsonb; begin
  foreach ch in array array['voice','sms','chat'] loop
- a=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
- b=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
+ a=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
+ b=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','synthetic-channel-'||ch,ch,'Synthetic leaking tap','maintenance_request','plumbing','normal');
  if a->>'requestId' is null or a->>'requestId'<>b->>'requestId' or b->>'replayed'<>'true' then raise exception 'Channel persistence/replay failed'; end if;
  end loop;
  if (select count(*) from public.ai4cc_transcripts where tenant_id='20000000-0000-4000-8000-000000000001')<>6 then raise exception 'Channel transcripts mismatch'; end if;
@@ -112,7 +113,7 @@ end $$;
 update public.pm_properties set accepts_inquiries=true where id='40000000-0000-4000-8000-000000000002';
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000006","role":"authenticated"}',true);
 do $$ declare a jsonb;b jsonb; begin
- if jsonb_array_length(public.pm_available_properties())<>1 then raise exception 'Unpublished property disclosure'; end if;
+ if (select count(*) from jsonb_array_elements(public.pm_available_properties()) x where x->>'id' in ('40000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000003'))<>1 then raise exception 'Unpublished property disclosure'; end if;
  a=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
  b=public.pm_prospect_inquiry('40000000-0000-4000-8000-000000000002','Synthetic Prospect','Synthetic leasing inquiry',now()+interval '2 days');
  if a->>'leadId'<>b->>'leadId' or a->>'showingId'<>b->>'showingId' or a->>'housingDecisionMade'<>'false' then raise exception 'Prospect replay/housing restriction failed'; end if;
@@ -157,18 +158,19 @@ insert into public.ai4cc_knowledge_entries(tenant_id,property_id,unit_id,title,c
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','First conflicting answer','public',true,null),
  ('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001',null,'conflictprobe','Second conflicting answer','public',true,null),
  ('20000000-0000-4000-8000-000000000001',null,null,'staffonlyprobe','Owner preferences private','staff',false,null);
+update public.ai4cc_knowledge_entries set source_status='VERIFIED',publication_state='published' where tenant_id='20000000-0000-4000-8000-000000000001' and title in ('scopeprobe','unitprivateprobe','expiredprobe','draftprobe','conflictprobe','staffonlyprobe');
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"10000000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 do $$ declare v jsonb;begin
- v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','knowledge-unit-01','chat','scopeprobe','policy_question','other','normal');
+ v=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001','knowledge-unit-01','chat','scopeprobe','policy_question','other','normal');
  if v->>'reply'<>'Unit scopeprobe' or v->>'knowledgeScope'<>'unit' then raise exception 'Unit precedence failed: %',v;end if;
- v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-property-01','chat','scopeprobe','policy_question','other','normal');
+ v=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-property-01','chat','scopeprobe','policy_question','other','normal');
  if v->>'reply'<>'Property scopeprobe' then raise exception 'Property precedence failed: %',v;end if;
- v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002',null,'knowledge-audience-01','sms','scopeprobe','policy_question','other','normal');
+ v=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002',null,'knowledge-audience-01','sms','scopeprobe','policy_question','other','normal');
  if v->>'reply'<>'Owner default scopeprobe' then raise exception 'Resident answer leaked to nonresident: %',v;end if;
- v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-conflict-01','voice','conflictprobe','policy_question','other','normal');
+ v=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-conflict-01','voice','conflictprobe','policy_question','other','normal');
  if v->>'knowledgeConflict'<>'true' or v->>'requiresHumanReview'<>'true' then raise exception 'Conflict not escalated';end if;
- v=public.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-expired-01','chat','expiredprobe','policy_question','other','normal');
+ v=private.pm_record_channel_turn('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000001',null,'knowledge-expired-01','chat','expiredprobe','policy_question','other','normal');
  if v->>'knowledgeId' is not null or v->>'requiresHumanReview'<>'true' then raise exception 'Expired knowledge used';end if;
  begin
  insert into public.ai4cc_knowledge_entries(tenant_id,property_id,unit_id,title,content)values('20000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000001','bad','bad');

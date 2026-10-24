@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-10-23T18:12:03.163Z",
+  "results": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "log": "docs/pma-002/evidence/npm-test.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "docs/pma-002/evidence/typecheck.log"
+    }
+  ]
+}

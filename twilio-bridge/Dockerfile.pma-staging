@@ -1,0 +1,15 @@
+# PMA-only release image. The shared bridge Dockerfile remains independent.
+FROM node:20-alpine
+ARG PMA_SOURCE_SHA
+RUN node -e "if (!/^[0-9a-f]{40}$/.test(process.env.PMA_SOURCE_SHA || '')) process.exit(1)"
+ENV BRIDGE_RELEASE_SHA=${PMA_SOURCE_SHA}
+LABEL org.opencontainers.image.revision=${PMA_SOURCE_SHA}
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
+COPY server.js staging-support-intake.cjs orchestrator-voice-adapter.staging.cjs pma-adapter.cjs pma-availability.cjs pma-profile.json pma-knowledge-v1.json pma-intents.cjs pma-intent-catalog-v1.json latency-logger.js voice-quality-analyzer.js ./
+COPY tests/staging-runner/support-orchestration-integration.staging.cjs ./tests/staging-runner/
+COPY voice-entry.cjs voice-agent-routing.json voice-agent-catalog.json voice-system-prompts.json ./
+COPY voice-receptionist.cjs ./
+EXPOSE 8080
+CMD ["node", "server.js"]
