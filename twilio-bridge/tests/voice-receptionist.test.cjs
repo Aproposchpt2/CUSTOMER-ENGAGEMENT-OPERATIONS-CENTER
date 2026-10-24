@@ -54,19 +54,19 @@ test('DTMF received during authorization is queued and cannot race initializatio
  let resolve;const gate=new Promise(r=>resolve=r);const x=setup({reception:async(_,agent)=>{if(!agent){await gate;return s;}return {...s,agentRoute:agent};}});
  x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'3'}});assert.equal(x.state.handoffs.length,0);resolve();await tick();assert.equal(x.state.handoffs[0].profile,'pma');assert.equal(x.state.ends.length,0);
 });
-test('session.started injects conversation.item.create before response.create to suppress leading breath artifact',async()=>{
+test('session.started injects decision.item.create before response.create to suppress leading breath artifact',async()=>{
  const x=setup();await tick();
  const baseline=x.live.sent.length;
  x.live.message({type:'session.started'});
  await tick();
  const slice=x.live.sent.slice(baseline);
- const itemIdx=slice.findIndex(m=>m.type==='conversation.item.create');
+ const itemIdx=slice.findIndex(m=>m.type==='decision.item.create');
  const createIdx=slice.findIndex(m=>m.type==='response.create');
- assert.ok(itemIdx>=0,'conversation.item.create must be sent on session.started');
+ assert.ok(itemIdx>=0,'decision.item.create must be sent on session.started');
  assert.ok(createIdx>=0,'response.create must be sent on session.started');
- assert.ok(itemIdx<createIdx,'conversation.item.create must precede response.create');
+ assert.ok(itemIdx<createIdx,'decision.item.create must precede response.create');
  assert.equal(slice[itemIdx].item?.role,'user');
- assert.ok(slice[createIdx].response?.instructions,'response.create must carry first-word instructions');
+ assert.equal(slice[createIdx].response,undefined,'response.create must not carry a response param (gpt-live-1 rejects it)');
  x.controller.close('TEST_END');
 });
 test('reception gateway rejects already selected sessions and foreign callers',async()=>{

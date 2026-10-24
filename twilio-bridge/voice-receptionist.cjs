@@ -57,7 +57,7 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
    live.on('message',raw=>{
     if(done)return;let m;try{m=JSON.parse(raw.toString());}catch{return;}
     if(m.type==='response.event'&&m.event)m=m.event;
-    if(m.type==='session.started'&&!ready){ready=true;clearTimeout(opening);send({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:'(call connected)'}]}});send({type:'response.create',response:{instructions:'Your first word is "Thanks". Begin speaking it immediately — no sound before that word.'}});for(const audio of queued)send({type:'session.input_audio.append',audio});queued=[];
+    if(m.type==='session.started'&&!ready){ready=true;clearTimeout(opening);send({type:'decision.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:'(call connected)'}]}});send({type:'response.create'});for(const audio of queued)send({type:'session.input_audio.append',audio});queued=[];
      if(!queuedBytes)silence=setInterval(()=>send({type:'session.input_audio.append',audio:Buffer.alloc(160,255).toString('base64')}),20);
      log('Reception OpenAI session ready voice=marin');
     }else if(['session.output_audio.delta','response.output_audio.delta'].includes(m.type)&&m.delta){sendTwilio({event:'media',streamSid,media:{payload:m.delta}});}
