@@ -33,7 +33,9 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
  incidentId=data.incidentId;
  if(data.notify!==true)return {dispatched:false,channels,incidentId};
  const prefs=data.preferences;
- const {TWILIO_ACCOUNT_SID:sid,TWILIO_AUTH_TOKEN:tok,PMA_STAGING_DID:from}=env;
+ const {TWILIO_ACCOUNT_SID:sid,TWILIO_AUTH_TOKEN:tok}=env;
+ // An approved SMS sender can differ from the inbound IVR DID.
+ const from=env.PMA_STAGING_SMS_FROM||env.PMA_STAGING_DID;
  const incRef=incidentId?incidentId.slice(0,8):'—';
  const callerRef=ctx.callerNumber?`Caller: ${ctx.callerNumber}`:'Caller: unknown';
  for(const pref of prefs){

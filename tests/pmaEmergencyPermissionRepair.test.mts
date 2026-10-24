@@ -37,3 +37,15 @@ test('permission errors are surfaced; persisted incident or logged email alone c
  assert.equal(r.dispatched,false);assert.deepEqual(r.channels,['email:logged']);
  let calls=0;const disabled=await dispatchEmergency(ctx,{rpc:async()=>{calls++;}},{});assert.equal(disabled.dispatched,false);assert.equal(calls,0);
 });
+test('configured SMS sender is independent of inbound IVR DID and legacy DID remains a fallback',async(t)=>{
+ const requests:URLSearchParams[]=[];
+ t.mock.method(globalThis,'fetch',async(_url:any,options:any)=>{
+  requests.push(new URLSearchParams(options.body));return new Response('{}',{status:201});
+ });
+ const ctx={tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:'GAS_EMERGENCY',message:'Synthetic test',testMode:true};
+ const env={PMA_ENVIRONMENT:'staging',NEXT_PUBLIC_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',TWILIO_ACCOUNT_SID:'synthetic',TWILIO_AUTH_TOKEN:'synthetic',PMA_STAGING_DID:'+17029351414'};
+ const admin={rpc:async()=>({data:{incidentId:'synthetic',notify:true,preferences:[{channel:'sms',destination:'+17753508039'}]}})};
+ assert.equal((await dispatchEmergency(ctx,admin,{...env,PMA_STAGING_SMS_FROM:'+17252010584'})).dispatched,true);
+ assert.equal(requests[0].get('From'),'+17252010584');assert.equal(requests[0].get('To'),'+17753508039');
+ await dispatchEmergency(ctx,admin,env);assert.equal(requests[1].get('From'),env.PMA_STAGING_DID);
+});
