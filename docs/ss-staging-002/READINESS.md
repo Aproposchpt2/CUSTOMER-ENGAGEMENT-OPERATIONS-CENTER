@@ -1,3 +1,19 @@
+# Authorized hosted HVAC repair — completed 2026-10-25
+
+This update supersedes the preauthorization HVAC status in the historical audit below.
+
+The owner explicitly authorized the reviewed staging correction. Applied migrations `ss002_hvac_intake_invoker_authorization` and `ss002_hvac_intake_existing_test_source` to project `hvzauakkhlivzeqatfqm`. The function now runs SECURITY INVOKER, with EXECUTE denied to PUBLIC/anon/authenticated and retained for service_role. Its Summit UUID and ACTIVE/demo/test_only/notifications_disabled checks remain intact.
+
+The first hosted write exposed an additional source constraint mismatch: the original function used `hvac_voice_test`, while the table only permits `private_voice_test`. Corrected that literal in the function without broadening the table constraint, privileges or tenant scope. Failed transactions left no partial records. The local PostgreSQL regression now includes that exact source constraint, reproduces SQLSTATE 23514 and verifies the correction.
+
+Hosted verification: first intake created case `6c683250-466a-4368-8675-95d7ece9b243` and customer `d31356a7-d7e5-4991-8b64-c1e50d8add7a`; replay returned the same identifiers with created_new=false. An independent SELECT confirmed exactly one case under Summit tenant `d7e80001-0000-4000-b000-000000000001`, test_only=true, source=private_voice_test, and contact notifications_disabled=true. Foreign-tenant, anon and authenticated attempts each failed with 42501. The clearly fictional test record is retained as evidence. Security advisors were checked after the repair.
+
+**HVAC database persistence gate: PASS.** Telephone UAT remains unverified pending the separate runtime release and approved-knowledge gates. No deployment, merge, webhook change, real notification or KB publication was performed. Evidence: `evidence/hosted-hvac.json`.
+
+---
+
+## Historical integration audit — before owner authorization
+
 # STELLAR-SS-STAGING-002 — controlled integration evidence
 
 STELLAR INTELLIGENT TECHNOLOGIES — Operated by Apropos Group LLC.
