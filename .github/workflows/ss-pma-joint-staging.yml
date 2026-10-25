@@ -19,6 +19,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
+      - name: Install locked bridge runtime dependencies for integration tests
+        run: npm ci --prefix twilio-bridge --ignore-scripts
       - name: Verify bridge syntax
         run: |
           node --check twilio-bridge/server.js
