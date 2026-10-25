@@ -34,6 +34,8 @@ Project: `hvzauakkhlivzeqatfqm`.
 5. RPC permissions: anon=false, authenticated=false, service_role=true; registry SELECT anon=false, authenticated=false, service_role=true; RLS enabled.
 6. **Transactional synthetic eligibility test**: temporary uncommitted positive Sales and Summit VERIFIED/public/published fixtures each returned exactly one match; draft, staff, expired, future, expired valid_until, PROPOSED, non-Sales category, wrong tenant and short query rejected. Transaction ROLLBACK, zero fixture rows remained.
 7. Executed SQL QA script `STELLAR-STAGING-SPECIALIST-QA-20261025.sql` returned `PASS` with 283 intents and zero active packages.
+
+9. **Exact UUID readback fixture test:** two uncommitted VERIFIED/public/published records were inserted with returned UUIDs, retrieved by the tenant-bound RPC, and each retrieved UUID was asserted equal to its inserted UUID; cross-tenant content returned zero. PASS. Transaction rolled back; zero synthetic rows persisted.
 8. Supabase security advisors: no specific high-severity finding reported on these new objects; INFO `rls_enabled_no_policy` includes the catalog intentionally because access is service-role-only with no user policies. See https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy.
 
 **NOT YET POSSIBLE / NOT CLAIMED**
