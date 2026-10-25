@@ -1,0 +1,50 @@
+import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const require=createRequire(process.env.SS002_PGLITE_PACKAGE || new URL('./package.json',import.meta.url));
+const {PGlite}=require('@electric-sql/pglite');
+const db=new PGlite();
+await db.exec(`create role service_role bypassrls; create role anon; create role authenticated;
+create table tenants(id uuid primary key,status text,metadata jsonb);
+create table ai4cc_contacts(id uuid primary key default gen_random_uuid(),tenant_id uuid references tenants,display_name text,email text,phone text,lead_source text,metadata jsonb,created_at timestamptz default now());
+create table stellar_support_cases(id uuid primary key default gen_random_uuid(),tenant_id uuid references tenants,contact_id uuid references ai4cc_contacts,source text check(source='private_voice_test'),product_name text,purchase_date date,issue_summary text,troubleshooting_attempted text,business_impact text,priority text,intake_session_id text,test_only boolean,unique(tenant_id,intake_session_id));
+alter table tenants enable row level security; alter table ai4cc_contacts enable row level security; alter table stellar_support_cases enable row level security;
+grant usage on schema public to service_role; grant select on tenants to service_role; grant select,insert on ai4cc_contacts,stellar_support_cases to service_role;
+insert into tenants values ('d7e80001-0000-4000-b000-000000000001','ACTIVE','{"demo":true,"test_only":true,"notifications_disabled":true}'),('5885a020-d363-4c27-910a-c035eda132f5','ACTIVE','{}');`);
+await db.exec(readFileSync('docs/ss-staging-002/hvac-function-baseline.sql','utf8'));
+const tenant='d7e80001-0000-4000-b000-000000000001';
+const invoke=async(t=tenant)=>db.query(`select * from stellar_create_hvac_demo_support_intake($1,'phone-staging:CA00000000000000000000000000000092','SS002 Fictional Tester','ss002@example.invalid','','Fictional Furnace','2026-10-24','Fictional no heat test','None','Test only','NORMAL')`,[t]);
+await db.exec('set role service_role');
+await assert.rejects(invoke(),/Not authorized/);
+await db.exec('reset role');
+await db.exec(readFileSync('docs/ss-staging-002/hvac-authorization-proposal.sql','utf8'));
+await db.exec('set role service_role');
+await assert.rejects(invoke(),error=>error.code==='23514');
+await db.exec('reset role');
+await db.exec(readFileSync('docs/ss-staging-002/hvac-source-correction.sql','utf8'));
+await db.exec('set role service_role');
+const first=(await invoke()).rows[0], second=(await invoke()).rows[0];
+assert.equal(first.created_new,true); assert.equal(second.created_new,false); assert.equal(first.case_id,second.case_id);
+await assert.rejects(invoke('5885a020-d363-4c27-910a-c035eda132f5'),/Not authorized/);
+const evidence=(await db.query(`select s.id,s.tenant_id,s.test_only,c.metadata from stellar_support_cases s join ai4cc_contacts c on c.id=s.contact_id`)).rows;
+assert.equal(evidence.length,1); assert.equal(evidence[0].tenant_id,tenant); assert.equal(evidence[0].test_only,true); assert.equal(evidence[0].metadata.notifications_disabled,true);
+const bridgeRequire=createRequire(new URL('../../twilio-bridge/server.js',import.meta.url));
+const {createSpecialistSession}=bridgeRequire('./specialist-staging.cjs');
+let posts=0;
+const session=createSpecialistSession({profile:'support',callSid:'CA00000000000000000000000000000094',trustedSession:{call_sid:'CA00000000000000000000000000000094',session_id:'a0000000-0000-4000-8000-000000000001',agentRoute:'support-specialist'},env:{SS_STAGING_INTELLIGENCE_ENABLED:'true',STELLAR_BRIDGE_STAGING:'true',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',SS_STAGING_SUPPORT_TENANT_ID:tenant,STAGING_SUPABASE_SERVICE_ROLE_KEY:'local-test-only',SS_STAGING_HVAC_WRITES_ENABLED:'true'},request:async(url,opts)=>{
+ if(opts.method==='POST'){
+  posts++; const b=JSON.parse(opts.body);
+  const data=await db.query('select * from stellar_create_hvac_demo_support_intake($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',[b.p_tenant_id,b.p_session_id,b.p_name,b.p_email,b.p_phone,b.p_product,b.p_purchase_date,b.p_issue,b.p_steps,b.p_impact,b.p_priority]);
+  return {ok:true,json:async()=>data.rows};
+ }
+ const u=new URL(url), t=u.searchParams.get('tenant_id').slice(3), session=u.searchParams.get('intake_session_id').slice(3);
+ const data=await db.query('select id,contact_id,tenant_id,intake_session_id,test_only from stellar_support_cases where tenant_id=$1 and intake_session_id=$2 and test_only=true',[t,session]);return {ok:true,json:async()=>data.rows};
+}});
+const intake={name:'SS002 Bridge Tester',email:'ss002-bridge@example.invalid',phone:'',product:'Fictional Furnace',purchaseDate:'2026-10-24',issue:'Fictional bridge to SQL test',steps:'None',impact:'Test only',priority:'NORMAL'};
+session.observe('Please create a ticket'); session.assess({reference:'SUP-049',confidence:1});assert.equal((await session.submit(intake)).state,'CONFIRMATION_REQUIRED');
+session.observe('Yes');session.assess({reference:'SUP-049',confidence:1});const bridgeResult=await session.submit(intake);assert.equal(bridgeResult.state,'COMPLETED');assert.equal((await session.submit(intake)).caseId,bridgeResult.caseId);assert.equal(posts,1);
+const runtimeEvidence={runtimeToLocalPostgres:'PASS',posts,bridgeResult};
+await db.exec('reset role');
+for(const role of ['anon','authenticated']){await db.exec('set role '+role);await assert.rejects(invoke(),/permission denied/);await db.exec('reset role');}
+console.log(JSON.stringify({runtimeEvidence,engine:'PGlite PostgreSQL, isolated minimal schema; not hosted staging',baseline:'42501 reproduced',sourceConstraintDefect:'23514 reproduced',corrected:'PASS',idempotency:'PASS',foreignTenant:'REJECTED',anon:'REJECTED',authenticated:'REJECTED',evidence},null,2));
+await db.close();

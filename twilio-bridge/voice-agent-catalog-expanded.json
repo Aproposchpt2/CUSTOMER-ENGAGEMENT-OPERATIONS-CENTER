@@ -1,0 +1,3962 @@
+{
+  "version": "2.0",
+  "source": "STELLAR_Expanded_Intent_Catalog_All_Fields.csv 2026-10-24 + original v1.0 universal/control/safety groups",
+  "status": "STAGING_CANDIDATE",
+  "updatedAt": "2026-10-24",
+  "intents": [
+    {
+      "group": "universal",
+      "id": "GENERAL_GREETING",
+      "reference": "UNI-001",
+      "definition": {
+        "ID": "UNI-001",
+        "Intent": "GENERAL_GREETING",
+        "Trigger/Purpose": "Greeting",
+        "Agent": "Channel Agent",
+        "Action": "Greeting only",
+        "Required Entities": "None",
+        "Data Effect": "No domain write"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "GENERAL_HELP",
+      "reference": "UNI-002",
+      "definition": {
+        "ID": "UNI-002",
+        "Intent": "GENERAL_HELP",
+        "Trigger/Purpose": "Capability question",
+        "Agent": "Channel Agent",
+        "Action": "Explain approved capabilities",
+        "Required Entities": "audience_role",
+        "Data Effect": "Log optional intent event"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "GENERAL_INFORMATION",
+      "reference": "UNI-003",
+      "definition": {
+        "ID": "UNI-003",
+        "Intent": "GENERAL_INFORMATION",
+        "Trigger/Purpose": "General business question",
+        "Agent": "Channel Agent",
+        "Action": "Retrieve approved knowledge",
+        "Required Entities": "topic, audience",
+        "Data Effect": "Interaction event"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "UNKNOWN_QUESTION",
+      "reference": "UNI-004",
+      "definition": {
+        "ID": "UNI-004",
+        "Intent": "UNKNOWN_QUESTION",
+        "Trigger/Purpose": "No reliable match/answer",
+        "Agent": "Channel Agent",
+        "Action": "Create knowledge gap and follow-up",
+        "Required Entities": "original_question, scope",
+        "Data Effect": "knowledge_gap, follow_up"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "HUMAN_AGENT_REQUEST",
+      "reference": "UNI-005",
+      "definition": {
+        "ID": "UNI-005",
+        "Intent": "HUMAN_AGENT_REQUEST",
+        "Trigger/Purpose": "Caller requests a person",
+        "Agent": "Channel Agent",
+        "Action": "Transfer or callback workflow",
+        "Required Entities": "reason, contact",
+        "Data Effect": "handoff_request"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "CALLBACK_REQUEST",
+      "reference": "UNI-006",
+      "definition": {
+        "ID": "UNI-006",
+        "Intent": "CALLBACK_REQUEST",
+        "Trigger/Purpose": "Caller requests return call",
+        "Agent": "Channel Agent",
+        "Action": "Capture callback request",
+        "Required Entities": "name, callback, topic",
+        "Data Effect": "callback_task"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "APPOINTMENT_REQUEST",
+      "reference": "UNI-007",
+      "definition": {
+        "ID": "UNI-007",
+        "Intent": "APPOINTMENT_REQUEST",
+        "Trigger/Purpose": "Caller wants appointment",
+        "Agent": "Channel Agent",
+        "Action": "Route product-specific appointment request",
+        "Required Entities": "contact, purpose, preferred_time",
+        "Data Effect": "appointment_request"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "CONTACT_UPDATE",
+      "reference": "UNI-008",
+      "definition": {
+        "ID": "UNI-008",
+        "Intent": "CONTACT_UPDATE",
+        "Trigger/Purpose": "Caller updates contact record",
+        "Agent": "Channel Agent",
+        "Action": "Authenticate then update allowed fields",
+        "Required Entities": "contact_id, changed_fields",
+        "Data Effect": "contact + audit"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "CONTACT_CAPTURE",
+      "reference": "UNI-009",
+      "definition": {
+        "ID": "UNI-009",
+        "Intent": "CONTACT_CAPTURE",
+        "Trigger/Purpose": "New contact details",
+        "Agent": "Channel Agent",
+        "Action": "Validate and create/update contact",
+        "Required Entities": "name, one contact method",
+        "Data Effect": "contact"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "EMAIL_CAPTURE",
+      "reference": "UNI-010",
+      "definition": {
+        "ID": "UNI-010",
+        "Intent": "EMAIL_CAPTURE",
+        "Trigger/Purpose": "Email supplied",
+        "Agent": "Channel Agent",
+        "Action": "Confirm spelling and normalize",
+        "Required Entities": "email",
+        "Data Effect": "contact field"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "PHONE_CAPTURE",
+      "reference": "UNI-011",
+      "definition": {
+        "ID": "UNI-011",
+        "Intent": "PHONE_CAPTURE",
+        "Trigger/Purpose": "Phone supplied",
+        "Agent": "Channel Agent",
+        "Action": "Confirm number and preference",
+        "Required Entities": "phone",
+        "Data Effect": "contact field"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "ESCALATION_REQUEST",
+      "reference": "UNI-012",
+      "definition": {
+        "ID": "UNI-012",
+        "Intent": "ESCALATION_REQUEST",
+        "Trigger/Purpose": "User asks for escalation",
+        "Agent": "Channel Agent",
+        "Action": "Create escalation under policy",
+        "Required Entities": "reason, urgency",
+        "Data Effect": "escalation task"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "COMPLAINT",
+      "reference": "UNI-013",
+      "definition": {
+        "ID": "UNI-013",
+        "Intent": "COMPLAINT",
+        "Trigger/Purpose": "Negative service feedback",
+        "Agent": "Channel Agent",
+        "Action": "Capture concern; avoid unverified admission",
+        "Required Entities": "contact, issue",
+        "Data Effect": "complaint/follow-up"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "COMPLIMENT",
+      "reference": "UNI-014",
+      "definition": {
+        "ID": "UNI-014",
+        "Intent": "COMPLIMENT",
+        "Trigger/Purpose": "Positive feedback",
+        "Agent": "Channel Agent",
+        "Action": "Capture feedback when configured",
+        "Required Entities": "message",
+        "Data Effect": "feedback event"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "FEEDBACK",
+      "reference": "UNI-015",
+      "definition": {
+        "ID": "UNI-015",
+        "Intent": "FEEDBACK",
+        "Trigger/Purpose": "Product/service suggestion",
+        "Agent": "Channel Agent",
+        "Action": "Record feedback",
+        "Required Entities": "message, product",
+        "Data Effect": "feedback"
+      }
+    },
+    {
+      "group": "universal",
+      "id": "LANGUAGE_CHANGE",
+      "reference": "UNI-016",
+      "definition": {
+        "ID": "UNI-016",
+        "Intent": "LANGUAGE_CHANGE",
+        "Trigger/Purpose": "User requests supported language",
+        "Agent": "Channel Agent",
+        "Action": "Switch supported locale or escalate",
+        "Required Entities": "language",
+        "Data Effect": "session setting"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "CONFIRMATION_YES",
+      "reference": "CTL-001",
+      "definition": {
+        "ID": "CTL-001",
+        "Intent": "CONFIRMATION_YES",
+        "Trigger/Purpose": "Affirmation",
+        "Agent": "Conversation Controller",
+        "Action": "Advance pending step",
+        "Required Entities": "pending_action",
+        "Data Effect": "No write unless action executes"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "CONFIRMATION_NO",
+      "reference": "CTL-002",
+      "definition": {
+        "ID": "CTL-002",
+        "Intent": "CONFIRMATION_NO",
+        "Trigger/Purpose": "Rejection",
+        "Agent": "Conversation Controller",
+        "Action": "Cancel/revise pending step",
+        "Required Entities": "pending_action",
+        "Data Effect": "No action"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "CORRECTION",
+      "reference": "CTL-003",
+      "definition": {
+        "ID": "CTL-003",
+        "Intent": "CORRECTION",
+        "Trigger/Purpose": "User corrects earlier data",
+        "Agent": "Conversation Controller",
+        "Action": "Update session state; reconfirm",
+        "Required Entities": "field, corrected_value",
+        "Data Effect": "Audit if persisted"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "CLARIFICATION_REQUEST",
+      "reference": "CTL-004",
+      "definition": {
+        "ID": "CTL-004",
+        "Intent": "CLARIFICATION_REQUEST",
+        "Trigger/Purpose": "User asks agent to explain",
+        "Agent": "Conversation Controller",
+        "Action": "Restate simply",
+        "Required Entities": "topic",
+        "Data Effect": "None"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "REPEAT_REQUEST",
+      "reference": "CTL-005",
+      "definition": {
+        "ID": "CTL-005",
+        "Intent": "REPEAT_REQUEST",
+        "Trigger/Purpose": "User asks repetition",
+        "Agent": "Conversation Controller",
+        "Action": "Repeat requested item only",
+        "Required Entities": "segment",
+        "Data Effect": "None"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "INTERRUPTION",
+      "reference": "CTL-006",
+      "definition": {
+        "ID": "CTL-006",
+        "Intent": "INTERRUPTION",
+        "Trigger/Purpose": "Barge-in detected",
+        "Agent": "Conversation Controller",
+        "Action": "Stop speech and listen",
+        "Required Entities": "audio event",
+        "Data Effect": "Telemetry"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "START_OVER",
+      "reference": "CTL-007",
+      "definition": {
+        "ID": "CTL-007",
+        "Intent": "START_OVER",
+        "Trigger/Purpose": "Restart current flow",
+        "Agent": "Conversation Controller",
+        "Action": "Clear uncommitted state",
+        "Required Entities": "workflow",
+        "Data Effect": "Session event"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "CANCEL_REQUEST",
+      "reference": "CTL-008",
+      "definition": {
+        "ID": "CTL-008",
+        "Intent": "CANCEL_REQUEST",
+        "Trigger/Purpose": "Cancel pending action",
+        "Agent": "Conversation Controller",
+        "Action": "Cancel if allowed; verify state",
+        "Required Entities": "operation_id",
+        "Data Effect": "Workflow/audit"
+      }
+    },
+    {
+      "group": "conversation_control",
+      "id": "RESUME_PREVIOUS_TASK",
+      "reference": "CTL-009",
+      "definition": {
+        "ID": "CTL-009",
+        "Intent": "RESUME_PREVIOUS_TASK",
+        "Trigger/Purpose": "Resume interrupted task",
+        "Agent": "Conversation Controller",
+        "Action": "Recover session/workflow state",
+        "Required Entities": "operation_id",
+        "Data Effect": "Read workflow"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_GAS_LEAK",
+      "reference": "SAFE-001",
+      "definition": {
+        "ID": "SAFE-001",
+        "Intent": "EMERGENCY_GAS_LEAK",
+        "Trigger": "Gas/sulfur odor",
+        "Priority": "Critical",
+        "Required Response": "Evacuate; no switches/phone at site; call 911/utility from safety",
+        "Prohibited": "No troubleshooting"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_CO_ALARM",
+      "reference": "SAFE-002",
+      "definition": {
+        "ID": "SAFE-002",
+        "Intent": "EMERGENCY_CO_ALARM",
+        "Trigger": "CO alarm",
+        "Priority": "Critical",
+        "Required Response": "Leave immediately and call 911",
+        "Prohibited": "No re-entry assurance"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_FIRE",
+      "reference": "SAFE-003",
+      "definition": {
+        "ID": "SAFE-003",
+        "Intent": "EMERGENCY_FIRE",
+        "Trigger": "Visible fire",
+        "Priority": "Critical",
+        "Required Response": "Move away and contact emergency services",
+        "Prohibited": "No HVAC dispatch substitution"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_SMOKE",
+      "reference": "SAFE-004",
+      "definition": {
+        "ID": "SAFE-004",
+        "Intent": "EMERGENCY_SMOKE",
+        "Trigger": "Visible smoke",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No routine intake first"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_SPARKING",
+      "reference": "SAFE-005",
+      "definition": {
+        "ID": "SAFE-005",
+        "Intent": "EMERGENCY_SPARKING",
+        "Trigger": "Active sparks",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No breaker manipulation advice"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_MEDICAL",
+      "reference": "SAFE-006",
+      "definition": {
+        "ID": "SAFE-006",
+        "Intent": "EMERGENCY_MEDICAL",
+        "Trigger": "Symptoms/immediate medical danger",
+        "Priority": "Critical",
+        "Required Response": "Contact emergency services",
+        "Prohibited": "No medical diagnosis"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_FLOODING",
+      "reference": "SAFE-007",
+      "definition": {
+        "ID": "SAFE-007",
+        "Intent": "EMERGENCY_FLOODING",
+        "Trigger": "Major uncontrolled flooding/electrical risk",
+        "Priority": "Critical",
+        "Required Response": "Prioritize safety and emergency contact as appropriate",
+        "Prohibited": "No unsafe access"
+      }
+    },
+    {
+      "group": "safety",
+      "id": "EMERGENCY_ELECTRICAL",
+      "reference": "SAFE-008",
+      "definition": {
+        "ID": "SAFE-008",
+        "Intent": "EMERGENCY_ELECTRICAL",
+        "Trigger": "Electrical fire/shock hazard",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No touching equipment"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_IDENTIFY_PURPOSE",
+      "reference": "SAL-001",
+      "definition": {
+        "intentName": "identify_purpose",
+        "category": "Opening and consent",
+        "description": "Caller expresses identify purpose.",
+        "recognitionRule": "Caller expresses identify purpose.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CAPTURE_NAME",
+      "reference": "SAL-002",
+      "definition": {
+        "intentName": "capture_name",
+        "category": "Opening and consent",
+        "description": "Caller expresses capture name.",
+        "recognitionRule": "Caller expresses capture name.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LANGUAGE_PREFERENCE",
+      "reference": "SAL-003",
+      "definition": {
+        "intentName": "language_preference",
+        "category": "Opening and consent",
+        "description": "Caller expresses language preference.",
+        "recognitionRule": "Caller expresses language preference.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_RECORDING_DISCLOSURE",
+      "reference": "SAL-004",
+      "definition": {
+        "intentName": "recording_disclosure",
+        "category": "Opening and consent",
+        "description": "Caller expresses recording disclosure.",
+        "recognitionRule": "Caller expresses recording disclosure.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_PERMISSION_TO_CONTINUE",
+      "reference": "SAL-005",
+      "definition": {
+        "intentName": "permission_to_continue",
+        "category": "Opening and consent",
+        "description": "Caller expresses permission to continue.",
+        "recognitionRule": "Caller expresses permission to continue.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_COMPANY_PROFILE",
+      "reference": "SAL-006",
+      "definition": {
+        "intentName": "company_profile",
+        "category": "Business discovery",
+        "description": "Caller expresses company profile.",
+        "recognitionRule": "Caller expresses company profile.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY",
+      "reference": "SAL-007",
+      "definition": {
+        "intentName": "industry",
+        "category": "Business discovery",
+        "description": "Caller expresses industry.",
+        "recognitionRule": "Caller expresses industry.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LOCATIONS",
+      "reference": "SAL-008",
+      "definition": {
+        "intentName": "locations",
+        "category": "Business discovery",
+        "description": "Caller expresses locations.",
+        "recognitionRule": "Caller expresses locations.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_HOURS",
+      "reference": "SAL-009",
+      "definition": {
+        "intentName": "hours",
+        "category": "Business discovery",
+        "description": "Caller expresses hours.",
+        "recognitionRule": "Caller expresses hours.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_STAFFING_MODEL",
+      "reference": "SAL-010",
+      "definition": {
+        "intentName": "staffing_model",
+        "category": "Business discovery",
+        "description": "Caller expresses staffing model.",
+        "recognitionRule": "Caller expresses staffing model.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CURRENT_CALL_FLOW",
+      "reference": "SAL-011",
+      "definition": {
+        "intentName": "current_call_flow",
+        "category": "Business discovery",
+        "description": "Caller expresses current call flow.",
+        "recognitionRule": "Caller expresses current call flow.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CURRENT_TOOLS",
+      "reference": "SAL-012",
+      "definition": {
+        "intentName": "current_tools",
+        "category": "Business discovery",
+        "description": "Caller expresses current tools.",
+        "recognitionRule": "Caller expresses current tools.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_VOLUME",
+      "reference": "SAL-013",
+      "definition": {
+        "intentName": "volume",
+        "category": "Business discovery",
+        "description": "Caller expresses volume.",
+        "recognitionRule": "Caller expresses volume.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SEASONALITY",
+      "reference": "SAL-014",
+      "definition": {
+        "intentName": "seasonality",
+        "category": "Business discovery",
+        "description": "Caller expresses seasonality.",
+        "recognitionRule": "Caller expresses seasonality.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_AFTER_HOURS_DEMAND",
+      "reference": "SAL-015",
+      "definition": {
+        "intentName": "after-hours_demand",
+        "category": "Business discovery",
+        "description": "Caller expresses after-hours demand.",
+        "recognitionRule": "Caller expresses after-hours demand.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_MISSED_CALLS",
+      "reference": "SAL-016",
+      "definition": {
+        "intentName": "missed_calls",
+        "category": "Pain and impact",
+        "description": "Caller expresses missed calls.",
+        "recognitionRule": "Caller expresses missed calls.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SLOW_FOLLOW_UP",
+      "reference": "SAL-017",
+      "definition": {
+        "intentName": "slow_follow-up",
+        "category": "Pain and impact",
+        "description": "Caller expresses slow follow-up.",
+        "recognitionRule": "Caller expresses slow follow-up.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ABANDONMENT",
+      "reference": "SAL-018",
+      "definition": {
+        "intentName": "abandonment",
+        "category": "Pain and impact",
+        "description": "Caller expresses abandonment.",
+        "recognitionRule": "Caller expresses abandonment.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LEAD_LEAKAGE",
+      "reference": "SAL-019",
+      "definition": {
+        "intentName": "lead_leakage",
+        "category": "Pain and impact",
+        "description": "Caller expresses lead leakage.",
+        "recognitionRule": "Caller expresses lead leakage.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_STAFF_INTERRUPTIONS",
+      "reference": "SAL-020",
+      "definition": {
+        "intentName": "staff_interruptions",
+        "category": "Pain and impact",
+        "description": "Caller expresses staff interruptions.",
+        "recognitionRule": "Caller expresses staff interruptions.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_COVERAGE_COST",
+      "reference": "SAL-021",
+      "definition": {
+        "intentName": "coverage_cost",
+        "category": "Pain and impact",
+        "description": "Caller expresses coverage cost.",
+        "recognitionRule": "Caller expresses coverage cost.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LOST_OPPORTUNITY",
+      "reference": "SAL-022",
+      "definition": {
+        "intentName": "lost_opportunity",
+        "category": "Pain and impact",
+        "description": "Caller expresses lost opportunity.",
+        "recognitionRule": "Caller expresses lost opportunity.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INCONSISTENT_QUALIFICATION",
+      "reference": "SAL-023",
+      "definition": {
+        "intentName": "inconsistent_qualification",
+        "category": "Pain and impact",
+        "description": "Caller expresses inconsistent qualification.",
+        "recognitionRule": "Caller expresses inconsistent qualification.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_PROBLEM_FIT",
+      "reference": "SAL-024",
+      "definition": {
+        "intentName": "problem_fit",
+        "category": "Qualification",
+        "description": "Caller expresses problem fit.",
+        "recognitionRule": "Caller expresses problem fit.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SERVICE_FIT",
+      "reference": "SAL-025",
+      "definition": {
+        "intentName": "service_fit",
+        "category": "Qualification",
+        "description": "Caller expresses service fit.",
+        "recognitionRule": "Caller expresses service fit.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_AUTHORITY",
+      "reference": "SAL-026",
+      "definition": {
+        "intentName": "authority",
+        "category": "Qualification",
+        "description": "Caller expresses authority.",
+        "recognitionRule": "Caller expresses authority.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TIMING",
+      "reference": "SAL-027",
+      "definition": {
+        "intentName": "timing",
+        "category": "Qualification",
+        "description": "Caller expresses timing.",
+        "recognitionRule": "Caller expresses timing.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_BUDGET_APPROACH",
+      "reference": "SAL-028",
+      "definition": {
+        "intentName": "budget_approach",
+        "category": "Qualification",
+        "description": "Caller expresses budget approach.",
+        "recognitionRule": "Caller expresses budget approach.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_OPERATIONAL_READINESS",
+      "reference": "SAL-029",
+      "definition": {
+        "intentName": "operational_readiness",
+        "category": "Qualification",
+        "description": "Caller expresses operational readiness.",
+        "recognitionRule": "Caller expresses operational readiness.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TECHNICAL_READINESS",
+      "reference": "SAL-030",
+      "definition": {
+        "intentName": "technical_readiness",
+        "category": "Qualification",
+        "description": "Caller expresses technical readiness.",
+        "recognitionRule": "Caller expresses technical readiness.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_DECISION_PROCESS",
+      "reference": "SAL-031",
+      "definition": {
+        "intentName": "decision_process",
+        "category": "Qualification",
+        "description": "Caller expresses decision process.",
+        "recognitionRule": "Caller expresses decision process.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_24_7_COVERAGE",
+      "reference": "SAL-032",
+      "definition": {
+        "intentName": "24_7_coverage",
+        "category": "Solution mapping",
+        "description": "Caller expresses 24/7 coverage.",
+        "recognitionRule": "Caller expresses 24/7 coverage.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LEAD_CAPTURE",
+      "reference": "SAL-033",
+      "definition": {
+        "intentName": "lead_capture",
+        "category": "Solution mapping",
+        "description": "Caller expresses lead capture.",
+        "recognitionRule": "Caller expresses lead capture.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_QUALIFICATION",
+      "reference": "SAL-034",
+      "definition": {
+        "intentName": "qualification",
+        "category": "Solution mapping",
+        "description": "Caller expresses qualification.",
+        "recognitionRule": "Caller expresses qualification.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ROUTING",
+      "reference": "SAL-035",
+      "definition": {
+        "intentName": "routing",
+        "category": "Solution mapping",
+        "description": "Caller expresses routing.",
+        "recognitionRule": "Caller expresses routing.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CRM_CONTEXT",
+      "reference": "SAL-036",
+      "definition": {
+        "intentName": "crm_context",
+        "category": "Solution mapping",
+        "description": "Caller expresses CRM context.",
+        "recognitionRule": "Caller expresses CRM context.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TASKS",
+      "reference": "SAL-037",
+      "definition": {
+        "intentName": "tasks",
+        "category": "Solution mapping",
+        "description": "Caller expresses tasks.",
+        "recognitionRule": "Caller expresses tasks.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ANALYTICS",
+      "reference": "SAL-038",
+      "definition": {
+        "intentName": "analytics",
+        "category": "Solution mapping",
+        "description": "Caller expresses analytics.",
+        "recognitionRule": "Caller expresses analytics.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_MULTI_LOCATION",
+      "reference": "SAL-039",
+      "definition": {
+        "intentName": "multi-location",
+        "category": "Solution mapping",
+        "description": "Caller expresses multi-location.",
+        "recognitionRule": "Caller expresses multi-location.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_EXISTING_NUMBER_CONTINUITY",
+      "reference": "SAL-040",
+      "definition": {
+        "intentName": "existing-number_continuity",
+        "category": "Solution mapping",
+        "description": "Caller expresses existing-number continuity.",
+        "recognitionRule": "Caller expresses existing-number continuity.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_USAGE_PRICING",
+      "reference": "SAL-041",
+      "definition": {
+        "intentName": "usage_pricing",
+        "category": "Pricing and value",
+        "description": "Caller expresses usage pricing.",
+        "recognitionRule": "Caller expresses usage pricing.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_PLATFORM_ACCESS",
+      "reference": "SAL-042",
+      "definition": {
+        "intentName": "platform_access",
+        "category": "Pricing and value",
+        "description": "Caller expresses platform access.",
+        "recognitionRule": "Caller expresses platform access.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_COST_DRIVERS",
+      "reference": "SAL-043",
+      "definition": {
+        "intentName": "cost_drivers",
+        "category": "Pricing and value",
+        "description": "Caller expresses cost drivers.",
+        "recognitionRule": "Caller expresses cost drivers.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ESTIMATE_REQUEST",
+      "reference": "SAL-044",
+      "definition": {
+        "intentName": "estimate_request",
+        "category": "Pricing and value",
+        "description": "Caller expresses estimate request.",
+        "recognitionRule": "Caller expresses estimate request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_STAFF_COST_COMPARISON",
+      "reference": "SAL-045",
+      "definition": {
+        "intentName": "staff_cost_comparison",
+        "category": "Pricing and value",
+        "description": "Caller expresses staff cost comparison.",
+        "recognitionRule": "Caller expresses staff cost comparison.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ROI_INPUTS",
+      "reference": "SAL-046",
+      "definition": {
+        "intentName": "roi_inputs",
+        "category": "Pricing and value",
+        "description": "Caller expresses ROI inputs.",
+        "recognitionRule": "Caller expresses ROI inputs.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_DISCOUNT_ELIGIBILITY",
+      "reference": "SAL-047",
+      "definition": {
+        "intentName": "discount_eligibility",
+        "category": "Pricing and value",
+        "description": "Caller expresses discount eligibility.",
+        "recognitionRule": "Caller expresses discount eligibility.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_BILLING_VISIBILITY",
+      "reference": "SAL-048",
+      "definition": {
+        "intentName": "billing_visibility",
+        "category": "Pricing and value",
+        "description": "Caller expresses billing visibility.",
+        "recognitionRule": "Caller expresses billing visibility.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TOO_EXPENSIVE",
+      "reference": "SAL-049",
+      "definition": {
+        "intentName": "too_expensive",
+        "category": "Objections",
+        "description": "Caller expresses too expensive.",
+        "recognitionRule": "Caller expresses too expensive.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_NOT_READY",
+      "reference": "SAL-050",
+      "definition": {
+        "intentName": "not_ready",
+        "category": "Objections",
+        "description": "Caller expresses not ready.",
+        "recognitionRule": "Caller expresses not ready.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ALREADY_HAVE_VENDOR",
+      "reference": "SAL-051",
+      "definition": {
+        "intentName": "already_have_vendor",
+        "category": "Objections",
+        "description": "Caller expresses already have vendor.",
+        "recognitionRule": "Caller expresses already have vendor.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_FEAR_OF_REPLACEMENT",
+      "reference": "SAL-052",
+      "definition": {
+        "intentName": "fear_of_replacement",
+        "category": "Objections",
+        "description": "Caller expresses fear of replacement.",
+        "recognitionRule": "Caller expresses fear of replacement.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INTEGRATION_CONCERN",
+      "reference": "SAL-053",
+      "definition": {
+        "intentName": "integration_concern",
+        "category": "Objections",
+        "description": "Caller expresses integration concern.",
+        "recognitionRule": "Caller expresses integration concern.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SECURITY_CONCERN",
+      "reference": "SAL-054",
+      "definition": {
+        "intentName": "security_concern",
+        "category": "Objections",
+        "description": "Caller expresses security concern.",
+        "recognitionRule": "Caller expresses security concern.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_NEEDS_APPROVAL",
+      "reference": "SAL-055",
+      "definition": {
+        "intentName": "needs_approval",
+        "category": "Objections",
+        "description": "Caller expresses needs approval.",
+        "recognitionRule": "Caller expresses needs approval.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CALL_LATER",
+      "reference": "SAL-056",
+      "definition": {
+        "intentName": "call_later",
+        "category": "Objections",
+        "description": "Caller expresses call later.",
+        "recognitionRule": "Caller expresses call later.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SEND_INFORMATION",
+      "reference": "SAL-057",
+      "definition": {
+        "intentName": "send_information",
+        "category": "Objections",
+        "description": "Caller expresses send information.",
+        "recognitionRule": "Caller expresses send information.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_PROVE_IT",
+      "reference": "SAL-058",
+      "definition": {
+        "intentName": "prove_it",
+        "category": "Objections",
+        "description": "Caller expresses prove it.",
+        "recognitionRule": "Caller expresses prove it.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_REQUEST_DEMO",
+      "reference": "SAL-059",
+      "definition": {
+        "intentName": "request_demo",
+        "category": "Demo and proof",
+        "description": "Caller expresses request demo.",
+        "recognitionRule": "Caller expresses request demo.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CHOOSE_SCENARIO",
+      "reference": "SAL-060",
+      "definition": {
+        "intentName": "choose_scenario",
+        "category": "Demo and proof",
+        "description": "Caller expresses choose scenario.",
+        "recognitionRule": "Caller expresses choose scenario.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SIMULATE_CALLER",
+      "reference": "SAL-061",
+      "definition": {
+        "intentName": "simulate_caller",
+        "category": "Demo and proof",
+        "description": "Caller expresses simulate caller.",
+        "recognitionRule": "Caller expresses simulate caller.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_EXIT_SIMULATION",
+      "reference": "SAL-062",
+      "definition": {
+        "intentName": "exit_simulation",
+        "category": "Demo and proof",
+        "description": "Caller expresses exit simulation.",
+        "recognitionRule": "Caller expresses exit simulation.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_DEMO_LIMITATION",
+      "reference": "SAL-063",
+      "definition": {
+        "intentName": "demo_limitation",
+        "category": "Demo and proof",
+        "description": "Caller expresses demo limitation.",
+        "recognitionRule": "Caller expresses demo limitation.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LIVE_TRANSFER_UNAVAILABLE",
+      "reference": "SAL-064",
+      "definition": {
+        "intentName": "live_transfer_unavailable",
+        "category": "Demo and proof",
+        "description": "Caller expresses live transfer unavailable.",
+        "recognitionRule": "Caller expresses live transfer unavailable.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_RECORDING_NOTICE",
+      "reference": "SAL-065",
+      "definition": {
+        "intentName": "recording_notice",
+        "category": "Demo and proof",
+        "description": "Caller expresses recording notice.",
+        "recognitionRule": "Caller expresses recording notice.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CONSULTATION_REQUEST",
+      "reference": "SAL-066",
+      "definition": {
+        "intentName": "consultation_request",
+        "category": "Next actions",
+        "description": "Caller expresses consultation request.",
+        "recognitionRule": "Caller expresses consultation request.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CALLBACK_REQUEST",
+      "reference": "SAL-067",
+      "definition": {
+        "intentName": "callback_request",
+        "category": "Next actions",
+        "description": "Caller expresses callback request.",
+        "recognitionRule": "Caller expresses callback request.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_CALENDAR_REQUEST",
+      "reference": "SAL-068",
+      "definition": {
+        "intentName": "calendar_request",
+        "category": "Next actions",
+        "description": "Caller expresses calendar request.",
+        "recognitionRule": "Caller expresses calendar request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_PROPOSAL_REQUEST",
+      "reference": "SAL-069",
+      "definition": {
+        "intentName": "proposal_request",
+        "category": "Next actions",
+        "description": "Caller expresses proposal request.",
+        "recognitionRule": "Caller expresses proposal request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TECHNICAL_REVIEW",
+      "reference": "SAL-070",
+      "definition": {
+        "intentName": "technical_review",
+        "category": "Next actions",
+        "description": "Caller expresses technical review.",
+        "recognitionRule": "Caller expresses technical review.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_STAKEHOLDER_FOLLOW_UP",
+      "reference": "SAL-071",
+      "definition": {
+        "intentName": "stakeholder_follow-up",
+        "category": "Next actions",
+        "description": "Caller expresses stakeholder follow-up.",
+        "recognitionRule": "Caller expresses stakeholder follow-up.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SAVE_PROFILE",
+      "reference": "SAL-072",
+      "definition": {
+        "intentName": "save_profile",
+        "category": "Next actions",
+        "description": "Caller expresses save profile.",
+        "recognitionRule": "Caller expresses save profile.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TRANSFER",
+      "reference": "SAL-073",
+      "definition": {
+        "intentName": "transfer",
+        "category": "Next actions",
+        "description": "Caller expresses transfer.",
+        "recognitionRule": "Caller expresses transfer.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_UNAPPROVED_PRICING",
+      "reference": "SAL-074",
+      "definition": {
+        "intentName": "unapproved_pricing",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses unapproved pricing.",
+        "recognitionRule": "Caller expresses unapproved pricing.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_UNSUPPORTED_INTEGRATION",
+      "reference": "SAL-075",
+      "definition": {
+        "intentName": "unsupported_integration",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses unsupported integration.",
+        "recognitionRule": "Caller expresses unsupported integration.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_GUARANTEE_REQUEST",
+      "reference": "SAL-076",
+      "definition": {
+        "intentName": "guarantee_request",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses guarantee request.",
+        "recognitionRule": "Caller expresses guarantee request.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SENSITIVE_DATA",
+      "reference": "SAL-077",
+      "definition": {
+        "intentName": "sensitive_data",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses sensitive data.",
+        "recognitionRule": "Caller expresses sensitive data.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_DO_NOT_CONTACT",
+      "reference": "SAL-078",
+      "definition": {
+        "intentName": "do_not_contact",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses do not contact.",
+        "recognitionRule": "Caller expresses do not contact.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_COMPETITOR_QUESTION",
+      "reference": "SAL-079",
+      "definition": {
+        "intentName": "competitor_question",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses competitor question.",
+        "recognitionRule": "Caller expresses competitor question.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LEGAL_QUESTION",
+      "reference": "SAL-080",
+      "definition": {
+        "intentName": "legal_question",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses legal question.",
+        "recognitionRule": "Caller expresses legal question.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SECURITY_DISCLOSURE",
+      "reference": "SAL-081",
+      "definition": {
+        "intentName": "security_disclosure",
+        "category": "Compliance and boundaries",
+        "description": "Caller expresses security disclosure.",
+        "recognitionRule": "Caller expresses security disclosure.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_ROOFING",
+      "reference": "SAL-082",
+      "definition": {
+        "intentName": "Industry Fit: Roofing",
+        "category": "Industry suitability",
+        "description": "Evaluate roofing use cases without claiming a deployed roofing workflow.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_HVAC",
+      "reference": "SAL-083",
+      "definition": {
+        "intentName": "Industry Fit: HVAC",
+        "category": "Industry suitability",
+        "description": "Evaluate HVAC use cases and discovery needs.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_PLUMBING",
+      "reference": "SAL-084",
+      "definition": {
+        "intentName": "Industry Fit: Plumbing",
+        "category": "Industry suitability",
+        "description": "Evaluate plumbing intake and after-hours needs.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_ELECTRICAL",
+      "reference": "SAL-085",
+      "definition": {
+        "intentName": "Industry Fit: Electrical",
+        "category": "Industry suitability",
+        "description": "Evaluate electrical contractor needs with safety boundaries.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_RESTORATION",
+      "reference": "SAL-086",
+      "definition": {
+        "intentName": "Industry Fit: Restoration",
+        "category": "Industry suitability",
+        "description": "Evaluate restoration/remediation urgency and intake.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_PROFESSIONAL_SERVICES",
+      "reference": "SAL-087",
+      "definition": {
+        "intentName": "Industry Fit: Professional Services",
+        "category": "Industry suitability",
+        "description": "Evaluate professional-services intake, routing, and follow-up.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_B2B_SERVICES",
+      "reference": "SAL-088",
+      "definition": {
+        "intentName": "Industry Fit: B2B Services",
+        "category": "Industry suitability",
+        "description": "Evaluate B2B qualification and account-routing needs.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_INDUSTRY_FIT:_APPOINTMENT_BUSINESS",
+      "reference": "SAL-089",
+      "definition": {
+        "intentName": "Industry Fit: Appointment Business",
+        "category": "Industry suitability",
+        "description": "Explain request capture without promising direct booking.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ROI_INPUTS_REQUEST",
+      "reference": "SAL-090",
+      "definition": {
+        "intentName": "ROI Inputs Request",
+        "category": "Financial value",
+        "description": "Collect inputs for an owner-approved tailored comparison; make no guarantee.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_SAVINGS_ILLUSTRATION_CLARIFICATION",
+      "reference": "SAL-091",
+      "definition": {
+        "intentName": "Savings Illustration Clarification",
+        "category": "Financial value",
+        "description": "Explain that savings examples are illustrative and assumption-dependent.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_EXISTING_CRM_COMPATIBILITY",
+      "reference": "SAL-092",
+      "definition": {
+        "intentName": "Existing CRM Compatibility",
+        "category": "Integration",
+        "description": "Capture the named CRM and route for compatibility verification.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_NAMED_PHONE_PROVIDER_COMPATIBILITY",
+      "reference": "SAL-093",
+      "definition": {
+        "intentName": "Named Phone Provider Compatibility",
+        "category": "Telephony",
+        "description": "Capture provider and configuration; do not promise compatibility.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_MULTIPLE_LOCATION_DESIGN",
+      "reference": "SAL-094",
+      "definition": {
+        "intentName": "Multiple Location Design",
+        "category": "Configuration",
+        "description": "Discover locations, departments, numbers, and routing needs.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_ACCESSIBILITY_ACCOMMODATION",
+      "reference": "SAL-095",
+      "definition": {
+        "intentName": "Accessibility Accommodation",
+        "category": "Accessibility",
+        "description": "Capture the requested communication accommodation and approved next step.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_DATA_CORRECTION_BEFORE_SAVE",
+      "reference": "SAL-096",
+      "definition": {
+        "intentName": "Data Correction Before Save",
+        "category": "Lead capture",
+        "description": "Correct and reconfirm information before submission.",
+        "recognitionRule": "",
+        "toolOperation": "submit_business_profile only after reconfirmation; current result contract governs.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LEAD_SUBMISSION_FAILURE",
+      "reference": "SAL-097",
+      "definition": {
+        "intentName": "Lead Submission Failure",
+        "category": "Transaction status",
+        "description": "Explain failed/unconfirmed submission and avoid success language.",
+        "recognitionRule": "",
+        "toolOperation": "submit_business_profile result inspection; no blind duplicate write.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_LEAD_SUBMISSION_STATUS",
+      "reference": "SAL-098",
+      "definition": {
+        "intentName": "Lead Submission Status",
+        "category": "Transaction status",
+        "description": "Answer whether lead persistence is confirmed from returned evidence.",
+        "recognitionRule": "",
+        "toolOperation": "submit_business_profile result inspection; no blind duplicate write.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_TRANSFER_FAILED",
+      "reference": "SAL-099",
+      "definition": {
+        "intentName": "Transfer Failed",
+        "category": "Human handoff",
+        "description": "Handle failed connection once, without retrying blindly or claiming callback.",
+        "recognitionRule": "",
+        "toolOperation": "transfer_to_specialist result; one attempt only under current policy.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "sales",
+      "id": "SAL_STOP_SALES_CONTACT",
+      "reference": "SAL-100",
+      "definition": {
+        "intentName": "Stop Sales Contact",
+        "category": "Consent and closure",
+        "description": "Respect request to stop the sales conversation and record opt-out only if authorized.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_IDENTIFY_CALLER",
+      "reference": "SUP-001",
+      "definition": {
+        "intentName": "identify_caller",
+        "category": "Opening and verification",
+        "description": "Caller expresses identify caller.",
+        "recognitionRule": "Caller expresses identify caller.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ACCOUNT_LOOKUP",
+      "reference": "SUP-002",
+      "definition": {
+        "intentName": "account_lookup",
+        "category": "Opening and verification",
+        "description": "Caller expresses account lookup.",
+        "recognitionRule": "Caller expresses account lookup.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AUTHORIZED_CONTACT",
+      "reference": "SUP-003",
+      "definition": {
+        "intentName": "authorized_contact",
+        "category": "Opening and verification",
+        "description": "Caller expresses authorized contact.",
+        "recognitionRule": "Caller expresses authorized contact.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_VERIFICATION_FAILED",
+      "reference": "SUP-004",
+      "definition": {
+        "intentName": "verification_failed",
+        "category": "Opening and verification",
+        "description": "Caller expresses verification failed.",
+        "recognitionRule": "Caller expresses verification failed.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_LANGUAGE_PREFERENCE",
+      "reference": "SUP-005",
+      "definition": {
+        "intentName": "language_preference",
+        "category": "Opening and verification",
+        "description": "Caller expresses language preference.",
+        "recognitionRule": "Caller expresses language preference.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ACCESSIBILITY_NEED",
+      "reference": "SUP-006",
+      "definition": {
+        "intentName": "accessibility_need",
+        "category": "Opening and verification",
+        "description": "Caller expresses accessibility need.",
+        "recognitionRule": "Caller expresses accessibility need.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PROBLEM_SUMMARY",
+      "reference": "SUP-007",
+      "definition": {
+        "intentName": "problem_summary",
+        "category": "Issue intake",
+        "description": "Caller expresses problem summary.",
+        "recognitionRule": "Caller expresses problem summary.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AFFECTED_SERVICE",
+      "reference": "SUP-008",
+      "definition": {
+        "intentName": "affected_service",
+        "category": "Issue intake",
+        "description": "Caller expresses affected service.",
+        "recognitionRule": "Caller expresses affected service.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SYMPTOM_ONSET",
+      "reference": "SUP-009",
+      "definition": {
+        "intentName": "symptom_onset",
+        "category": "Issue intake",
+        "description": "Caller expresses symptom onset.",
+        "recognitionRule": "Caller expresses symptom onset.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SCOPE",
+      "reference": "SUP-010",
+      "definition": {
+        "intentName": "scope",
+        "category": "Issue intake",
+        "description": "Caller expresses scope.",
+        "recognitionRule": "Caller expresses scope.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_IMPACT",
+      "reference": "SUP-011",
+      "definition": {
+        "intentName": "impact",
+        "category": "Issue intake",
+        "description": "Caller expresses impact.",
+        "recognitionRule": "Caller expresses impact.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_URGENCY",
+      "reference": "SUP-012",
+      "definition": {
+        "intentName": "urgency",
+        "category": "Issue intake",
+        "description": "Caller expresses urgency.",
+        "recognitionRule": "Caller expresses urgency.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_RECENT_CHANGE",
+      "reference": "SUP-013",
+      "definition": {
+        "intentName": "recent_change",
+        "category": "Issue intake",
+        "description": "Caller expresses recent change.",
+        "recognitionRule": "Caller expresses recent change.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ERROR_MESSAGE",
+      "reference": "SUP-014",
+      "definition": {
+        "intentName": "error_message",
+        "category": "Issue intake",
+        "description": "Caller expresses error message.",
+        "recognitionRule": "Caller expresses error message.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_REPRODUCIBILITY",
+      "reference": "SUP-015",
+      "definition": {
+        "intentName": "reproducibility",
+        "category": "Issue intake",
+        "description": "Caller expresses reproducibility.",
+        "recognitionRule": "Caller expresses reproducibility.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HOURS",
+      "reference": "SUP-016",
+      "definition": {
+        "intentName": "hours",
+        "category": "General information",
+        "description": "Caller expresses hours.",
+        "recognitionRule": "Caller expresses hours.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_LOCATION",
+      "reference": "SUP-017",
+      "definition": {
+        "intentName": "location",
+        "category": "General information",
+        "description": "Caller expresses location.",
+        "recognitionRule": "Caller expresses location.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SERVICE_AREA",
+      "reference": "SUP-018",
+      "definition": {
+        "intentName": "service_area",
+        "category": "General information",
+        "description": "Caller expresses service area.",
+        "recognitionRule": "Caller expresses service area.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PRODUCT_SCOPE",
+      "reference": "SUP-019",
+      "definition": {
+        "intentName": "product_scope",
+        "category": "General information",
+        "description": "Caller expresses product scope.",
+        "recognitionRule": "Caller expresses product scope.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PLAN_COVERAGE",
+      "reference": "SUP-020",
+      "definition": {
+        "intentName": "plan_coverage",
+        "category": "General information",
+        "description": "Caller expresses plan coverage.",
+        "recognitionRule": "Caller expresses plan coverage.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_POLICY_QUESTION",
+      "reference": "SUP-021",
+      "definition": {
+        "intentName": "policy_question",
+        "category": "General information",
+        "description": "Caller expresses policy question.",
+        "recognitionRule": "Caller expresses policy question.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HOW_TO_REQUEST",
+      "reference": "SUP-022",
+      "definition": {
+        "intentName": "how-to_request",
+        "category": "General information",
+        "description": "Caller expresses how-to request.",
+        "recognitionRule": "Caller expresses how-to request.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PASSWORD_RESET",
+      "reference": "SUP-023",
+      "definition": {
+        "intentName": "password_reset",
+        "category": "Access and identity",
+        "description": "Caller expresses password reset.",
+        "recognitionRule": "Caller expresses password reset.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_LOCKED_ACCOUNT",
+      "reference": "SUP-024",
+      "definition": {
+        "intentName": "locked_account",
+        "category": "Access and identity",
+        "description": "Caller expresses locked account.",
+        "recognitionRule": "Caller expresses locked account.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_MFA_ISSUE",
+      "reference": "SUP-025",
+      "definition": {
+        "intentName": "mfa_issue",
+        "category": "Access and identity",
+        "description": "Caller expresses MFA issue.",
+        "recognitionRule": "Caller expresses MFA issue.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_USERNAME_RECOVERY",
+      "reference": "SUP-026",
+      "definition": {
+        "intentName": "username_recovery",
+        "category": "Access and identity",
+        "description": "Caller expresses username recovery.",
+        "recognitionRule": "Caller expresses username recovery.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PERMISSION_REQUEST",
+      "reference": "SUP-027",
+      "definition": {
+        "intentName": "permission_request",
+        "category": "Access and identity",
+        "description": "Caller expresses permission request.",
+        "recognitionRule": "Caller expresses permission request.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ROLE_CHANGE",
+      "reference": "SUP-028",
+      "definition": {
+        "intentName": "role_change",
+        "category": "Access and identity",
+        "description": "Caller expresses role change.",
+        "recognitionRule": "Caller expresses role change.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SUSPECTED_COMPROMISE",
+      "reference": "SUP-029",
+      "definition": {
+        "intentName": "suspected_compromise",
+        "category": "Access and identity",
+        "description": "Caller expresses suspected compromise.",
+        "recognitionRule": "Caller expresses suspected compromise.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ADD_USER",
+      "reference": "SUP-030",
+      "definition": {
+        "intentName": "add_user",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses add user.",
+        "recognitionRule": "Caller expresses add user.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_REMOVE_USER",
+      "reference": "SUP-031",
+      "definition": {
+        "intentName": "remove_user",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses remove user.",
+        "recognitionRule": "Caller expresses remove user.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CHANGE_USER",
+      "reference": "SUP-032",
+      "definition": {
+        "intentName": "change_user",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses change user.",
+        "recognitionRule": "Caller expresses change user.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DEPARTMENT_UPDATE",
+      "reference": "SUP-033",
+      "definition": {
+        "intentName": "department_update",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses department update.",
+        "recognitionRule": "Caller expresses department update.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ROUTING_CHANGE",
+      "reference": "SUP-034",
+      "definition": {
+        "intentName": "routing_change",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses routing change.",
+        "recognitionRule": "Caller expresses routing change.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HOURS_CHANGE",
+      "reference": "SUP-035",
+      "definition": {
+        "intentName": "hours_change",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses hours change.",
+        "recognitionRule": "Caller expresses hours change.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HOLIDAY_CHANGE",
+      "reference": "SUP-036",
+      "definition": {
+        "intentName": "holiday_change",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses holiday change.",
+        "recognitionRule": "Caller expresses holiday change.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_GREETING_CHANGE",
+      "reference": "SUP-037",
+      "definition": {
+        "intentName": "greeting_change",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses greeting change.",
+        "recognitionRule": "Caller expresses greeting change.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TRANSFER_DESTINATION",
+      "reference": "SUP-038",
+      "definition": {
+        "intentName": "transfer_destination",
+        "category": "Configuration and MACD",
+        "description": "Caller expresses transfer destination.",
+        "recognitionRule": "Caller expresses transfer destination.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SERVICE_UNAVAILABLE",
+      "reference": "SUP-039",
+      "definition": {
+        "intentName": "service_unavailable",
+        "category": "Troubleshooting",
+        "description": "Caller expresses service unavailable.",
+        "recognitionRule": "Caller expresses service unavailable.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DEGRADED_PERFORMANCE",
+      "reference": "SUP-040",
+      "definition": {
+        "intentName": "degraded_performance",
+        "category": "Troubleshooting",
+        "description": "Caller expresses degraded performance.",
+        "recognitionRule": "Caller expresses degraded performance.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_FAILED_CALL",
+      "reference": "SUP-041",
+      "definition": {
+        "intentName": "failed_call",
+        "category": "Troubleshooting",
+        "description": "Caller expresses failed call.",
+        "recognitionRule": "Caller expresses failed call.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ONE_WAY_AUDIO",
+      "reference": "SUP-042",
+      "definition": {
+        "intentName": "one-way_audio",
+        "category": "Troubleshooting",
+        "description": "Caller expresses one-way audio.",
+        "recognitionRule": "Caller expresses one-way audio.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ROUTING_LOOP",
+      "reference": "SUP-043",
+      "definition": {
+        "intentName": "routing_loop",
+        "category": "Troubleshooting",
+        "description": "Caller expresses routing loop.",
+        "recognitionRule": "Caller expresses routing loop.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_VOICEMAIL_ISSUE",
+      "reference": "SUP-044",
+      "definition": {
+        "intentName": "voicemail_issue",
+        "category": "Troubleshooting",
+        "description": "Caller expresses voicemail issue.",
+        "recognitionRule": "Caller expresses voicemail issue.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_NOTIFICATION_FAILURE",
+      "reference": "SUP-045",
+      "definition": {
+        "intentName": "notification_failure",
+        "category": "Troubleshooting",
+        "description": "Caller expresses notification failure.",
+        "recognitionRule": "Caller expresses notification failure.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INTEGRATION_ERROR",
+      "reference": "SUP-046",
+      "definition": {
+        "intentName": "integration_error",
+        "category": "Troubleshooting",
+        "description": "Caller expresses integration error.",
+        "recognitionRule": "Caller expresses integration error.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BROWSER_ISSUE",
+      "reference": "SUP-047",
+      "definition": {
+        "intentName": "browser_issue",
+        "category": "Troubleshooting",
+        "description": "Caller expresses browser issue.",
+        "recognitionRule": "Caller expresses browser issue.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_MOBILE_ISSUE",
+      "reference": "SUP-048",
+      "definition": {
+        "intentName": "mobile_issue",
+        "category": "Troubleshooting",
+        "description": "Caller expresses mobile issue.",
+        "recognitionRule": "Caller expresses mobile issue.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CREATE_TICKET",
+      "reference": "SUP-049",
+      "definition": {
+        "intentName": "create_ticket",
+        "category": "Case workflow",
+        "description": "Caller expresses create ticket.",
+        "recognitionRule": "Caller expresses create ticket.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ADD_NOTE",
+      "reference": "SUP-050",
+      "definition": {
+        "intentName": "add_note",
+        "category": "Case workflow",
+        "description": "Caller expresses add note.",
+        "recognitionRule": "Caller expresses add note.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ATTACH_EVIDENCE",
+      "reference": "SUP-051",
+      "definition": {
+        "intentName": "attach_evidence",
+        "category": "Case workflow",
+        "description": "Caller expresses attach evidence.",
+        "recognitionRule": "Caller expresses attach evidence.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CHECK_STATUS",
+      "reference": "SUP-052",
+      "definition": {
+        "intentName": "check_status",
+        "category": "Case workflow",
+        "description": "Caller expresses check status.",
+        "recognitionRule": "Caller expresses check status.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_REOPEN_CASE",
+      "reference": "SUP-053",
+      "definition": {
+        "intentName": "reopen_case",
+        "category": "Case workflow",
+        "description": "Caller expresses reopen case.",
+        "recognitionRule": "Caller expresses reopen case.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CLOSE_REQUEST",
+      "reference": "SUP-054",
+      "definition": {
+        "intentName": "close_request",
+        "category": "Case workflow",
+        "description": "Caller expresses close request.",
+        "recognitionRule": "Caller expresses close request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DUPLICATE_CASE",
+      "reference": "SUP-055",
+      "definition": {
+        "intentName": "duplicate_case",
+        "category": "Case workflow",
+        "description": "Caller expresses duplicate case.",
+        "recognitionRule": "Caller expresses duplicate case.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_WRONG_ASSIGNMENT",
+      "reference": "SUP-056",
+      "definition": {
+        "intentName": "wrong_assignment",
+        "category": "Case workflow",
+        "description": "Caller expresses wrong assignment.",
+        "recognitionRule": "Caller expresses wrong assignment.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PRIORITY_CHANGE",
+      "reference": "SUP-057",
+      "definition": {
+        "intentName": "priority_change",
+        "category": "Case workflow",
+        "description": "Caller expresses priority change.",
+        "recognitionRule": "Caller expresses priority change.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INVOICE_QUESTION",
+      "reference": "SUP-058",
+      "definition": {
+        "intentName": "invoice_question",
+        "category": "Billing and account",
+        "description": "Caller expresses invoice question.",
+        "recognitionRule": "Caller expresses invoice question.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_USAGE_QUESTION",
+      "reference": "SUP-059",
+      "definition": {
+        "intentName": "usage_question",
+        "category": "Billing and account",
+        "description": "Caller expresses usage question.",
+        "recognitionRule": "Caller expresses usage question.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PAYMENT_ISSUE",
+      "reference": "SUP-060",
+      "definition": {
+        "intentName": "payment_issue",
+        "category": "Billing and account",
+        "description": "Caller expresses payment issue.",
+        "recognitionRule": "Caller expresses payment issue.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNEXPECTED_CHARGE",
+      "reference": "SUP-061",
+      "definition": {
+        "intentName": "unexpected_charge",
+        "category": "Billing and account",
+        "description": "Caller expresses unexpected charge.",
+        "recognitionRule": "Caller expresses unexpected charge.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PLAN_QUESTION",
+      "reference": "SUP-062",
+      "definition": {
+        "intentName": "plan_question",
+        "category": "Billing and account",
+        "description": "Caller expresses plan question.",
+        "recognitionRule": "Caller expresses plan question.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CANCELLATION_REQUEST",
+      "reference": "SUP-063",
+      "definition": {
+        "intentName": "cancellation_request",
+        "category": "Billing and account",
+        "description": "Caller expresses cancellation request.",
+        "recognitionRule": "Caller expresses cancellation request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DATA_EXPORT",
+      "reference": "SUP-064",
+      "definition": {
+        "intentName": "data_export",
+        "category": "Billing and account",
+        "description": "Caller expresses data export.",
+        "recognitionRule": "Caller expresses data export.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_MAJOR_OUTAGE",
+      "reference": "SUP-065",
+      "definition": {
+        "intentName": "major_outage",
+        "category": "Incident and escalation",
+        "description": "Caller expresses major outage.",
+        "recognitionRule": "Caller expresses major outage.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SAFETY_CONCERN",
+      "reference": "SUP-066",
+      "definition": {
+        "intentName": "safety_concern",
+        "category": "Incident and escalation",
+        "description": "Caller expresses safety concern.",
+        "recognitionRule": "Caller expresses safety concern.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SECURITY_INCIDENT",
+      "reference": "SUP-067",
+      "definition": {
+        "intentName": "security_incident",
+        "category": "Incident and escalation",
+        "description": "Caller expresses security incident.",
+        "recognitionRule": "Caller expresses security incident.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PRIVACY_REQUEST",
+      "reference": "SUP-068",
+      "definition": {
+        "intentName": "privacy_request",
+        "category": "Incident and escalation",
+        "description": "Caller expresses privacy request.",
+        "recognitionRule": "Caller expresses privacy request.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_EXECUTIVE_COMPLAINT",
+      "reference": "SUP-069",
+      "definition": {
+        "intentName": "executive_complaint",
+        "category": "Incident and escalation",
+        "description": "Caller expresses executive complaint.",
+        "recognitionRule": "Caller expresses executive complaint.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_REPEAT_FAILURE",
+      "reference": "SUP-070",
+      "definition": {
+        "intentName": "repeat_failure",
+        "category": "Incident and escalation",
+        "description": "Caller expresses repeat failure.",
+        "recognitionRule": "Caller expresses repeat failure.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SLA_RISK",
+      "reference": "SUP-071",
+      "definition": {
+        "intentName": "sla_risk",
+        "category": "Incident and escalation",
+        "description": "Caller expresses SLA risk.",
+        "recognitionRule": "Caller expresses SLA risk.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_URGENT_TRANSFER",
+      "reference": "SUP-072",
+      "definition": {
+        "intentName": "urgent_transfer",
+        "category": "Incident and escalation",
+        "description": "Caller expresses urgent transfer.",
+        "recognitionRule": "Caller expresses urgent transfer.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_EXPLAIN_NEXT_STEP",
+      "reference": "SUP-073",
+      "definition": {
+        "intentName": "explain_next_step",
+        "category": "Communication and closure",
+        "description": "Caller expresses explain next step.",
+        "recognitionRule": "Caller expresses explain next step.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SET_EXPECTATION",
+      "reference": "SUP-074",
+      "definition": {
+        "intentName": "set_expectation",
+        "category": "Communication and closure",
+        "description": "Caller expresses set expectation.",
+        "recognitionRule": "Caller expresses set expectation.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CALLBACK_REQUEST",
+      "reference": "SUP-075",
+      "definition": {
+        "intentName": "callback_request",
+        "category": "Communication and closure",
+        "description": "Caller expresses callback request.",
+        "recognitionRule": "Caller expresses callback request.",
+        "toolOperation": "",
+        "riskLevel": "High",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CONFIRM_RESOLUTION",
+      "reference": "SUP-076",
+      "definition": {
+        "intentName": "confirm_resolution",
+        "category": "Communication and closure",
+        "description": "Caller expresses confirm resolution.",
+        "recognitionRule": "Caller expresses confirm resolution.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_RESOLUTION_FAILED",
+      "reference": "SUP-077",
+      "definition": {
+        "intentName": "resolution_failed",
+        "category": "Communication and closure",
+        "description": "Caller expresses resolution failed.",
+        "recognitionRule": "Caller expresses resolution failed.",
+        "toolOperation": "",
+        "riskLevel": "Low",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SURVEY_OPT_OUT",
+      "reference": "SUP-078",
+      "definition": {
+        "intentName": "survey_opt-out",
+        "category": "Communication and closure",
+        "description": "Caller expresses survey opt-out.",
+        "recognitionRule": "Caller expresses survey opt-out.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_FOLLOW_UP_CONSENT",
+      "reference": "SUP-079",
+      "definition": {
+        "intentName": "follow-up_consent",
+        "category": "Communication and closure",
+        "description": "Caller expresses follow-up consent.",
+        "recognitionRule": "Caller expresses follow-up consent.",
+        "toolOperation": "",
+        "riskLevel": "Medium",
+        "operationalStatus": "EXISTING CATALOG"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_IDENTIFY_AFFECTED_SERVICE",
+      "reference": "SUP-080",
+      "definition": {
+        "intentName": "Identify Affected Service",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for identify affected service.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CONFIRM_ACCOUNT_AUTHORITY",
+      "reference": "SUP-081",
+      "definition": {
+        "intentName": "Confirm Account Authority",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for confirm account authority.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_IDENTITY_VERIFICATION_FAILED",
+      "reference": "SUP-082",
+      "definition": {
+        "intentName": "Identity Verification Failed",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for identity verification failed.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNAUTHORIZED_ACCOUNT_REQUEST",
+      "reference": "SUP-083",
+      "definition": {
+        "intentName": "Unauthorized Account Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for unauthorized account request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SUSPECTED_ACCOUNT_COMPROMISE",
+      "reference": "SUP-084",
+      "definition": {
+        "intentName": "Suspected Account Compromise",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for suspected account compromise.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SOCIAL_ENGINEERING_ATTEMPT",
+      "reference": "SUP-085",
+      "definition": {
+        "intentName": "Social Engineering Attempt",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for social engineering attempt.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PROMPT_OR_CREDENTIAL_DISCLOSURE_REQUEST",
+      "reference": "SUP-086",
+      "definition": {
+        "intentName": "Prompt or Credential Disclosure Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for prompt or credential disclosure request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CROSS_TENANT_DATA_REQUEST",
+      "reference": "SUP-087",
+      "definition": {
+        "intentName": "Cross-Tenant Data Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for cross-tenant data request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DATA_CORRECTION_REQUEST",
+      "reference": "SUP-088",
+      "definition": {
+        "intentName": "Data Correction Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for data correction request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DATA_DELETION_REQUEST",
+      "reference": "SUP-089",
+      "definition": {
+        "intentName": "Data Deletion Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for data deletion request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_RECORDING_QUESTION",
+      "reference": "SUP-090",
+      "definition": {
+        "intentName": "Recording Question",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for recording question.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TRANSCRIPT_QUESTION",
+      "reference": "SUP-091",
+      "definition": {
+        "intentName": "Transcript Question",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for transcript question.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DATA_RETENTION_QUESTION",
+      "reference": "SUP-092",
+      "definition": {
+        "intentName": "Data Retention Question",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for data retention question.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CALL_NOT_REACHING_SYSTEM",
+      "reference": "SUP-093",
+      "definition": {
+        "intentName": "Call Not Reaching System",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for call not reaching system.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CALL_FORWARDING_MISCONFIGURED",
+      "reference": "SUP-094",
+      "definition": {
+        "intentName": "Call Forwarding Misconfigured",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for call forwarding misconfigured.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BUSY_LINE_BEHAVIOR",
+      "reference": "SUP-095",
+      "definition": {
+        "intentName": "Busy-Line Behavior",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for busy-line behavior.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNANSWERED_CALLS",
+      "reference": "SUP-096",
+      "definition": {
+        "intentName": "Unanswered Calls",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for unanswered calls.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ROUTING_LOOP",
+      "reference": "SUP-097",
+      "definition": {
+        "intentName": "Routing Loop",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for routing loop.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_WRONG_SPECIALIST_ANSWERING",
+      "reference": "SUP-098",
+      "definition": {
+        "intentName": "Wrong Specialist Answering",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for wrong specialist answering.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_GREETING_INCORRECT",
+      "reference": "SUP-099",
+      "definition": {
+        "intentName": "Greeting Incorrect",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for greeting incorrect.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNEXPECTED_DISCONNECT",
+      "reference": "SUP-100",
+      "definition": {
+        "intentName": "Unexpected Disconnect",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for unexpected disconnect.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_NO_AUDIO",
+      "reference": "SUP-101",
+      "definition": {
+        "intentName": "No Audio",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for no audio.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ONE_WAY_AUDIO",
+      "reference": "SUP-102",
+      "definition": {
+        "intentName": "One-Way Audio",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for one-way audio.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_DELAYED_VOICE_RESPONSE",
+      "reference": "SUP-103",
+      "definition": {
+        "intentName": "Delayed Voice Response",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for delayed voice response.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INTERRUPTION_HANDLING_FAILURE",
+      "reference": "SUP-104",
+      "definition": {
+        "intentName": "Interruption Handling Failure",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for interruption handling failure.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SPEECH_RECOGNITION_ERROR",
+      "reference": "SUP-105",
+      "definition": {
+        "intentName": "Speech Recognition Error",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for speech recognition error.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_POOR_AUDIO_QUALITY",
+      "reference": "SUP-106",
+      "definition": {
+        "intentName": "Poor Audio Quality",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for poor audio quality.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BACKGROUND_NOISE_INTERFERENCE",
+      "reference": "SUP-107",
+      "definition": {
+        "intentName": "Background Noise Interference",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for background noise interference.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_EXCESSIVE_LATENCY",
+      "reference": "SUP-108",
+      "definition": {
+        "intentName": "Excessive Latency",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for excessive latency.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TRANSFER_FAILED",
+      "reference": "SUP-109",
+      "definition": {
+        "intentName": "Transfer Failed",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for transfer failed.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TRANSFER_MISROUTED",
+      "reference": "SUP-110",
+      "definition": {
+        "intentName": "Transfer Misrouted",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for transfer misrouted.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AFTER_HOURS_ROUTING_ERROR",
+      "reference": "SUP-111",
+      "definition": {
+        "intentName": "After-Hours Routing Error",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for after-hours routing error.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CONCURRENT_CALL_CONCERN",
+      "reference": "SUP-112",
+      "definition": {
+        "intentName": "Concurrent Call Concern",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for concurrent call concern.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNEXPECTED_FORWARDING",
+      "reference": "SUP-113",
+      "definition": {
+        "intentName": "Unexpected Forwarding",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for unexpected forwarding.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_REQUESTED_TRANSFER_NOT_PERFORMED",
+      "reference": "SUP-114",
+      "definition": {
+        "intentName": "Requested Transfer Not Performed",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for requested transfer not performed.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AGENT_REPEATS_QUESTIONS",
+      "reference": "SUP-115",
+      "definition": {
+        "intentName": "Agent Repeats Questions",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for agent repeats questions.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AGENT_LOSES_CONFIRMED_CONTEXT",
+      "reference": "SUP-116",
+      "definition": {
+        "intentName": "Agent Loses Confirmed Context",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for agent loses confirmed context.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INCORRECT_BUSINESS_NAME",
+      "reference": "SUP-117",
+      "definition": {
+        "intentName": "Incorrect Business Name",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for incorrect business name.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INCORRECT_SPECIALIST_ROUTING",
+      "reference": "SUP-118",
+      "definition": {
+        "intentName": "Incorrect Specialist Routing",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for incorrect specialist routing.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_UNSUPPORTED_CUSTOMER_REQUEST",
+      "reference": "SUP-119",
+      "definition": {
+        "intentName": "Unsupported Customer Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for unsupported customer request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INCORRECT_PRICING_STATEMENT",
+      "reference": "SUP-120",
+      "definition": {
+        "intentName": "Incorrect Pricing Statement",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for incorrect pricing statement.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HALLUCINATED_CAPABILITY",
+      "reference": "SUP-121",
+      "definition": {
+        "intentName": "Hallucinated Capability",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for hallucinated capability.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BACKEND_ACTION_FAILED",
+      "reference": "SUP-122",
+      "definition": {
+        "intentName": "Backend Action Failed",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for backend action failed.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TRANSACTION_STATUS_UNKNOWN",
+      "reference": "SUP-123",
+      "definition": {
+        "intentName": "Transaction Status Unknown",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for transaction status unknown.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_AGENT_NOT_RESPONDING",
+      "reference": "SUP-124",
+      "definition": {
+        "intentName": "Agent Not Responding",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for agent not responding.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CONVERSATION_ENDED_PREMATURELY",
+      "reference": "SUP-125",
+      "definition": {
+        "intentName": "Conversation Ended Prematurely",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for conversation ended prematurely.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CORRECTION_NOT_ACKNOWLEDGED",
+      "reference": "SUP-126",
+      "definition": {
+        "intentName": "Correction Not Acknowledged",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for correction not acknowledged.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_NEW_CUSTOMER_ONBOARDING",
+      "reference": "SUP-127",
+      "definition": {
+        "intentName": "New Customer Onboarding",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for new customer onboarding.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ACCOUNT_CREATION_INQUIRY",
+      "reference": "SUP-128",
+      "definition": {
+        "intentName": "Account Creation Inquiry",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for account creation inquiry.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BUSINESS_IDENTITY_CONFIGURATION",
+      "reference": "SUP-129",
+      "definition": {
+        "intentName": "Business Identity Configuration",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for business identity configuration.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BUSINESS_HOURS_CHANGE",
+      "reference": "SUP-130",
+      "definition": {
+        "intentName": "Business Hours Change",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for business hours change.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TELEPHONE_SETUP",
+      "reference": "SUP-131",
+      "definition": {
+        "intentName": "Telephone Setup",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for telephone setup.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CALL_FORWARDING_SETUP",
+      "reference": "SUP-132",
+      "definition": {
+        "intentName": "Call Forwarding Setup",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for call forwarding setup.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_KNOWLEDGE_BASE_CHANGE_REQUEST",
+      "reference": "SUP-133",
+      "definition": {
+        "intentName": "Knowledge Base Change Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for knowledge base change request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INTENT_CATALOG_CHANGE_REQUEST",
+      "reference": "SUP-134",
+      "definition": {
+        "intentName": "Intent Catalog Change Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for intent catalog change request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TESTING_PROCEDURE",
+      "reference": "SUP-135",
+      "definition": {
+        "intentName": "Testing Procedure",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for testing procedure.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CONFIGURATION_VALIDATION",
+      "reference": "SUP-136",
+      "definition": {
+        "intentName": "Configuration Validation",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for configuration validation.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_GO_LIVE_READINESS",
+      "reference": "SUP-137",
+      "definition": {
+        "intentName": "Go-Live Readiness",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for go-live readiness.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PERMISSION_OR_ROLE_ISSUE",
+      "reference": "SUP-138",
+      "definition": {
+        "intentName": "Permission or Role Issue",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for permission or role issue.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_ACCOUNT_OWNERSHIP_CHANGE",
+      "reference": "SUP-139",
+      "definition": {
+        "intentName": "Account Ownership Change",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for account ownership change.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_PAUSE_SERVICE_REQUEST",
+      "reference": "SUP-140",
+      "definition": {
+        "intentName": "Pause Service Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for pause service request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_BILLING_SETUP_QUESTION",
+      "reference": "SUP-141",
+      "definition": {
+        "intentName": "Billing Setup Question",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for billing setup question.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_SEVERITY_ASSESSMENT",
+      "reference": "SUP-142",
+      "definition": {
+        "intentName": "Severity Assessment",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for severity assessment.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_CRITICAL_INCIDENT",
+      "reference": "SUP-143",
+      "definition": {
+        "intentName": "Critical Incident",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for critical incident.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_HIGH_IMPACT_INCIDENT",
+      "reference": "SUP-144",
+      "definition": {
+        "intentName": "High Impact Incident",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for high impact incident.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_MEDIUM_IMPACT_INCIDENT",
+      "reference": "SUP-145",
+      "definition": {
+        "intentName": "Medium Impact Incident",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for medium impact incident.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_LOW_IMPACT_REQUEST",
+      "reference": "SUP-146",
+      "definition": {
+        "intentName": "Low Impact Request",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for low impact request.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_INCIDENT_RECLASSIFICATION",
+      "reference": "SUP-147",
+      "definition": {
+        "intentName": "Incident Reclassification",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for incident reclassification.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TICKET_DUPLICATE_CONCERN",
+      "reference": "SUP-148",
+      "definition": {
+        "intentName": "Ticket Duplicate Concern",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for ticket duplicate concern.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TICKET_SUBMISSION_TIMEOUT",
+      "reference": "SUP-149",
+      "definition": {
+        "intentName": "Ticket Submission Timeout",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for ticket submission timeout.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    },
+    {
+      "group": "support",
+      "id": "SUP_TICKET_NUMBER_REPEAT",
+      "reference": "SUP-150",
+      "definition": {
+        "intentName": "Ticket Number Repeat",
+        "category": "Support operations",
+        "description": "Recognize, clarify, and safely handle the caller objective for ticket number repeat.",
+        "recognitionRule": "",
+        "toolOperation": "No verified specialized tool mapped; knowledge, clarification, capture, or human escalation only.",
+        "riskLevel": "",
+        "operationalStatus": "PROPOSED EXTENSION"
+      }
+    }
+  ]
+}

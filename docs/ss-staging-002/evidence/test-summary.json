@@ -1,0 +1,34 @@
+{
+  "release_baseline": {
+    "counts": {
+      "tests": "280",
+      "pass": "278",
+      "fail": "2"
+    },
+    "failures": [
+      "permission errors are surfaced; persisted incident or logged email alone cannot claim dispatch (5.993836ms)",
+      "PMA voice is disabled in production and refuses unconfirmed details (8.988813ms)",
+      "failing tests:"
+    ]
+  },
+  "integration_full": {
+    "counts": {
+      "tests": "293",
+      "pass": "291",
+      "fail": "2"
+    },
+    "failures": [
+      "permission errors are surfaced; persisted incident or logged email alone cannot claim dispatch (3.299324ms)",
+      "PMA voice is disabled in production and refuses unconfirmed details (5.427966ms)",
+      "failing tests:"
+    ]
+  },
+  "focused": {
+    "counts": {
+      "tests": "43",
+      "pass": "43",
+      "fail": "0"
+    },
+    "failures": []
+  }
+}

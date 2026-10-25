@@ -1,0 +1,229 @@
+{
+  "version": "1.0.0",
+  "service": "support-specialist",
+  "tenant": {
+    "id": "d7e80001-0000-4000-b000-000000000001",
+    "slug": "summit-comfort-demo",
+    "business_name": "Summit Comfort Heating & Air",
+    "mode": "synthetic_staging_only"
+  },
+  "policy": {
+    "kb_read": "only approved published, effective, unexpired tenant-scoped entries",
+    "unapproved": "Never expose 40 research drafts as live facts",
+    "safety": "emergency-first",
+    "transactions": "Never claim ticket creation unless backend confirms persisted reference",
+    "identity": "Never use Apropos tenant KB as Summit KB",
+    "runtime_activation": "blocked_until_tenant_bound_backend_verified"
+  },
+  "intents": [
+    {
+      "id": "GAS_LEAK",
+      "examples": [
+        "gas smell",
+        "rotten eggs",
+        "gas leak"
+      ],
+      "action": "emergency",
+      "behavior": "Evacuate immediately; do not operate switches or electronics inside; call 911 and gas utility from safety",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "CARBON_MONOXIDE",
+      "examples": [
+        "carbon monoxide alarm",
+        "co detector",
+        "possible carbon monoxide"
+      ],
+      "action": "emergency",
+      "behavior": "Evacuate immediately; call 911 from outside; do not re-enter until cleared",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "FIRE_ELECTRICAL",
+      "examples": [
+        "smoke from furnace",
+        "sparking hvac",
+        "electrical burning smell"
+      ],
+      "action": "emergency",
+      "behavior": "Leave dangerous area; contact emergency services; no electrical work instructions",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "NO_COOLING",
+      "examples": [
+        "ac not cooling",
+        "warm air from vents",
+        "air conditioner blowing hot air"
+      ],
+      "action": "support_intake",
+      "behavior": "Screen for safety; collect symptoms, temperature, onset, airflow; only approved basic checks",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "NO_HEAT",
+      "examples": [
+        "furnace not heating",
+        "heater stopped",
+        "no heat"
+      ],
+      "action": "support_intake",
+      "behavior": "Screen for gas/CO and urgent vulnerability; capture symptoms and service request",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "WEAK_AIRFLOW",
+      "examples": [
+        "weak airflow",
+        "vents barely blowing",
+        "low air flow"
+      ],
+      "action": "support_intake",
+      "behavior": "Ask about affected rooms and observed filter condition if safely visible",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "THERMOSTAT",
+      "examples": [
+        "thermostat blank",
+        "thermostat issue",
+        "wrong thermostat temperature"
+      ],
+      "action": "support_intake",
+      "behavior": "Record display and settings; do not ask caller to touch wiring",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "UNUSUAL_NOISE",
+      "examples": [
+        "hvac rattling",
+        "furnace making noises",
+        "air conditioner squealing"
+      ],
+      "action": "support_intake",
+      "behavior": "Record noises and onset; screen for immediate danger",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "WATER_LEAK",
+      "examples": [
+        "water around hvac",
+        "air conditioner leaking water",
+        "condensate leak"
+      ],
+      "action": "support_intake",
+      "behavior": "Screen for electrical exposure and damage; do not instruct opening panels",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "INDOOR_AIR_QUALITY",
+      "examples": [
+        "bad air quality",
+        "duct cleaning",
+        "dust from vents"
+      ],
+      "action": "support_intake",
+      "behavior": "Capture observations and symptoms, avoid medical diagnosis",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "MAINTENANCE_REQUEST",
+      "examples": [
+        "need service",
+        "book hvac maintenance",
+        "need tune up"
+      ],
+      "action": "support_intake",
+      "behavior": "Capture preferred service description; never promise a confirmed appointment without scheduling tool",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "PRICE_ESTIMATE",
+      "examples": [
+        "how much repair",
+        "service call cost",
+        "price estimate"
+      ],
+      "action": "informational",
+      "behavior": "Disclose only approved tenant pricing; otherwise offer to collect estimate request; no fabricated prices",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "WARRANTY",
+      "examples": [
+        "is repair covered",
+        "warranty",
+        "equipment warranty"
+      ],
+      "action": "informational",
+      "behavior": "Ask for model and purchase details if available; do not guarantee warranty coverage",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "SERVICE_HOURS",
+      "examples": [
+        "what time are you open",
+        "business hours",
+        "emergency hours"
+      ],
+      "action": "informational",
+      "behavior": "Answer strictly using currently published Summit Comfort service-hours KB",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "TICKET_CREATION",
+      "examples": [
+        "open a ticket",
+        "create support case",
+        "report broken ac"
+      ],
+      "action": "transaction",
+      "behavior": "Confirm intake; submit only via tenant-authorized verified workflow; disclose only confirmed case ID",
+      "requires_verified_tool": true
+    },
+    {
+      "id": "TICKET_STATUS",
+      "examples": [
+        "status of ticket",
+        "check case status",
+        "follow up on support request"
+      ],
+      "action": "transaction",
+      "behavior": "Require authenticated tenant-scoped case lookup; if tool absent do not invent status",
+      "requires_verified_tool": true
+    },
+    {
+      "id": "CALLBACK_REQUEST",
+      "examples": [
+        "have technician call",
+        "request callback",
+        "please call me"
+      ],
+      "action": "transaction",
+      "behavior": "Collect preferred callback details; never claim scheduled or dispatched without confirmation",
+      "requires_verified_tool": true
+    },
+    {
+      "id": "COMPLAINT_ESCALATION",
+      "examples": [
+        "complaint",
+        "talk to supervisor",
+        "unhappy with service"
+      ],
+      "action": "escalation",
+      "behavior": "Record issue and request for human escalation without promising unsupported transfer",
+      "requires_verified_tool": false
+    },
+    {
+      "id": "UNRECOGNIZED",
+      "examples": [
+        "something else",
+        "not sure",
+        "other question"
+      ],
+      "action": "fallback",
+      "behavior": "Ask one clarifying question; do not infer a tenant service or answer with unapproved claims",
+      "requires_verified_tool": false
+    }
+  ]
+}

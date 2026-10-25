@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null, extraEnv:any = {}) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -15,7 +15,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./voice-entry.cjs'&&trustedPma?{...require(n),createVoiceEntry:()=>({openSession:async()=>({agentRoute:'property-management-assistant',knowledgeEntries:[],intents:[]}),closeSession:async()=>({})})}:n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./voice-entry.cjs'&&(trustedPma||extraEnv.SS_STAGING_INTELLIGENCE_ENABLED)?{...require(n),createVoiceEntry:()=>({openSession:async()=>({agentRoute:extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?(profile==='sales'?'sales-specialist':'support-specialist'):'property-management-assistant',knowledgeEntries:[],intents:[]}),closeSession:async()=>({})})}:n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test',...extraEnv,...(profile==='pma'?{STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}:{})}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
     if(body.action==='pma_availability')return {ok:true,json:async()=>({result:{availability:inventory}})};
     return {ok:true,json:async()=>url.includes('/api/intake/pma-staging')?{result:supportSave?await supportSave():{success:true,state:'REQUESTED',domainPersisted:true,interactionPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false,notificationSent:false}}:body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
@@ -24,7 +24,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199',profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
+  await context.handleCall(phone,profile,'+12025550199',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?'CA'+'1'.repeat(32):profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:profile==='sales'?'sales-specialist':'support-specialist'}:trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
@@ -373,4 +373,17 @@ test('PMA deterministic medical/CO transcript safety precedes tools and disconne
  const task=d.tool('late-pma','pma_property_workflow',{message:'Request a tour',confirmed:true},true);
  phoneEvent(d,{event:'stop'});resolve({success:true,state:'REQUESTED',domainPersisted:true,operationId:'pma:v1:00000000-0000-4000-8000-000000000001',showingId:'20000000-0000-4000-8000-000000000001',bookingConfirmed:false});await task;
  assert.equal(d.outbound.some(x=>x.item?.call_id==='late-pma'),false);
+});
+
+test('SS002 opt-in uses signed route context, full catalog, approved departmental greetings and voices',async()=>{
+ for(const profile of ['sales','support']){
+  const settings={SS_STAGING_INTELLIGENCE_ENABLED:'true',STELLAR_BRIDGE_STAGING:'true',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',[profile==='sales'?'SS_STAGING_SALES_TENANT_ID':'SS_STAGING_SUPPORT_TENANT_ID']:profile==='sales'?'5885a020-d363-4c27-910a-c035eda132f5':'d7e80001-0000-4000-b000-000000000001'};
+  const s=await session(profile,false,false,true,null,false,null,settings);const start=s.outbound.find(x=>x.type==='session.start');
+  assert.equal(s.requests.length,0);assert.equal(start.session.audio.output.voice,profile==='sales'?'echo':'cedar');
+  assert.ok(start.session.delegation.responses.tools.some((x:any)=>x.name==='assess_specialist_intent'));
+  assert.match(start.session.instructions,profile==='sales'?/You have reached the Sales Department at Stellar Intelligent Technologies\. How can I help you\?/:/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
+  assert.match(start.session.delegation.responses.instructions,profile==='sales'?/SAL-100/:/SUP-150/);
+  await s.tool('ss002-assess','assess_specialist_intent',{reference:profile==='sales'?'SAL-001':'SUP-049',confidence:1});
+  assert.match(s.outbound.find(x=>x.item?.call_id==='ss002-assess').item.output,/CLASSIFIED/);
+ }
 });
