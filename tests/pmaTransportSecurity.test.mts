@@ -11,7 +11,7 @@ function fixture(){
  class Socket extends EventEmitter {static OPEN=1;static CLOSED=3;readyState=1;send(){}close(){this.readyState=3;}}
  class WSS {handleUpgrade(_req:any,_socket:any,_head:any,callback:any){const ws=new Socket();phones.push(ws);callback(ws);}}
  const app={use(){},all(){},get(){}};const express:any=()=>app;express.urlencoded=()=>()=>{};
- const env={OPENAI_API_KEY:'synthetic-key',BRIDGE_HMAC_SECRET:'synthetic-hmac-secret',STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'};
+ const env={OPENAI_API_KEY:'synthetic-key',BRIDGE_HMAC_SECRET:'synthetic-hmac-secret',STELLAR_BRIDGE_STAGING:'true',NETLIFY_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',PMA_CHANNELS_ENABLED:'true',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'};
  const context:any={require:(n:string)=>n==='express'?express:n==='http'?{createServer:()=>server}:n==='ws'?{WebSocket:Socket,WebSocketServer:WSS}:require(n),console:{log:(v:string)=>logs.push(v),error:(...v:any[])=>logs.push(v.join(' '))},process:{env,exit(){throw Error('unexpected process exit');}},Buffer,URL,AbortSignal,fetch:async()=>{throw Error('No network permitted');},setTimeout:()=>1,clearTimeout(){},setInterval:()=>1,clearInterval(){}};
  const source=readFileSync('twilio-bridge/server.js','utf8').replace(/start\(\);\s*$/,'globalThis.startTest=start;globalThis.setCallHandler=fn=>{handleCall=fn;};');
  vm.runInNewContext(source,context);context.setCallHandler((...args:any[])=>opened.push(args));context.startTest();

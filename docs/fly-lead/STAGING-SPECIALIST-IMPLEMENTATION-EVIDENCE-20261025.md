@@ -1,3 +1,5 @@
+**HISTORICAL CHECKPOINT — superseded by `docs/specialist-staging/FLY-HANDOFF.md`. Preserve this report as prior evidence; its readiness counts are not current.**
+
 # STELLAR — STAGING SIDE IMPLEMENTATION EVIDENCE
 **2026-10-25 | STAGING ONLY | NO CALLER-KB PUBLICATION | NO FLY DEPLOY**
 Owner: STELLAR INTELLIGENT TECHNOLOGIES (operated by Apropos Group LLC)

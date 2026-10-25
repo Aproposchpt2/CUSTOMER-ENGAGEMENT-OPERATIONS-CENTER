@@ -1,0 +1,49 @@
+{
+  "sourceSha": "2800f3620f61e9922bbeda05e4b80337c32f95cc",
+  "image": "pma-fly-validation:2800f3620f61e9922bbeda05e4b80337c32f95cc",
+  "liveDeployment": false,
+  "liveSms": false,
+  "network": "none",
+  "imageId": "sha256:92bcd903843bb306dd82114dbcef299b0c966cfd95f4c063e2a1f37ef21ab689",
+  "revision": "2800f3620f61e9922bbeda05e4b80337c32f95cc",
+  "health": {
+    "ok": true,
+    "activeCalls": 0,
+    "pool": 2,
+    "stagingOnly": true,
+    "commit": "2800f3620f61e9922bbeda05e4b80337c32f95cc",
+    "supportPersonaFingerprint": "9105117c2a8d2278a63df674302d88daadf5189fd22268646b2913f7257b5a82",
+    "pma": {
+      "enabled": true,
+      "path": "/ws/pma",
+      "catalogVersion": "1.0"
+    },
+    "voiceDemo": {
+      "receptionist": "openai-live-marin",
+      "enabled": true,
+      "entry": "/api/ivr/main",
+      "routes": [
+        "support-specialist",
+        "sales-specialist",
+        "property-management-assistant"
+      ]
+    },
+    "supportLastSave": null,
+    "supportPersistence": "STAGING_WRITES_DISABLED",
+    "supportTicketFlowRevision": "owner-2026-10-17-v2-review-watchdog",
+    "supportRuntime": null,
+    "supportGreeting": "Hello you have reached STELLAR INTELLIGENT TECHNOLOGIES, to whom do I have the pleasure of talking to today?",
+    "supportPersonaBaseline": "b8ce29ad04261134e45491c85a42acb0ce038f27"
+  },
+  "runtime": {
+    "node": "v24.22.1",
+    "specialists": [
+      "echo",
+      "cedar"
+    ],
+    "pmaTool": true,
+    "tenantIsolation": true,
+    "networkCalls": 0
+  },
+  "result": "PASS"
+}

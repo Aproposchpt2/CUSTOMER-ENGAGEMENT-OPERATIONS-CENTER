@@ -1,0 +1,2158 @@
+{
+  "project": "hvzauakkhlivzeqatfqm",
+  "package": "scoped-v2",
+  "records": [
+    {
+      "id": "2b8ff80a-9b4e-5d11-803b-e1489dd49ebf",
+      "stable_id": "SAL-001",
+      "product_scope": "sales",
+      "content_md5": "a14af279abc41589bb7e65ea8bf92133",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "40cea4b5-7f93-5b09-a5bd-c3e343b45ad6",
+      "stable_id": "SAL-002",
+      "product_scope": "sales",
+      "content_md5": "4d496dc9f2bdbae1885b1eb505693d2c",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "ae31afb2-f0dc-596d-ab56-fcc031259737",
+      "stable_id": "SAL-003",
+      "product_scope": "sales",
+      "content_md5": "58ceb4a5148e2ee5714408a5a5d4d55e",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "d280dc1c-08cf-5b25-9685-59c01db3b9ee",
+      "stable_id": "SAL-004",
+      "product_scope": "sales",
+      "content_md5": "8f3471cc1c51407ef18be70e5894c48a",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "4c903ab8-a14a-54c0-8699-3dabf9832f82",
+      "stable_id": "SAL-005",
+      "product_scope": "sales",
+      "content_md5": "5505908372388ff165a586157509a799",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "0633d253-c72d-5f07-af87-29084025f67a",
+      "stable_id": "SAL-006",
+      "product_scope": "sales",
+      "content_md5": "4cde9b10e9db07769d5f1398b96983f2",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "d392ae5f-3464-5d6c-9e64-805cb226df85",
+      "stable_id": "SAL-007",
+      "product_scope": "sales",
+      "content_md5": "121184e47bb69ee4388d454a8108d95e",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "81dd4fe3-51e0-524b-8fd2-cec39aa260a9",
+      "stable_id": "SAL-008",
+      "product_scope": "sales",
+      "content_md5": "0976680d8eb96570d1dd8430e7027e13",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "d7d95985-127c-5fe9-be0c-1cf6f9945e70",
+      "stable_id": "SAL-009",
+      "product_scope": "sales",
+      "content_md5": "3c8780b4a249841ebd5cf8a29bd5f26b",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "4a95ce79-02eb-5bbb-adc5-191432ba3f27",
+      "stable_id": "SAL-010",
+      "product_scope": "sales",
+      "content_md5": "160ee48cc245e68bdc7a6151f776f95c",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "c393a209-f02c-5fce-9a6d-05b639cd6868",
+      "stable_id": "SAL-011",
+      "product_scope": "sales",
+      "content_md5": "1cfcddd55f88ea882c010ed9cc2ee551",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "c0effaa2-dd5d-5d33-a09e-cc0c9c7477f1",
+      "stable_id": "SAL-012",
+      "product_scope": "sales",
+      "content_md5": "98eae69b71d2a806f1877988e0c55aec",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "8971c1ed-a436-5fe0-992a-221551cdb9cb",
+      "stable_id": "SAL-013",
+      "product_scope": "sales",
+      "content_md5": "2617046b4a0599164c0291507e5dc565",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "4fffe022-4123-586b-a79c-c49fb730ed44",
+      "stable_id": "SAL-014",
+      "product_scope": "sales",
+      "content_md5": "3ed3fdc3ecca4cea0cab9a2bb79bf2f4",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "fe528729-3934-5e31-951a-9537e431f23e",
+      "stable_id": "SAL-015",
+      "product_scope": "sales",
+      "content_md5": "8ddf57c1ce4a15bcc475e85b8deb7e80",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "4959580e-6b93-5d15-87a2-29d5be8a1cd9",
+      "stable_id": "SAL-016",
+      "product_scope": "sales",
+      "content_md5": "37f70bec813fc1c9cb038bb8d9900a18",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "96457a7f-76b5-51a4-9f21-02412a8fddba",
+      "stable_id": "SAL-017",
+      "product_scope": "sales",
+      "content_md5": "4bc6b8edde64c797e291955b14c509d2",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "097bfa65-39ce-583a-a41a-c8c7e2760bab",
+      "stable_id": "SAL-018",
+      "product_scope": "sales",
+      "content_md5": "d9294562e3d39543da0bddb6ad09d8d5",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "f25ee5dc-2784-53e2-9c6a-601ee812a48e",
+      "stable_id": "SAL-019",
+      "product_scope": "sales",
+      "content_md5": "14cf342eacdb02f201f2f2ec6cf00cfa",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "ac725563-edc3-501e-b8e1-e257638e35ce",
+      "stable_id": "SAL-020",
+      "product_scope": "sales",
+      "content_md5": "69a6112b2832f6b6bd26b155b9306e21",
+      "effective_at": "2026-10-25 21:10:34.639575+00",
+      "expires_at": "2026-11-24 21:10:34.639575+00"
+    },
+    {
+      "id": "e9fba7d0-6d23-54d8-ae08-6e2ba7467faf",
+      "stable_id": "SAL-021",
+      "product_scope": "sales",
+      "content_md5": "0de1100a7121100e16f8052f61dbf6c7",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "858c9afd-d48d-5472-94a0-608cf42b911b",
+      "stable_id": "SAL-022",
+      "product_scope": "sales",
+      "content_md5": "007ed4bb5f3bbb8ac8f55f90802df15f",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "83d7a46f-f8e0-52b3-860a-a33935d59bc8",
+      "stable_id": "SAL-023",
+      "product_scope": "sales",
+      "content_md5": "418b76e928e4bd0f387ad5cc8e868f09",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "cde62191-e68a-5a47-ae64-2eaeb2591347",
+      "stable_id": "SAL-024",
+      "product_scope": "sales",
+      "content_md5": "59f3d6aefac688677983dda79430399e",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "7c2c8ad9-ce3b-534a-8014-de600e172e5c",
+      "stable_id": "SAL-025",
+      "product_scope": "sales",
+      "content_md5": "0211a1032f087bcfb3808464152cbd13",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "c318c6a7-1043-5a6a-97e1-f521e205a1fb",
+      "stable_id": "SAL-026",
+      "product_scope": "sales",
+      "content_md5": "e86279a0e5251a7858dcc0ad08400d75",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "50518c35-6bd7-5d19-ae07-17dbb64f8714",
+      "stable_id": "SAL-027",
+      "product_scope": "sales",
+      "content_md5": "327df7417335238295408390ee1b8e0b",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "4bca53a9-9f24-5a74-a70d-9a013be636cc",
+      "stable_id": "SAL-028",
+      "product_scope": "sales",
+      "content_md5": "83a92371ff218359eb18dff61fdb29ea",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "6282fc38-0295-50e7-ad62-5a623e78de78",
+      "stable_id": "SAL-029",
+      "product_scope": "sales",
+      "content_md5": "069379c4e8b539b6c004c32f1c28d0f3",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "f45bc2ba-4c99-5f38-8ae6-ac6aad0c10c4",
+      "stable_id": "SAL-030",
+      "product_scope": "sales",
+      "content_md5": "98cb8cd97f5d565b216b669ac686f264",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "5759382b-a3cd-5143-a19a-38238cda6928",
+      "stable_id": "SAL-031",
+      "product_scope": "sales",
+      "content_md5": "d6ada30708b85f4c3393a982e7be0aa0",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "9d0b75a8-1716-5488-829f-150ec3d79eb2",
+      "stable_id": "SAL-032",
+      "product_scope": "sales",
+      "content_md5": "1448c66c93d5321ad01f8d2e441c3fa8",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "24e13d57-2672-5b3a-a2fb-096e62be0d91",
+      "stable_id": "SAL-033",
+      "product_scope": "sales",
+      "content_md5": "f6834f07b9f111b75ad8db8c9915c20a",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "57719fe1-f31c-5fac-8947-2293059c80c0",
+      "stable_id": "SAL-034",
+      "product_scope": "sales",
+      "content_md5": "e07cb9fab7cdc7c23139c5087e664bd7",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "5790c721-c84a-5a35-a37c-5e8ff21ada17",
+      "stable_id": "SAL-035",
+      "product_scope": "sales",
+      "content_md5": "35638d1053baedd2dc3df9c17d12907f",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "13cc4a7c-bab8-5392-a775-cdbc1a8dba6b",
+      "stable_id": "SAL-036",
+      "product_scope": "sales",
+      "content_md5": "4cd24beb987cb9a9d915a49765cf47b3",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "4cd621e3-25d2-533e-815b-614defb3d948",
+      "stable_id": "SAL-037",
+      "product_scope": "sales",
+      "content_md5": "1a0d3a85769f9ce9f148c3e76eba40bb",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "a12227b5-ffb0-5bc7-92bd-d3bd43814aa8",
+      "stable_id": "SAL-038",
+      "product_scope": "sales",
+      "content_md5": "3c15e0032544a253aabacfd2c6646aa2",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "aa031e63-1637-501e-b0b4-c6c7b3c37350",
+      "stable_id": "SAL-039",
+      "product_scope": "sales",
+      "content_md5": "2f8e6fe36fcc7f3f414820945b7988b1",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "bf5b0b13-4a5e-5796-a172-ef8b368e7272",
+      "stable_id": "SAL-040",
+      "product_scope": "sales",
+      "content_md5": "6e9c69de0164f477c68201b528866500",
+      "effective_at": "2026-10-25 21:10:35.834131+00",
+      "expires_at": "2026-11-24 21:10:35.834131+00"
+    },
+    {
+      "id": "aef5e0fe-18dd-57cf-aee9-c825a99fd48c",
+      "stable_id": "SAL-041",
+      "product_scope": "sales",
+      "content_md5": "dceb055629fea16bd6bc7205fa576dc9",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "791147a5-1b1d-5d70-9581-563fd72f7e73",
+      "stable_id": "SAL-042",
+      "product_scope": "sales",
+      "content_md5": "7c3cf089c8290447f9fc041a84c26824",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "b9bb1dbe-a01b-50f9-9d64-ea2706624340",
+      "stable_id": "SAL-043",
+      "product_scope": "sales",
+      "content_md5": "6ff1f813edeeae14719a797fec4d999d",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "8a09faf6-0816-5fc5-84bd-ac8d90dfcf60",
+      "stable_id": "SAL-044",
+      "product_scope": "sales",
+      "content_md5": "576413e33a51368a8397ecd927824deb",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "5e5c5fd1-9776-5da3-999c-797024cd7c25",
+      "stable_id": "SAL-045",
+      "product_scope": "sales",
+      "content_md5": "5c25f59c9724fa0e2895e67f09e0ca6c",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "e9c52a5d-fde9-536c-8669-5f5e79a3921e",
+      "stable_id": "SAL-046",
+      "product_scope": "sales",
+      "content_md5": "a5c231d63ee5a60a125a8147aaf9d44b",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "20c22928-03be-543a-b06b-245e28f10c0f",
+      "stable_id": "SAL-047",
+      "product_scope": "sales",
+      "content_md5": "dc38951efbc8f44be2a735b367b1ae33",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "88f74c10-d8fc-570d-a6fe-880e412d8b4f",
+      "stable_id": "SAL-048",
+      "product_scope": "sales",
+      "content_md5": "1a6262fa1c1c60a2078d39e85b4150d7",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "8cf32e30-ef75-5938-bc65-58b8b5df59c8",
+      "stable_id": "SAL-049",
+      "product_scope": "sales",
+      "content_md5": "ae1cb017a13077d4eb9ba6a65b1062e8",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "bc83bcc4-8948-5130-877c-00e628b242a4",
+      "stable_id": "SAL-050",
+      "product_scope": "sales",
+      "content_md5": "54b83c6038f993e796ff7764a30d0a93",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "15c29e93-a36c-5b2f-8f66-5c63d5b6bc6a",
+      "stable_id": "SAL-051",
+      "product_scope": "sales",
+      "content_md5": "4a3c19c05c5ef4e2822221369ca28a63",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "e3d65b4d-dfde-52f1-b47a-ebb0209bce87",
+      "stable_id": "SAL-052",
+      "product_scope": "sales",
+      "content_md5": "4ffc13f53e95e7bd5dde4b4393d6413d",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "3135e792-0d5e-5da1-b1d5-de7b7c015841",
+      "stable_id": "SAL-053",
+      "product_scope": "sales",
+      "content_md5": "fba19e5a7ee49cc90d8eb6435cbe1392",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "249d3cd8-6266-5a97-9bc0-835f9aa0c48b",
+      "stable_id": "SAL-054",
+      "product_scope": "sales",
+      "content_md5": "45f59cc49e1cf35fc5a799e1b5e1cc37",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "92a40786-bf1a-58f3-bdc3-8f5fc5092e56",
+      "stable_id": "SAL-055",
+      "product_scope": "sales",
+      "content_md5": "b589360b7304732753882efc20a19c50",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "c1f6a716-c9be-5c73-9512-4dcd40270eae",
+      "stable_id": "SAL-056",
+      "product_scope": "sales",
+      "content_md5": "451fe695575daa8056edc4a951b9f835",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "7121950f-344f-5521-bb0b-7f9a1e62d3ff",
+      "stable_id": "SAL-057",
+      "product_scope": "sales",
+      "content_md5": "9e5a4814f769b2b1b2019611a7ef0492",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "da25dfd8-7689-5870-8806-1758c98db7cd",
+      "stable_id": "SAL-058",
+      "product_scope": "sales",
+      "content_md5": "a2dfefb940a51b7fff146021dd5d8e5d",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "e561423a-67f3-56d2-b70e-ef74d1d1ff6c",
+      "stable_id": "SAL-059",
+      "product_scope": "sales",
+      "content_md5": "5ad4070c60b7d2d13c6d3763e89583a4",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "16a0f4f9-79cb-57fe-a033-f3d503c07bb9",
+      "stable_id": "SAL-060",
+      "product_scope": "sales",
+      "content_md5": "f687000030a8d1037a04a7093ffd0f54",
+      "effective_at": "2026-10-25 21:10:37.162517+00",
+      "expires_at": "2026-11-24 21:10:37.162517+00"
+    },
+    {
+      "id": "85f5066f-283d-5545-8d57-26a6d7d88368",
+      "stable_id": "SAL-061",
+      "product_scope": "sales",
+      "content_md5": "f0b1937189937989eba1c06ea5e48eae",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "4f6b4ade-6069-5007-ade6-266b6c033da9",
+      "stable_id": "SAL-062",
+      "product_scope": "sales",
+      "content_md5": "9231678de3a99d4c95101bf9ab0f401f",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "7ce05c87-447c-5c1c-b4ac-992b83d71821",
+      "stable_id": "SAL-063",
+      "product_scope": "sales",
+      "content_md5": "89485a430c10ba87d62bfcdf728433e0",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "e8ef5321-098c-52ee-bb62-ee6ae4209920",
+      "stable_id": "SAL-064",
+      "product_scope": "sales",
+      "content_md5": "746982a3f84d064400c263b69a23ac2b",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "590b7929-a5cd-57d5-a32d-738d4ff9bd03",
+      "stable_id": "SAL-065",
+      "product_scope": "sales",
+      "content_md5": "c113198d47f82e3f08fc4f290f5ccf8b",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "b27f598d-42b8-5cd2-9d0d-38a909a66f08",
+      "stable_id": "SAL-066",
+      "product_scope": "sales",
+      "content_md5": "61dbd5a62d411ca1a3255429cca9d268",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "6d56cd68-cec0-5594-98e9-72f0d1bd78a1",
+      "stable_id": "SAL-067",
+      "product_scope": "sales",
+      "content_md5": "97292cd164a952496ddc551067b33bea",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "435c1d5e-7f92-5087-b6f9-15cfd28aad5f",
+      "stable_id": "SAL-068",
+      "product_scope": "sales",
+      "content_md5": "df8b5e9f2f1e2ecbcde31b513af9b98f",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "ea638d0d-a35e-52da-8a19-3237b32e4dde",
+      "stable_id": "SAL-069",
+      "product_scope": "sales",
+      "content_md5": "dcfd1b5303705d4b7501391d4a35b4ac",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "2a3e83aa-acf5-5be5-b5d3-ec5d9fec52d0",
+      "stable_id": "SAL-070",
+      "product_scope": "sales",
+      "content_md5": "9b226b604dcc1e3c4bb28f1fe8ddcfed",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "492483cc-53a3-5b7a-944d-31612fd27d3e",
+      "stable_id": "SAL-071",
+      "product_scope": "sales",
+      "content_md5": "9b0efd2b96c512d9cd96a5f0e96a3f17",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "273c80f2-9d1b-5cc5-955f-ceb3756a2a86",
+      "stable_id": "SAL-072",
+      "product_scope": "sales",
+      "content_md5": "bea15f81e767cf606c85e66484c3ef13",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "f69effcd-2815-5c57-b0a5-523f286ea0f4",
+      "stable_id": "SAL-073",
+      "product_scope": "sales",
+      "content_md5": "51c554a67b8f6336eacde5c4e7a65a77",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "d228cf1c-97f0-5b6f-86d9-29d28aedd01e",
+      "stable_id": "SAL-074",
+      "product_scope": "sales",
+      "content_md5": "1ef971f92965e113504bdc252b83d1f9",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "3029b1c8-140d-5d66-874c-0408636baf54",
+      "stable_id": "SAL-075",
+      "product_scope": "sales",
+      "content_md5": "41c3439100ea9f305768976d3d41321d",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "835270e7-82f9-5df0-9958-3ea829b67593",
+      "stable_id": "SAL-076",
+      "product_scope": "sales",
+      "content_md5": "3f997d0ef80cec0745ffae14a935fd86",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "89ea0451-29c0-5969-8f37-1f90f78c438d",
+      "stable_id": "SAL-077",
+      "product_scope": "sales",
+      "content_md5": "719cf2e7518ab29ac43038056ed0dccb",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "555e42d6-8ad6-5dd9-a1d9-9a9687c6846f",
+      "stable_id": "SAL-078",
+      "product_scope": "sales",
+      "content_md5": "ef6c0697ea4b8774f171165195c6fbe0",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "33d1fff6-2a4f-51b2-811f-3908ec95bc47",
+      "stable_id": "SAL-079",
+      "product_scope": "sales",
+      "content_md5": "d685412942ca233848c587faee54f37c",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "f41e5d31-ad56-5add-8c20-55285ab5c62f",
+      "stable_id": "SAL-080",
+      "product_scope": "sales",
+      "content_md5": "3cef159aaffe8f9bb2dad8fa4d62bcbe",
+      "effective_at": "2026-10-25 21:10:38.3041+00",
+      "expires_at": "2026-11-24 21:10:38.3041+00"
+    },
+    {
+      "id": "b67e3287-a790-5365-94b8-8a1cd99cfc07",
+      "stable_id": "SAL-081",
+      "product_scope": "sales",
+      "content_md5": "89d516816406690de10a4ebb6661f15c",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "a7a912b4-b14e-564d-9bdb-cc9282ffbee0",
+      "stable_id": "SAL-082",
+      "product_scope": "sales",
+      "content_md5": "a05e71ba2f6f0b215757d97b952776fb",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "c0e622cf-0d42-55bc-9560-437bf046145d",
+      "stable_id": "SAL-083",
+      "product_scope": "sales",
+      "content_md5": "b571ee6467a8ea7cdcb046393c7762e6",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "928746c4-39fc-5e98-9c55-7f52214f1fe3",
+      "stable_id": "SAL-084",
+      "product_scope": "sales",
+      "content_md5": "f7bce4ed87269af5230b2b1d71a2ce82",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "546a605e-aec4-5323-8589-fd2ceb661579",
+      "stable_id": "SAL-085",
+      "product_scope": "sales",
+      "content_md5": "4f56a0cdb027ea743eca2f62f79c3270",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "756f9547-6de8-51a4-be7f-3aaebd2a4dd0",
+      "stable_id": "SAL-086",
+      "product_scope": "sales",
+      "content_md5": "830ed5097940d7c34bcf2e4c28de4e77",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "73b2b855-0b6f-5c90-8d9a-9dcccf8bf09d",
+      "stable_id": "SAL-087",
+      "product_scope": "sales",
+      "content_md5": "558ed79fa1dea8a1b22aa18215ade7b3",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "d28fd447-9ca8-5820-ad4f-dd55e09c54fa",
+      "stable_id": "SAL-088",
+      "product_scope": "sales",
+      "content_md5": "0b2bcd7e14c269fbcc2ff408e55690a3",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "8fe4732a-5d2a-5403-97e6-4873aa627c10",
+      "stable_id": "SAL-089",
+      "product_scope": "sales",
+      "content_md5": "ab2ff7c195c13eab38518193d96c799b",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "4753a594-99af-5c3b-969f-7b9d6a8f2e20",
+      "stable_id": "SAL-090",
+      "product_scope": "sales",
+      "content_md5": "615ac2abd92cd76267538d22370e102c",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "07b23d62-7d4d-548f-92e5-4730e25223de",
+      "stable_id": "SAL-091",
+      "product_scope": "sales",
+      "content_md5": "615ac2abd92cd76267538d22370e102c",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "0da4b2ce-9e0e-5048-b530-788aa1987e1c",
+      "stable_id": "SAL-092",
+      "product_scope": "sales",
+      "content_md5": "66aea1b4ecd041416233930844b88428",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "790ebca1-3144-5b7b-a1ae-89b27b5d3d58",
+      "stable_id": "SAL-093",
+      "product_scope": "sales",
+      "content_md5": "7a409814b935d06a65a08d5e9c29806c",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "da50f89a-7e30-53a1-bb1e-c19e9b15ecb8",
+      "stable_id": "SAL-094",
+      "product_scope": "sales",
+      "content_md5": "40301665675bc130615fb8e3d75c9239",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "a220b066-4d82-5bf2-9370-ac80c9eeb2cc",
+      "stable_id": "SAL-095",
+      "product_scope": "sales",
+      "content_md5": "eb8d8023b2432d2c8773c788c1aed047",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "9f6d6f11-74bb-5040-babf-4890df2e4d08",
+      "stable_id": "SAL-096",
+      "product_scope": "sales",
+      "content_md5": "e3da8098416a3c487aac7b854b90bfb5",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "a529c2e5-2dca-52b8-946e-0b337ac5e42d",
+      "stable_id": "SAL-097",
+      "product_scope": "sales",
+      "content_md5": "ba989bd47548d70466425de91ce1c0b7",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "e8893aa3-f496-5d53-a1df-9df74ef58267",
+      "stable_id": "SAL-098",
+      "product_scope": "sales",
+      "content_md5": "ba989bd47548d70466425de91ce1c0b7",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "e54e37e9-5c1f-522b-8a1d-824be1183c16",
+      "stable_id": "SAL-099",
+      "product_scope": "sales",
+      "content_md5": "7d87633df29332d066e1bb5c42dea780",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "78fa676f-8ffe-523e-b9d9-b0ff9853c7dc",
+      "stable_id": "SAL-100",
+      "product_scope": "sales",
+      "content_md5": "ab0d820ef8f3b1f41e54c943eba56378",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "57b5f120-237d-5b9f-b2d4-f8f728dcb10a",
+      "stable_id": "CALLBACK_REQUEST",
+      "product_scope": "support_hvac",
+      "content_md5": "7254426470f4eea6aa8770d6af313a92",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "1902ffa3-11d0-53bf-be71-0238e210e4bd",
+      "stable_id": "CARBON_MONOXIDE",
+      "product_scope": "support_hvac",
+      "content_md5": "0245e89ca3003a225a61680792c5e8a4",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "76f87141-27a4-588f-b583-74b4a80a3e97",
+      "stable_id": "COMPLAINT_ESCALATION",
+      "product_scope": "support_hvac",
+      "content_md5": "40f728e0101cfff0fe04df05b8bb8433",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "b87b5174-c97e-533d-9427-1c6e7aa90999",
+      "stable_id": "FIRE_ELECTRICAL",
+      "product_scope": "support_hvac",
+      "content_md5": "941b1faa11e075c1ea49712b0e2e8117",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "482b547b-383d-577d-b375-8ba4a94411fe",
+      "stable_id": "GAS_LEAK",
+      "product_scope": "support_hvac",
+      "content_md5": "a014d3e811f9fdb47d6bfb156fbe4388",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "ace6415c-2bab-5c34-a584-4de71971831d",
+      "stable_id": "INDOOR_AIR_QUALITY",
+      "product_scope": "support_hvac",
+      "content_md5": "26e06fc266a7d321718446c0f13f794d",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "d3832a88-3b25-568a-93d4-c0341dfa4177",
+      "stable_id": "MAINTENANCE_REQUEST",
+      "product_scope": "support_hvac",
+      "content_md5": "d369c223076a6d3100a418d66fbf4711",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "198b3b2e-834e-5668-8a43-98478acf31f3",
+      "stable_id": "NO_COOLING",
+      "product_scope": "support_hvac",
+      "content_md5": "3440cd248bac0fb18b37d61171c5a378",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "47186256-6100-59d6-8332-a75dacda46a6",
+      "stable_id": "NO_HEAT",
+      "product_scope": "support_hvac",
+      "content_md5": "5a4140475d101031a869961744f4873d",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "a6ff1994-ed1f-55c3-adc2-68cc14f82092",
+      "stable_id": "PRICE_ESTIMATE",
+      "product_scope": "support_hvac",
+      "content_md5": "2d3255c27bb0748ee7414703a260cbf9",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "0607103f-cea0-589b-b667-6dbf38d1e7d6",
+      "stable_id": "SERVICE_HOURS",
+      "product_scope": "support_hvac",
+      "content_md5": "cd1bdb7560c45f845c089d3c4af90e01",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "e82b2eab-f608-57d4-9a22-e77e3e6f28e0",
+      "stable_id": "THERMOSTAT",
+      "product_scope": "support_hvac",
+      "content_md5": "cdc66a30b143574b5c123a979514de7a",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "66258f22-b717-5f23-88d2-3671324726c8",
+      "stable_id": "TICKET_CREATION",
+      "product_scope": "support_hvac",
+      "content_md5": "586b3ab110565e89d354a22ae49483f7",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "df0ea3d7-059b-5d7f-9769-9a5ae0f08047",
+      "stable_id": "TICKET_STATUS",
+      "product_scope": "support_hvac",
+      "content_md5": "4fa139b273733eca204d28bb4d109b08",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "a3a28900-fb20-5933-9a0a-b434429ad361",
+      "stable_id": "UNRECOGNIZED",
+      "product_scope": "support_hvac",
+      "content_md5": "c0f845cc2f420353e2166c6c889c3cac",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "f113dc0a-6134-5be8-bcf5-a7cb08175e23",
+      "stable_id": "UNUSUAL_NOISE",
+      "product_scope": "support_hvac",
+      "content_md5": "e33bc3442dcad6c4e7c728b15db7a00f",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "0548bf9f-b2f0-50ba-9a3c-c1810b7feb8e",
+      "stable_id": "WARRANTY",
+      "product_scope": "support_hvac",
+      "content_md5": "219ce940e9ee65b3a1a676564e43fa8a",
+      "effective_at": "2026-10-25 21:10:50.409534+00",
+      "expires_at": "2026-11-24 21:10:50.409534+00"
+    },
+    {
+      "id": "7ec924ce-9fc8-5aac-a89b-c2b470dd3652",
+      "stable_id": "WATER_LEAK",
+      "product_scope": "support_hvac",
+      "content_md5": "a5dc8ac31dcb2e0f7dd56c351d13e7e0",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "994aa681-75fa-5606-80d4-9fec1ae1d002",
+      "stable_id": "WEAK_AIRFLOW",
+      "product_scope": "support_hvac",
+      "content_md5": "e682e13cdef77b69f0aa0b71f66ede05",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "a7669077-6423-5f38-a1b4-43980f43803f",
+      "stable_id": "SUP-001",
+      "product_scope": "support_platform",
+      "content_md5": "e8e3502018b136979234e84de51ef32e",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "4b115037-e981-5534-a701-1b4f40cf621c",
+      "stable_id": "SUP-002",
+      "product_scope": "support_platform",
+      "content_md5": "b532816b5be5e48cc3f6d23a86c23ff0",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "f58d1518-dcec-5415-b691-a7ff56358276",
+      "stable_id": "SUP-003",
+      "product_scope": "support_platform",
+      "content_md5": "6391e6616fed28be160d7afcde058f68",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "821a5818-efba-595c-b669-b690942ab233",
+      "stable_id": "SUP-004",
+      "product_scope": "support_platform",
+      "content_md5": "a0098e81e63f132c0ba8a3cdfc33e3f2",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "f4e696a3-cea7-5c3d-b055-a962ffa03351",
+      "stable_id": "SUP-005",
+      "product_scope": "support_platform",
+      "content_md5": "488ce57dbe0c62533d7755de56bc9640",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "063451e5-6bde-5332-9171-2d012b8031da",
+      "stable_id": "SUP-006",
+      "product_scope": "support_platform",
+      "content_md5": "ca4c6e7c28395d35ee401f863884db38",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "ee45dd44-0675-58e2-a41e-c65589c95c3c",
+      "stable_id": "SUP-007",
+      "product_scope": "support_platform",
+      "content_md5": "eadae235f61257134e2d4fa5468647b4",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "82dab161-9b7b-5449-98ae-6e19ff1f6a8a",
+      "stable_id": "SUP-008",
+      "product_scope": "support_platform",
+      "content_md5": "0c9bf2c6fbb67a15908740227367b425",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "200d8fbe-39e3-5279-a739-f3141a53d04e",
+      "stable_id": "SUP-009",
+      "product_scope": "support_platform",
+      "content_md5": "101e9707e34e64fd55903585ef02d67f",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "e843dedb-438c-554a-a216-8e5f9a92a451",
+      "stable_id": "SUP-010",
+      "product_scope": "support_platform",
+      "content_md5": "0c334c235434413df2c8eb60a1fa6b2d",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "33da760d-0def-53a1-b98b-08b99a7bd4c2",
+      "stable_id": "SUP-011",
+      "product_scope": "support_platform",
+      "content_md5": "d1af2e455d84ea269a6e14b8a2f32f1f",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "1575fb57-99bd-518a-a5df-b20f6315885f",
+      "stable_id": "SUP-012",
+      "product_scope": "support_platform",
+      "content_md5": "5ab8484daf2c8e5de1d65437b0567816",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "605f5765-be96-5d31-9389-021848e14b39",
+      "stable_id": "SUP-013",
+      "product_scope": "support_platform",
+      "content_md5": "8b7785c49664b8196339428d1189c048",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "e92a25e8-8e58-5fde-a9c5-9d0188f8a532",
+      "stable_id": "SUP-014",
+      "product_scope": "support_platform",
+      "content_md5": "7de27674527f255b113ebb7d5e24e7cc",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "c8a8fc71-7a31-5204-a73e-8536804c5840",
+      "stable_id": "SUP-015",
+      "product_scope": "support_platform",
+      "content_md5": "35847f7c35d664c6f4846d3e38c7d105",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "5e36ef54-fc5d-5086-9d67-53f6d73eb876",
+      "stable_id": "SUP-016",
+      "product_scope": "support_platform",
+      "content_md5": "45d67695bbd3a6edcc64a6c858f1ebd8",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "63bc30c5-6627-5dde-adee-c7174c639142",
+      "stable_id": "SUP-017",
+      "product_scope": "support_platform",
+      "content_md5": "7a439885c0a373a67ce8ac21a618d806",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "d0261f65-cbf4-5b70-99c6-9dfb8ab6f263",
+      "stable_id": "SUP-018",
+      "product_scope": "support_platform",
+      "content_md5": "14cd74e790cce537a979321db048b17e",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "75699727-d108-5778-b0d3-a04e71948d58",
+      "stable_id": "SUP-019",
+      "product_scope": "support_platform",
+      "content_md5": "4c630eab2bbf934dc54b7f94093bd7dd",
+      "effective_at": "2026-10-25 21:10:39.70077+00",
+      "expires_at": "2026-11-24 21:10:39.70077+00"
+    },
+    {
+      "id": "588160a4-20aa-5287-b036-e604386490c3",
+      "stable_id": "SUP-020",
+      "product_scope": "support_platform",
+      "content_md5": "d1eea1ace64487487a07c84ae5ec59ea",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "190a8b10-2993-564e-b3fc-6afb7950f513",
+      "stable_id": "SUP-021",
+      "product_scope": "support_platform",
+      "content_md5": "1dc79decdd7b192c02a49a421b171384",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "4f21746a-508d-5090-bc64-f328122efe90",
+      "stable_id": "SUP-022",
+      "product_scope": "support_platform",
+      "content_md5": "310d6a4e30336c9a52f2aaedcc8102ea",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "1619efa1-eb00-5c09-bfa3-76f9c5a1da25",
+      "stable_id": "SUP-023",
+      "product_scope": "support_platform",
+      "content_md5": "e798f04e62ff9837d5b83455ae53c547",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "4364d047-0eb9-5085-855f-661cdefbc535",
+      "stable_id": "SUP-024",
+      "product_scope": "support_platform",
+      "content_md5": "9a9177a0a857e8203bedf333a9685d82",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "0137aa82-e586-5d5a-895f-8bb5e7894e85",
+      "stable_id": "SUP-025",
+      "product_scope": "support_platform",
+      "content_md5": "897ec42aeec84838b9aa2ee0d5cec6ef",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "abee7334-6ec1-5e5d-9e60-7c5c6f91294c",
+      "stable_id": "SUP-026",
+      "product_scope": "support_platform",
+      "content_md5": "fe1371f2b7e167ab2882d4450acce8eb",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "b3b60eb2-3ef4-58ff-a147-70e6ec299192",
+      "stable_id": "SUP-027",
+      "product_scope": "support_platform",
+      "content_md5": "705a555dc63a87adc549eaf21fac6d47",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "20c7c458-571e-5eff-b5c8-cc20f35c4828",
+      "stable_id": "SUP-028",
+      "product_scope": "support_platform",
+      "content_md5": "07e8946170e623714d25294e4a886095",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "c89f6f8c-d8bb-5feb-b17d-ff60537fb9e9",
+      "stable_id": "SUP-029",
+      "product_scope": "support_platform",
+      "content_md5": "7303d6ce1667d113e76a86cc13d4be44",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "c8a697c4-2e9f-5726-bb0e-9ace4871c7dc",
+      "stable_id": "SUP-030",
+      "product_scope": "support_platform",
+      "content_md5": "e7e866ba33c912fb3c4f4628371b99c4",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "12ae9874-78b4-5f0d-8d9b-2354ecfd02c1",
+      "stable_id": "SUP-031",
+      "product_scope": "support_platform",
+      "content_md5": "59e1fca4998801e5c3ade6065811a206",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "49461f97-e8ae-50b7-93ca-fbf27a5c462b",
+      "stable_id": "SUP-032",
+      "product_scope": "support_platform",
+      "content_md5": "78a8aad4c5a4207ec022f8958a1c6b7c",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "e9ffaeba-47ed-55e4-b139-3d7e40f5744e",
+      "stable_id": "SUP-033",
+      "product_scope": "support_platform",
+      "content_md5": "dcc6a480c5f8cc78adb9fad5aa61f448",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "bc26cc51-a281-5e01-ae7d-d8e354f1e00c",
+      "stable_id": "SUP-034",
+      "product_scope": "support_platform",
+      "content_md5": "42947b3bfa3c7cbc6382cab370f7acc5",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "0c1d81ca-a392-542c-bdaf-7cd2a68a6ea6",
+      "stable_id": "SUP-035",
+      "product_scope": "support_platform",
+      "content_md5": "44f08985a41357ba8c515d4cb8c1c718",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "db75f003-8a3b-5072-8a00-1a0ecc364bd6",
+      "stable_id": "SUP-036",
+      "product_scope": "support_platform",
+      "content_md5": "fa41da1fecccc3a9153dc11d0b0d4422",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "2e6fb2df-748b-5402-97d5-558d9059131e",
+      "stable_id": "SUP-037",
+      "product_scope": "support_platform",
+      "content_md5": "7620c897b0e884eed70f8ce90c31a589",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "f7250570-b7a8-59cc-9d84-b84dd42615fe",
+      "stable_id": "SUP-038",
+      "product_scope": "support_platform",
+      "content_md5": "ccbf4881cc02ec39ece29c893a993442",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "7f5fe5d4-b484-54ed-92fb-6142a7d0ef88",
+      "stable_id": "SUP-039",
+      "product_scope": "support_platform",
+      "content_md5": "6bf8d5852d83309a4ad37881beb00c90",
+      "effective_at": "2026-10-25 21:10:40.812542+00",
+      "expires_at": "2026-11-24 21:10:40.812542+00"
+    },
+    {
+      "id": "0a36b2d9-b777-5db0-b253-8789ca0cb3c2",
+      "stable_id": "SUP-040",
+      "product_scope": "support_platform",
+      "content_md5": "f26297393eaf4015f57492593d05b003",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "4d4f49ad-6460-56a0-83f9-1e7c6d17640c",
+      "stable_id": "SUP-041",
+      "product_scope": "support_platform",
+      "content_md5": "941c9535c760566c7499d30fac3e6812",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "59f37f69-c3c0-50e7-a2b1-df77fb8a93a4",
+      "stable_id": "SUP-042",
+      "product_scope": "support_platform",
+      "content_md5": "ea1d8ece53be4a9fa8692510c087c155",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "d0ff2874-515d-5774-ae0f-a17b7a429250",
+      "stable_id": "SUP-043",
+      "product_scope": "support_platform",
+      "content_md5": "338782cfa159d99360cb357a06f69874",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "5ba53a6e-8356-57a5-aadc-587ad20d3eec",
+      "stable_id": "SUP-044",
+      "product_scope": "support_platform",
+      "content_md5": "555cf49c687cbfd6f4558b3606ba2e4e",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "afa204e8-f132-5a0c-bbad-6b8170fd7a0a",
+      "stable_id": "SUP-045",
+      "product_scope": "support_platform",
+      "content_md5": "a19b01558ab696bdb427e6d75600ee75",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "78304c4f-b3f6-5ac9-b1cf-ed2d1a6dfa23",
+      "stable_id": "SUP-046",
+      "product_scope": "support_platform",
+      "content_md5": "aa4fa3d45cb406a24e3f08fa6671098b",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "e6a50635-7955-54c8-b8a3-07c9c40abcb4",
+      "stable_id": "SUP-047",
+      "product_scope": "support_platform",
+      "content_md5": "4d6c3b1c522786d45fd4ac56150272a2",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "90bb0b9f-1233-560b-8e5d-59f9554d06d6",
+      "stable_id": "SUP-048",
+      "product_scope": "support_platform",
+      "content_md5": "877dee6bfa642b3ddb65614b8b8194f0",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "38646ca5-f1a5-5120-ab26-e5219f4929cf",
+      "stable_id": "SUP-049",
+      "product_scope": "support_platform",
+      "content_md5": "b09f041a1aa025a5e08cedabd0a2b111",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "8d0e40fe-94f5-5fac-854a-6222e4035041",
+      "stable_id": "SUP-050",
+      "product_scope": "support_platform",
+      "content_md5": "633c88cd75be3118de58103528aa166b",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "b7d7a752-b5b9-5d52-95fd-4d038ed4cb5a",
+      "stable_id": "SUP-051",
+      "product_scope": "support_platform",
+      "content_md5": "c6947ed3d5228601f5578a91feb03979",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "05d88c20-a8c9-5bbe-b300-e426a120ba44",
+      "stable_id": "SUP-052",
+      "product_scope": "support_platform",
+      "content_md5": "2ad58fb89cfc2c0ed712c1d644ae962b",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "d1abe5ef-b847-5f70-9475-62122fd0658e",
+      "stable_id": "SUP-053",
+      "product_scope": "support_platform",
+      "content_md5": "f9f1c1c153121a618517620071e7ec25",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "e75debd4-6edf-59e4-85f9-3801334a4c64",
+      "stable_id": "SUP-054",
+      "product_scope": "support_platform",
+      "content_md5": "fec19d4b4102ab728e5886110aec8bdb",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "1cd84a4d-0b21-57df-ad03-e825c443625b",
+      "stable_id": "SUP-055",
+      "product_scope": "support_platform",
+      "content_md5": "a4116ba7876413b082c108b668db32f6",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "d41f8c60-d06e-5d5e-b5f6-72ccbbab6c42",
+      "stable_id": "SUP-056",
+      "product_scope": "support_platform",
+      "content_md5": "7f32ed483440c3bc459cdb662f84b7cc",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "f1a2049f-5aae-5c5a-8adc-21df4bb7f1d7",
+      "stable_id": "SUP-057",
+      "product_scope": "support_platform",
+      "content_md5": "9bd989e798248a5c13c31bf0d5254ff0",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "a1f32d77-6b0b-5adf-bcda-2812493cfeb2",
+      "stable_id": "SUP-058",
+      "product_scope": "support_platform",
+      "content_md5": "d0df35659f8a2bb9ccae43ba65c8e9cf",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "78c6a84a-92eb-5c8d-ab9c-114a6284a0f6",
+      "stable_id": "SUP-059",
+      "product_scope": "support_platform",
+      "content_md5": "92e715b26623452ac58880f7747cf8f6",
+      "effective_at": "2026-10-25 21:10:41.909442+00",
+      "expires_at": "2026-11-24 21:10:41.909442+00"
+    },
+    {
+      "id": "07c00f20-cc65-5a2f-857b-bbf03df24c84",
+      "stable_id": "SUP-060",
+      "product_scope": "support_platform",
+      "content_md5": "75777c4d77dae07868a148b1d8488d19",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "2da3b63c-b92a-5ffb-ae4a-4c1e0ea60e86",
+      "stable_id": "SUP-061",
+      "product_scope": "support_platform",
+      "content_md5": "a404d5ff3adcde151ad4d06d9499a853",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "20a7c0cd-042c-5d2c-b979-b9f9f95b1ae5",
+      "stable_id": "SUP-062",
+      "product_scope": "support_platform",
+      "content_md5": "8cb79d18a5c2d426cd7af0a0f5ff7df8",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "ae9de965-1eee-5dd3-a216-69a87c21c48d",
+      "stable_id": "SUP-063",
+      "product_scope": "support_platform",
+      "content_md5": "acf71c4008cf0185463cb18ac83776c2",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "a67b6989-84ab-5abe-8f39-65f6c1e49d3e",
+      "stable_id": "SUP-064",
+      "product_scope": "support_platform",
+      "content_md5": "2f90dc703d192cf2a005fbd4f35d3a14",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "bf44bdf6-64a7-5f13-b810-d6cd835a609a",
+      "stable_id": "SUP-065",
+      "product_scope": "support_platform",
+      "content_md5": "0db14ffb4c7f035c0b909bf59db12acd",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "87d10793-2e6c-53fa-bdf7-9679ccb56c03",
+      "stable_id": "SUP-066",
+      "product_scope": "support_platform",
+      "content_md5": "204b43596a99097940d4ab5429141492",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "cc9787f0-ecba-5800-807b-1b12e57255b2",
+      "stable_id": "SUP-067",
+      "product_scope": "support_platform",
+      "content_md5": "9094ca237add6d72f3c4a49a1b490d80",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "85451a19-424c-5d33-a5a6-a5d570aa67bf",
+      "stable_id": "SUP-068",
+      "product_scope": "support_platform",
+      "content_md5": "f5ccf93d97e3b933a27670eac2b460ac",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "663ebbf5-322f-58d6-861d-9ac0cf8ed7e0",
+      "stable_id": "SUP-069",
+      "product_scope": "support_platform",
+      "content_md5": "74f46f27576ab954097700821a5761da",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "5c7c9fdf-d507-5bc8-a7fa-5f9296a9f355",
+      "stable_id": "SUP-070",
+      "product_scope": "support_platform",
+      "content_md5": "712e40b214f54ebab3cb3d021ed366c2",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "f2d1813b-677e-513f-8334-2cd54415615e",
+      "stable_id": "SUP-071",
+      "product_scope": "support_platform",
+      "content_md5": "c37bc77443e0309686cddd023332c3db",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "4a9d91d1-0b7b-5c66-8f24-facd9f3c1946",
+      "stable_id": "SUP-072",
+      "product_scope": "support_platform",
+      "content_md5": "3a6a39b47bc35f148f5a5dfe1350ab94",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "4c8f3405-5ee9-5574-8684-f942d4b5502b",
+      "stable_id": "SUP-073",
+      "product_scope": "support_platform",
+      "content_md5": "b19662260ea25f5fe4e62954bff39569",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "b2e18b5c-2bc6-5383-b576-8235ea3ec428",
+      "stable_id": "SUP-074",
+      "product_scope": "support_platform",
+      "content_md5": "84fa04f8aa5237875b174a4cd8521c42",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "2e9b166d-a144-5a31-afec-3c0f068cee3b",
+      "stable_id": "SUP-075",
+      "product_scope": "support_platform",
+      "content_md5": "307415bb3809a8855d2f24fd72aa5692",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "af6d2b6f-2a5c-5a11-90ff-4b95c1cabddf",
+      "stable_id": "SUP-076",
+      "product_scope": "support_platform",
+      "content_md5": "25d8408afaabbe13f06eabc22eae7f87",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "e34783bf-7bda-5152-9284-e217b39fa2f9",
+      "stable_id": "SUP-077",
+      "product_scope": "support_platform",
+      "content_md5": "9d791859ba9b09ffc8fda4c9772156e3",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "972bc3aa-a006-55d2-98f6-9f35a92de8a7",
+      "stable_id": "SUP-078",
+      "product_scope": "support_platform",
+      "content_md5": "990082a5426da3f66fd0284038358323",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "b3f58195-ba67-5500-a7c8-c5b8b98ba79d",
+      "stable_id": "SUP-079",
+      "product_scope": "support_platform",
+      "content_md5": "a7ff1905f872646c6ba0ed7c208df954",
+      "effective_at": "2026-10-25 21:10:43.16303+00",
+      "expires_at": "2026-11-24 21:10:43.16303+00"
+    },
+    {
+      "id": "9357b5d1-f285-5732-9ccb-a76b8da96f89",
+      "stable_id": "SUP-080",
+      "product_scope": "support_platform",
+      "content_md5": "f00eb26033263ccb28aef0cdf76e90e6",
+      "effective_at": "2026-10-25 21:10:44.344952+00",
+      "expires_at": "2026-11-24 21:10:44.344952+00"
+    },
+    {
+      "id": "68250bc5-39df-5ea9-814c-836227357391",
+      "stable_id": "SUP-081",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "d83466b9-9214-5943-b37b-29ce1a31bf44",
+      "stable_id": "SUP-082",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "09994ac9-ffd6-56f4-bab9-a8d663de90a6",
+      "stable_id": "SUP-083",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "de97a8ac-9d85-5a33-8223-231f810d68e6",
+      "stable_id": "SUP-084",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "db83b9ff-d8d3-5fed-ba98-d78b0bcc75be",
+      "stable_id": "SUP-085",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "e3bdd663-1d61-5a25-9e0a-7d88ee1d474a",
+      "stable_id": "SUP-086",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "f1792312-df4e-50c3-a399-5739ff01335b",
+      "stable_id": "SUP-087",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "faa8fdda-85ca-53b0-989c-c72a28fb6f07",
+      "stable_id": "SUP-088",
+      "product_scope": "support_platform",
+      "content_md5": "35ead3a7bf53fdfb487fc64c94fa86f2",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "0d8ababc-4bcb-57d6-928d-d9fd718d113c",
+      "stable_id": "SUP-089",
+      "product_scope": "support_platform",
+      "content_md5": "9eba3c51728dc5a71deed10acf1a52fe",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "31e23bdd-e88e-5a36-a61e-8644487bd855",
+      "stable_id": "SUP-090",
+      "product_scope": "support_platform",
+      "content_md5": "d148caad565c4f3c1e295081571c059b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "025caa62-3278-5fd7-a3ee-0647c80df18f",
+      "stable_id": "SUP-091",
+      "product_scope": "support_platform",
+      "content_md5": "eebfcdfed94b692fa4bee99eff62d582",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "629c7cb3-5d7a-5f9d-813c-71357f455426",
+      "stable_id": "SUP-092",
+      "product_scope": "support_platform",
+      "content_md5": "32d165e366871e28f1c26d1e441308e2",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "b17924df-7d3f-5a16-9626-39b722d0fc26",
+      "stable_id": "SUP-093",
+      "product_scope": "support_platform",
+      "content_md5": "002a7216eb98095e533aa62c634a5ddf",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "f511d7fe-5b0a-53d5-b087-562a858f8fae",
+      "stable_id": "SUP-094",
+      "product_scope": "support_platform",
+      "content_md5": "7d67445a5d44e1b4141adb09ce47c8b0",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "bffedb04-18d5-51f0-8ab0-d712139e0889",
+      "stable_id": "SUP-095",
+      "product_scope": "support_platform",
+      "content_md5": "0c8d11310d1e4780cbd041ba2e253b4b",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "cbc45d22-4c78-5c60-8371-ca48a3bbd9fb",
+      "stable_id": "SUP-096",
+      "product_scope": "support_platform",
+      "content_md5": "0084b91ce2fba36d964b7ed96f66c6fe",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "e3d92b85-ed1b-52ea-8977-a0c779b07b9e",
+      "stable_id": "SUP-097",
+      "product_scope": "support_platform",
+      "content_md5": "c704d8d2568747983501e43996722c5c",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "b95ee671-ddae-5028-bdc3-630a869b7c3a",
+      "stable_id": "SUP-098",
+      "product_scope": "support_platform",
+      "content_md5": "a89908f049e3160018397812e0f2996d",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "236fa5bb-39c0-5cb8-ba38-ab780d619e8f",
+      "stable_id": "SUP-099",
+      "product_scope": "support_platform",
+      "content_md5": "ab78f60be56f963beb0af369cd2f1834",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "7b2ca9d6-66a8-5c62-927e-2cd0b10a7c1c",
+      "stable_id": "SUP-100",
+      "product_scope": "support_platform",
+      "content_md5": "5bb3b0df6230543b063aa1f7be4e9ced",
+      "effective_at": "2026-10-25 21:10:45.710433+00",
+      "expires_at": "2026-11-24 21:10:45.710433+00"
+    },
+    {
+      "id": "bd01ec2d-e8fe-52ff-9bff-b824227b3217",
+      "stable_id": "SUP-101",
+      "product_scope": "support_platform",
+      "content_md5": "2a4e383878a39baeb3c0f90ce6bf13c3",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "81a17dce-0524-5ba4-86d0-6f9ef0e3136d",
+      "stable_id": "SUP-102",
+      "product_scope": "support_platform",
+      "content_md5": "874b03a9d40b83a62d6972342ab81e18",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "00192820-0fc4-5c0e-a99c-ac8029369df1",
+      "stable_id": "SUP-103",
+      "product_scope": "support_platform",
+      "content_md5": "7cc110b648bf48cfd849f8582665007e",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "cc8529da-dc75-5573-bae2-aed5dc078c12",
+      "stable_id": "SUP-104",
+      "product_scope": "support_platform",
+      "content_md5": "f9534060e2474692527f9992057e48b5",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "697ae26e-6065-5f86-ba86-352b2c3c6942",
+      "stable_id": "SUP-105",
+      "product_scope": "support_platform",
+      "content_md5": "1fde3620baeb7c67348926469ac0af1e",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "154c78ff-c65e-5692-bc0d-dc56bd42dfa3",
+      "stable_id": "SUP-106",
+      "product_scope": "support_platform",
+      "content_md5": "02910ed67dd6b0c7accaaa11a51a9d3e",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "5f5acc75-877f-5f18-85f8-1a4508ef8d68",
+      "stable_id": "SUP-107",
+      "product_scope": "support_platform",
+      "content_md5": "59353a75cb770ddd5fa74ac01a633d70",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "c8faa4ae-bd03-5adf-8fdd-2d2e6d6ac7ab",
+      "stable_id": "SUP-108",
+      "product_scope": "support_platform",
+      "content_md5": "723f7724b05bf2c7ab85d73864e35e02",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "c1313023-409e-5b77-b653-8658d78e8d11",
+      "stable_id": "SUP-109",
+      "product_scope": "support_platform",
+      "content_md5": "7d87633df29332d066e1bb5c42dea780",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "0115a797-d23c-5c78-8173-ae2babafccb7",
+      "stable_id": "SUP-110",
+      "product_scope": "support_platform",
+      "content_md5": "7d87633df29332d066e1bb5c42dea780",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "d5860426-0cbc-5e7a-8f63-d2327130fa42",
+      "stable_id": "SUP-111",
+      "product_scope": "support_platform",
+      "content_md5": "2675c8bce6c159bc01845b083c150f25",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "c7e8b37a-1e6e-5ca1-b868-f014c24c58ff",
+      "stable_id": "SUP-112",
+      "product_scope": "support_platform",
+      "content_md5": "568a849b67ac39b98634252d5853a1d0",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "893256e4-999e-513f-99d5-8b92ee26ea42",
+      "stable_id": "SUP-113",
+      "product_scope": "support_platform",
+      "content_md5": "f2fb9aff7b2ded474989868459243aa3",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "bdab4a72-12d4-595e-9bd7-6216af28b958",
+      "stable_id": "SUP-114",
+      "product_scope": "support_platform",
+      "content_md5": "7d87633df29332d066e1bb5c42dea780",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "3ae39f99-3919-59c9-bc08-9c2e5471cc18",
+      "stable_id": "SUP-115",
+      "product_scope": "support_platform",
+      "content_md5": "fbfe8388b3d95407dc21119144f3658d",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "bfb90a7e-d077-59ac-bf1c-770600cef955",
+      "stable_id": "SUP-116",
+      "product_scope": "support_platform",
+      "content_md5": "e8261f9bc2a1c71ad20e4bf42b7d3064",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "3d76ffa3-f117-51b5-8472-0b25c85062b0",
+      "stable_id": "SUP-117",
+      "product_scope": "support_platform",
+      "content_md5": "f9fed3c104414774d86c973f23fd3bcd",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "7fd6846f-f56f-5673-b395-3f23173902cb",
+      "stable_id": "SUP-118",
+      "product_scope": "support_platform",
+      "content_md5": "cfa00f96ecf66028aca658832e8f30ee",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "4bb59ee1-dff9-5ca6-b68e-9ac541239a51",
+      "stable_id": "SUP-119",
+      "product_scope": "support_platform",
+      "content_md5": "56afa79510205c9deb60398c49da0c3d",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "23b0227d-d8f8-51c0-941d-6aa9d9a0bd52",
+      "stable_id": "SUP-120",
+      "product_scope": "support_platform",
+      "content_md5": "2bdab8ee945c623c527725c724899ced",
+      "effective_at": "2026-10-25 21:10:46.898918+00",
+      "expires_at": "2026-11-24 21:10:46.898918+00"
+    },
+    {
+      "id": "fdbd9b50-c617-5006-8436-357d0f03dc2f",
+      "stable_id": "SUP-121",
+      "product_scope": "support_platform",
+      "content_md5": "e2f669f935de389406447c8f326f97f9",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "b2f38923-6dcf-5f82-9b21-121777a35663",
+      "stable_id": "SUP-122",
+      "product_scope": "support_platform",
+      "content_md5": "1d6021c9754c9320b0f4e54a726a99e1",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "9edb36f9-f521-5f46-95ac-ce818f2c8c93",
+      "stable_id": "SUP-123",
+      "product_scope": "support_platform",
+      "content_md5": "9125aef062ad2996124b75bf295795ef",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "307107a0-9b32-5023-a1bd-283e53fd1d54",
+      "stable_id": "SUP-124",
+      "product_scope": "support_platform",
+      "content_md5": "90064b308317d52eea4f34f685716b7c",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "e51d5c68-3fdb-5dfb-b19a-5bb148ad265e",
+      "stable_id": "SUP-125",
+      "product_scope": "support_platform",
+      "content_md5": "d1a3fbe8748ca60f10da56eebcd9ee9f",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "eb452bdf-d358-5862-8f70-c827e7eef78c",
+      "stable_id": "SUP-126",
+      "product_scope": "support_platform",
+      "content_md5": "7664b2801e66f3f909aaf2d4986944d8",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "39b3af6c-cf54-534e-aa8f-3a8a9fe66fb9",
+      "stable_id": "SUP-127",
+      "product_scope": "support_platform",
+      "content_md5": "1de936c139c02f19de8da58c63067792",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "2b4aa6cf-cd0e-5417-ae28-924e69bd1f52",
+      "stable_id": "SUP-128",
+      "product_scope": "support_platform",
+      "content_md5": "635a6170dcfd8d2041761cdd8a0d7828",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "cd3435d5-24d7-5232-9ec2-e5b22fe33804",
+      "stable_id": "SUP-129",
+      "product_scope": "support_platform",
+      "content_md5": "f05f2e57525c9de39ba7a0d200451b5a",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "1a9d0683-3394-53c2-a7c4-ef42548bd514",
+      "stable_id": "SUP-130",
+      "product_scope": "support_platform",
+      "content_md5": "d8ff0cc9cb623083becc26ffc7b5b147",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "122090db-af95-5fd0-bff9-8161f53f3602",
+      "stable_id": "SUP-131",
+      "product_scope": "support_platform",
+      "content_md5": "0b70461f706eb0fc2a72ac13fce7a619",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "76a43a39-99ce-5a13-9b3b-056f24462599",
+      "stable_id": "SUP-132",
+      "product_scope": "support_platform",
+      "content_md5": "960c020791ea993c308a438f9b8a07ec",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "2b8b35f9-c217-53cc-b1f5-930355cd2b9c",
+      "stable_id": "SUP-133",
+      "product_scope": "support_platform",
+      "content_md5": "e61688863392d331ac64516c5322dcd7",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "1547cfa7-16be-508d-9eaf-8ab977fa52c0",
+      "stable_id": "SUP-134",
+      "product_scope": "support_platform",
+      "content_md5": "b6234c213d6921a1dbe097ed05c8651d",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "7f0af6a9-1796-5277-9054-64c920c179fb",
+      "stable_id": "SUP-135",
+      "product_scope": "support_platform",
+      "content_md5": "3bc5a780d90f1e1de7e190865e88e6ac",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "00e10302-bfbe-5735-832b-0992e249e36f",
+      "stable_id": "SUP-136",
+      "product_scope": "support_platform",
+      "content_md5": "f3f2968dc4f0575f9885fc58d2e4853b",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "84785d51-0ed2-5e1c-bc8b-dbbf4a82d879",
+      "stable_id": "SUP-137",
+      "product_scope": "support_platform",
+      "content_md5": "1ed398e7463f6ad4f4088e5e2decd38f",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "2699b837-8847-5650-8496-39390dcea3dc",
+      "stable_id": "SUP-138",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "cc6799a4-d2f1-567a-849f-abf26847a03b",
+      "stable_id": "SUP-139",
+      "product_scope": "support_platform",
+      "content_md5": "22675222fe57e34ba7b54823a611093b",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "c48c12ff-2c0a-5443-b7d8-52de605d67a5",
+      "stable_id": "SUP-140",
+      "product_scope": "support_platform",
+      "content_md5": "3653e59beffdf89f241baf3ade960bb5",
+      "effective_at": "2026-10-25 21:10:48.135302+00",
+      "expires_at": "2026-11-24 21:10:48.135302+00"
+    },
+    {
+      "id": "409e438d-797d-5a6a-b861-73767605c239",
+      "stable_id": "SUP-141",
+      "product_scope": "support_platform",
+      "content_md5": "4a2638b3510832dbd8c5e7a31c1e0363",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "cede2288-74dc-516c-bd82-69d2a68637d1",
+      "stable_id": "SUP-142",
+      "product_scope": "support_platform",
+      "content_md5": "8769078570478600f8367e4ccc4d70d4",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "33b8f168-30a2-52c1-aed3-f2f0bfa62f68",
+      "stable_id": "SUP-143",
+      "product_scope": "support_platform",
+      "content_md5": "e9e052896ec62c8d12aa5e83ceb1fc4d",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "e6ce5452-6153-5c2f-8715-b5ffb8623dc0",
+      "stable_id": "SUP-144",
+      "product_scope": "support_platform",
+      "content_md5": "670103a34ea7936a22fb41e18baa1dfe",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "effcee84-4b03-5568-bb25-ad9faeecf2dd",
+      "stable_id": "SUP-145",
+      "product_scope": "support_platform",
+      "content_md5": "9491978b4bcaedb4f88e73bc222ca56c",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "b75c24f9-4da1-5474-8874-206609ea5b78",
+      "stable_id": "SUP-146",
+      "product_scope": "support_platform",
+      "content_md5": "b20497235ef92a34ac6a4a582e2fce51",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "80e412c1-4bc1-5383-96f4-6ab3d94a33eb",
+      "stable_id": "SUP-147",
+      "product_scope": "support_platform",
+      "content_md5": "a3e0c3b0f0d14029f20fbef0c35b7b22",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "e558156f-d091-50b9-9882-5a5451a17575",
+      "stable_id": "SUP-148",
+      "product_scope": "support_platform",
+      "content_md5": "6bdd195a14d6716ff7eff95c0466c975",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "5d0730bc-07e9-54f7-b379-cc0488685566",
+      "stable_id": "SUP-149",
+      "product_scope": "support_platform",
+      "content_md5": "46a0e8f1dbb5395ba2b3dc76001bb2cb",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    },
+    {
+      "id": "1cd4e86c-c639-5071-b107-b45f69cf90f5",
+      "stable_id": "SUP-150",
+      "product_scope": "support_platform",
+      "content_md5": "cb50a19939c1b1596094e0a9603ef350",
+      "effective_at": "2026-10-25 21:10:49.284325+00",
+      "expires_at": "2026-11-24 21:10:49.284325+00"
+    }
+  ]
+}
