@@ -154,7 +154,7 @@ async function callSalesIntakeSubmit(body) {
   const res = await fetch(`${NETLIFY_BASE_URL}/api/intake/webhook`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ai4cc-intake-key': AI4CC_INTAKE_KEY },
-    body: JSON.stringify({ action: 'submit', ...body }),
+    body: JSON.stringify({ ...body, action: 'submit' }),
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`intake/submit ${res.status}`);
@@ -166,7 +166,7 @@ async function callSupportIntake(body) {
   const res = await fetch(`${NETLIFY_BASE_URL}/api/twilio/phone-support-intake`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-bridge-signature': makeBridgeSignature() },
-    body: JSON.stringify({ tenantId: CSS_TENANT_ID, ...body }),
+    body: JSON.stringify({ ...body, tenantId: CSS_TENANT_ID }),
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`support-intake ${res.status}`);
