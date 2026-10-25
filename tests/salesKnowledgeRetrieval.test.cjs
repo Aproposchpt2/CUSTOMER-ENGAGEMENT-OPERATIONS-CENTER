@@ -9,3 +9,11 @@ test('missing server credentials fail closed',async()=>{const r=await lookupSale
 test('filter and tenant guard on server query',async()=>{let called=false;const r=await lookupSalesKnowledge({query:'CEOC',tenantId:tenant,env,fetchImpl:async(url,opts)=>{called=true;const u=new URL(url);assert.equal(u.searchParams.get('tenant_id'),'eq.'+tenant);assert.equal(u.searchParams.get('approved'),'eq.true');assert.equal(u.searchParams.get('publication_state'),'eq.published');assert.equal(u.searchParams.get('visibility'),'eq.public');assert.ok(opts.headers.apikey);return {ok:true,json:async()=>[row]};}});assert.equal(called,true);assert.equal(r.status,'FOUND');assert.equal(r.entries[0].id,'k1')});
 test('unapproved, foreign-tenant, proposed or staff-only rows excluded even if API responds with them',async()=>{const rows=[{...row,approved:false},{...row,tenant_id:'other'},{...row,source_status:'PROPOSED'},{...row,visibility:'staff'},{...row,publication_state:'draft'}];const r=await lookupSalesKnowledge({query:'CEOC',tenantId:tenant,env,fetchImpl:async()=>({ok:true,json:async()=>rows})});assert.equal(r.status,'NO_APPROVED_MATCH');assert.deepEqual(r.entries,[])});
 test('backend rejection and malformed body fail closed',async()=>{const r=await lookupSalesKnowledge({query:'CEOC',tenantId:tenant,env,fetchImpl:async()=>({ok:false})});assert.equal(r.status,'UNAVAILABLE')});
+
+test('legacy validity is selected and expired rows are excluded',async()=>{
+ const result=await lookupSalesKnowledge({query:'CEOC',tenantId:tenant,env,fetchImpl:async url=>{
+  assert.ok(new URL(url).searchParams.get('select').split(',').includes('valid_until'));
+  return {ok:true,json:async()=>[{...row,valid_until:'2020-01-01T00:00:00Z'}]};
+ }});
+ assert.equal(result.status,'NO_APPROVED_MATCH');
+});

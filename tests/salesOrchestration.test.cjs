@@ -14,3 +14,10 @@ const base={id:'k1',tenant_id:tenantId,approved:true,publication_state:'publishe
 test('knowledge requires owner approval, publication, public scope and verified facts',()=>{assert.equal(requireApprovedKnowledge(base,{tenantId}).id,'k1');for(const update of [{approved:false},{publication_state:'draft'},{visibility:'staff'},{audience_scope:'staff'},{source_status:'PROPOSED'},{tenant_id:'foreign'}]){assert.equal(requireApprovedKnowledge({...base,...update},{tenantId}),null);}});
 test('knowledge rejects expired and future-dated records',()=>{assert.equal(requireApprovedKnowledge({...base,expires_at:'2020-01-01T00:00:00Z'},{tenantId}),null);assert.equal(requireApprovedKnowledge({...base,effective_at:'2999-01-01T00:00:00Z'},{tenantId}),null);});
 test('only persisted COMPLETED records permit verified readback',()=>{assert.equal(acceptedWorkflowResult({state:'ACCEPTED',persisted:true,leadId:'x'},'leadId').completed,false);assert.equal(acceptedWorkflowResult({state:'COMPLETED',persisted:false,leadId:'x'},'leadId').completed,false);assert.equal(acceptedWorkflowResult({state:'COMPLETED',persisted:true,leadId:'x'},'leadId').completed,true);});
+
+test('invalid dates and legacy validity expiry fail closed',()=>{
+ for(const patch of [{effective_at:'bad'},{expires_at:'bad'},{valid_until:'bad'},{valid_until:'2020-01-01T00:00:00Z'}]){
+  assert.equal(requireApprovedKnowledge({...base,...patch},{tenantId}),null);
+ }
+ assert.equal(requireApprovedKnowledge(base,{tenantId,now:new Date('bad')}),null);
+});
