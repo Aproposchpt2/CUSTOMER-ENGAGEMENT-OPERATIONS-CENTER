@@ -1,0 +1,28 @@
+name: PMA v2 recipient routing checks
+on:
+  pull_request:
+    branches: [pma-validation]
+    paths:
+      - 'lib/propertyManagement/emergencyDispatch.ts'
+      - 'tests/pma-v2-recipient-routing.test.mts'
+      - 'tests/pma-v2-recipient-runtime.test.mts'
+      - '.github/workflows/pma-v2-recipient-routing.yml'
+  push:
+    branches: [fix/pma-v2-recipient-routing-20261024]
+permissions:
+  contents: read
+jobs:
+  pma-recipient-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify notification routing contract tests
+        run: node --test tests/pma-v2-recipient-routing.test.mts tests/pma-v2-recipient-runtime.test.mts
+      - name: Verify notification evidence source test if present
+        run: |
+          if test -f tests/pma-notification-evidence.test.mts; then
+            node --test tests/pma-notification-evidence.test.mts
+          fi
