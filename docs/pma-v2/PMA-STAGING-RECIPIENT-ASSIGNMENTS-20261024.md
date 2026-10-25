@@ -29,3 +29,5 @@ Records use event_type pma_v2_maintenance_vendor_test, pma_v2_tenant_test, and p
 - Verify Twilio incoming SMS visibility/forwarding for owned recipient DIDs, then authorize controlled T-027 test. Avoid unexpected live messaging.
 
 Status: **STAGED ONLY / NOT READY FOR CALL**.
+## Database execution update — 2026-10-24
+Applied `pma_v2_staging_recipient_routing_gated` successfully to Supabase staging project `hvzauakkhlivzeqatfqm`. Read-back confirms the three role-specific SMS selector branches and original authorization/property/call-session checks all remain present. The additional recipient preferences remain `active=false`. This is **not** a Twilio delivery test, staging app deployment, or full T-027 acceptance. Do not claim readiness for real test calls until code tests, deployment, and recipient SMS receiving configuration have been verified.
