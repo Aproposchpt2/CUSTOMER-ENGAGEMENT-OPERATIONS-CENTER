@@ -1,0 +1,36 @@
+{
+  "version": "source-integration-20261025.1",
+  "project": "hvzauakkhlivzeqatfqm",
+  "caller_activation": false,
+  "scope_note": "Support articles describe platform Support; never Summit tenant policy.",
+  "sources": {
+    "kb": {
+      "filename": "STELLAR_Combined_Sales_and_Support_KB_Population_FINAL_v1.2.docx",
+      "sha256": "d4df91722516582a76f8bea236bce239f51e829a64eaeccd22ef373563a8e080"
+    },
+    "intents": {
+      "filename": "STELLAR_Expanded_Intent_Catalog_All_Fields.csv",
+      "sha256": "7a8153d1046096dbac5543cc99d44d7ef8be46b040ab3bbe2ae63405c5061782"
+    },
+    "expansion": {
+      "filename": "STELLAR_Final_90_Sales_Support_KB_Articles_Draft_v4.0.json",
+      "sha256": "66d66f16aab4465b17bb0de8e157147cf1491949f27034a899a7d37daf53c810"
+    },
+    "tests": {
+      "filename": "STELLAR_90_KB_Article_Validation_Tests_v3.0.docx",
+      "sha256": "ba6cfdbf4aa838582c7d9f1ada5d2a6a2a783ea5a924e46412aa2464324169ef"
+    },
+    "sales": {
+      "filename": "Stellar_Sales_Specialist_Knowledge_Base_Voice_Call_Flows_v1.1 (1) (1).docx",
+      "sha256": "530f8dc94e42e149a0fed1140a797c958e8b97d45d0c162349c207fead46eb5e"
+    }
+  },
+  "counts": {
+    "kb": 250,
+    "sales_kb": 100,
+    "platform_support_kb": 150,
+    "catalog": 250,
+    "tests": 630
+  },
+  "approval": "DRAFT_PENDING_OWNER_REVIEW"
+}
