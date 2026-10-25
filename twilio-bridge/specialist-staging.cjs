@@ -49,6 +49,7 @@ function createSpecialistSession({profile,callSid,env=process.env,request=fetch,
   const u=new URL('/rest/v1/ai4cc_knowledge_entries',URL_STAGING);u.searchParams.set('select','id,tenant_id,title,content,category,approved,visibility,audience_scope,publication_state,source_status,effective_at,expires_at,valid_until');
   for(const [k,v]of Object.entries({tenant_id:tenantId,approved:'true',visibility:'public',audience_scope:'public',publication_state:'published'}))u.searchParams.set(k,'eq.'+v);
   const clean=query.trim().replace(/[^\p{L}\p{N}\s-]/gu,' ').replace(/\s+/g,' ').slice(0,120);if(clean.length<3)return {status:'INVALID_QUERY',entries:[]};
+  if(profile==='sales')u.searchParams.set('category','like.sales_*');
   u.searchParams.set('or',`(title.ilike.*${clean}*,content.ilike.*${clean}*)`);u.searchParams.set('limit','5');
   try{const r=await request(u.toString(),{headers:headers(),signal:AbortSignal.timeout(7000)});if(!r.ok)throw Error();const rows=await r.json();if(!Array.isArray(rows))throw Error();
    // The main STELLAR tenant also contains PMA knowledge. Tenant identity alone is insufficient.
