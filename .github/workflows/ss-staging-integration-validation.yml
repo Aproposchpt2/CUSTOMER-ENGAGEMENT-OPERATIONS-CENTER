@@ -4,6 +4,7 @@ on:
     branches:
       - repair/ss-summit-intake-and-ci-20261025
       - repair/ss-sales-staging-rpc-contract-20261025
+      - repair/ss-sales-verified-submission-20261025
   pull_request:
     branches:
       - repair/ss-intent-authorization-gate-20261025
@@ -21,7 +22,7 @@ jobs:
         run: node --check twilio-bridge/server.js
       - name: Run Sales and Support boundary tests
         run: |
-          node --test tests/voiceIntentSearch.test.cjs tests/approvedStagingKnowledge.test.cjs tests/intentCandidateGate.test.cjs tests/summitSupportIntake.test.cjs tests/salesSessionGuard.test.cjs
+          node --test tests/voiceIntentSearch.test.cjs tests/approvedStagingKnowledge.test.cjs tests/intentCandidateGate.test.cjs tests/summitSupportIntake.test.cjs tests/salesSessionGuard.test.cjs tests/stagingSalesSubmission.test.cjs
       - name: Check module packaging
         run: |
           for file in staging-support-intake.cjs summit-support-intake.staging.cjs stellar-kb-v1.json voice-agent-catalog.json voice-intent-search.cjs approved-staging-knowledge.cjs intent-candidate-gate.cjs; do
