@@ -894,7 +894,23 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 }
 
 // ─── Express + WebSocket server ───────────────────────────────────────────────
+// Keep OCI build provenance separate from mutable release environment metadata.
+// Shared/non-container builds may lack this file; never infer image provenance then.
+function imageProvenance() {
+  const nodeVersion = process.version;
+  try {
+    const imageRevision = require('node:fs').readFileSync(require('node:path').join(__dirname, 'bridge-image-revision'), 'utf8').trim();
+    if (!/^[0-9a-f]{40}$/.test(imageRevision)) throw Error('Invalid image revision');
+    const reported = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null;
+    return { imageRevision, nodeVersion, revisionMismatch: reported ? reported !== imageRevision : null };
+  } catch {
+    return { imageRevision: null, nodeVersion, revisionMismatch: null };
+  }
+}
 function start() {
+  // Fail before pool connections/listeners if staging could reach a production
+  // gateway or enabled specialists lack their server-owned tenant/DB bindings.
+  require('./staging-runtime-config.cjs').validateStagingRuntime(process.env);
   if (!OPENAI_API_KEY) { console.error('OPENAI_API_KEY not set'); process.exit(1); }
   if (!BRIDGE_HMAC_SECRET) { console.error('BRIDGE_HMAC_SECRET not set'); process.exit(1); }
 
@@ -903,7 +919,7 @@ function start() {
   const app = express();
   app.use('/api/ivr',express.urlencoded({extended:false,limit:'16kb',parameterLimit:100}));
   for(const [path,action] of Object.entries({'/api/ivr/main':'entry','/api/ivr/router':'route','/api/ivr/status':'status','/api/ivr/complete':'complete'}))app.all(path,(req,res)=>void voiceEntry.handle(req,res,action));
-  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null,
+  app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null, ...imageProvenance(),
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
     pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
     voiceDemo: {receptionist:'openai-live-marin',enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
