@@ -5,7 +5,7 @@ const knowledgeModel=require('./pma-knowledge-v1.json');
 const intents=require('./pma-intents.cjs');
 const {failedAvailability,verifiedAvailability}=require('./pma-availability.cjs');
 const BASE='https://pma-validation--ai4cc-staging.netlify.app';
-function enabled(env){return env.PMA_CHANNELS_ENABLED==='true'&&env.PMA_STAGING_BASE_URL===BASE&&!!env.BRIDGE_HMAC_SECRET;}
+function enabled(env){return env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_CHANNELS_ENABLED==='true'&&env.PMA_STAGING_BASE_URL===BASE&&!!env.BRIDGE_HMAC_SECRET;}
 function createPmaAdapter(env,fetchImpl=fetch){
  return {
   enabled:enabled(env),

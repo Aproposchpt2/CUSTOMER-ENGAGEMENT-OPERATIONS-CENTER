@@ -34,7 +34,9 @@ test('permission errors are surfaced; persisted incident or logged email alone c
  const env={PMA_ENVIRONMENT:'staging',NEXT_PUBLIC_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co'};
  await assert.rejects(dispatchEmergency(ctx,{rpc:async()=>({error:{code:'42501'}})},env),/EMERGENCY_PREPARE_FAILED:42501/);
  const r=await dispatchEmergency(ctx,{rpc:async()=>({data:{incidentId:'synthetic',notify:true,preferences:[{channel:'email',destination:'test@example.invalid'}]}})},env);
- assert.equal(r.dispatched,false);assert.deepEqual(r.channels,['email:logged']);
+ assert.equal(r.dispatched,false);assert.deepEqual(r.channels,[]);
+ assert.deepEqual(r.attempts,[{channel:'email',state:'NOT_CONFIGURED'}]);
+ assert.equal(r.state,'NOT_CONFIGURED');
  let calls=0;const disabled=await dispatchEmergency(ctx,{rpc:async()=>{calls++;}},{});assert.equal(disabled.dispatched,false);assert.equal(calls,0);
 });
 test('configured SMS sender is independent of inbound IVR DID and legacy DID remains a fallback',async(t)=>{

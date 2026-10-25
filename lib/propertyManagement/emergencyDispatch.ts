@@ -16,17 +16,21 @@ export function emergencyDispatchIntent(intent:string):string|null{
 export function isEmergencyIntent(intent:string):boolean{return emergencyDispatchIntent(intent)!==null;}
 
 interface DispatchCtx{tenantId:string;propertyId:string;callSid:string;sessionId:string;intent:string;message:string;callerNumber?:string;testMode?:boolean;}
-export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;attempts?:{channel:string;state:'SUBMITTED'|'FAILED'|'NOT_CONFIGURED';destinationSuffix?:string;recipientRole?:string}[];state?:'SUBMITTED'|'FAILED'|'NOT_CONFIGURED'|'NOT_REQUIRED';}
+export interface DispatchReceipt{dispatched:boolean;channels:string[];incidentId:string|null;attempts?:{channel:string;state:'SUBMITTED'|'FAILED'|'UNKNOWN'|'NOT_CONFIGURED'|'NOT_REQUIRED';destinationSuffix?:string;recipientRole?:string;attemptId?:string;providerMessageId?:string;auditRecorded?:boolean}[];state?:'SUBMITTED'|'FAILED'|'UNKNOWN'|'NOT_CONFIGURED'|'NOT_REQUIRED';}
 
-async function twilioSms(accountSid:string,authToken:string,from:string,to:string,body:string):Promise<void>{
+async function twilioSms(accountSid:string,authToken:string,from:string,to:string,body:string,callback?:string):Promise<{sid?:string;status?:string}>{
  const url=`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
- const r=await fetch(url,{
+ let r:Response;try{r=await fetch(url,{
   method:'POST',
   headers:{Authorization:'Basic '+Buffer.from(`${accountSid}:${authToken}`).toString('base64'),'Content-Type':'application/x-www-form-urlencoded'},
-  body:new URLSearchParams({From:from,To:to,Body:body}).toString(),
+  body:new URLSearchParams({From:from,To:to,Body:body,...(callback?{StatusCallback:callback}:{})}).toString(),
   signal:AbortSignal.timeout(8000),
- });
- if(!r.ok)throw new Error(`Twilio ${r.status}`);
+ });}catch{throw Object.assign(new Error('Twilio submission unconfirmed'),{submissionState:'UNKNOWN'});}
+ if(!callback){if(!r.ok)throw new Error(`Twilio ${r.status}`);return {};}
+ const data=await r.json().catch(()=>null);
+ if(!r.ok)throw Object.assign(new Error('Twilio rejected submission'),{submissionState:r.status>=500?'UNKNOWN':'FAILED',errorCode:Number.isInteger(data?.code)?String(data.code):String(r.status)});
+ if(!/^SM[0-9a-f]{32}$/i.test(data?.sid||'')||!['accepted','queued','sending','sent','delivered','undelivered','failed'].includes(data?.status))throw Object.assign(new Error('Twilio receipt unconfirmed'),{submissionState:'UNKNOWN'});
+ return {sid:data.sid,status:data.status};
 }
 
 export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.ProcessEnv):Promise<DispatchReceipt>{
@@ -63,7 +67,30 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
   if(pref.channel==='sms'&&sid&&tok&&from){
    const action=role==='vendor'?'Maintenance vendor notification — please acknowledge through the authorized workflow.':role==='tenant'?'Tenant incident notice — follow emergency safety instructions.':role==='owner_backup'?'Property owner backup action may be required.':'Owner action required.';
    const callerDetails=role==='owner'?ownerCallerRef:'';
-   const body=`[PMA STAGING] ${label} at Desert Ridge. ${callerDetails}Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. ${action} This is a staging test.`;
+   let body=`[PMA STAGING] ${label} at Desert Ridge. ${callerDetails}Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. ${action} This is a staging test.`;
+   // Explicit opt-in; the existing owner path is unchanged while this is disabled.
+   if(env.PMA_STAGING_NOTIFICATION_EVIDENCE_ENABLED==='true'){
+    const suffix=destination.slice(-4);
+    const record=async(payload:Record<string,unknown>)=>{const r=await admin.rpc('pm_staging_sms_evidence_v1',{t:ctx.tenantId,p:ctx.propertyId,payload});if(r.error)throw Error('Evidence unavailable');return r.data;};
+    let claim:any;
+    try{
+     if(from!=='+17252010584'||env.PMA_CHANNELS_ENABLED!=='true'||env.AI4CC_VOICE_DEMO_TENANT_ID!==ctx.tenantId||env.PMA_STAGING_PROPERTY_ID!==ctx.propertyId)throw Error('Unapproved evidence configuration');
+     claim=await record({op:'begin',incident_id:incidentId,role});
+     if(!claim||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(claim.attempt_id)||!/^[0-9a-f]{32}$/.test(claim.ack_token||''))throw Error('Invalid attempt receipt');
+     if(claim.claimed!==true){attempts.push({channel:'sms',state:'NOT_REQUIRED',recipientRole:role||undefined,destinationSuffix:suffix,attemptId:claim.attempt_id});continue;}
+    }catch{attempts.push({channel:'sms',state:'NOT_CONFIGURED',recipientRole:role||undefined,destinationSuffix:suffix,auditRecorded:false});continue;}
+    if(role==='vendor')body+=` Test reply: ACK ${claim.ack_token}. A test reply does not accept a maintenance assignment.`;
+    try{
+     const receipt=await twilioSms(sid,tok,from,destination,body,'https://pma-validation--ai4cc-staging.netlify.app/api/twilio/pma-sms-status-staging?attempt_id='+claim.attempt_id);
+     let recorded=true;try{await record({op:'complete',attempt_id:claim.attempt_id,submission_state:'SUBMITTED',message_sid:receipt.sid,status:receipt.status});}catch{recorded=false;}
+     channels.push('sms:…'+suffix);attempts.push({channel:'sms',state:'SUBMITTED',recipientRole:role||undefined,destinationSuffix:suffix,attemptId:claim.attempt_id,providerMessageId:receipt.sid,auditRecorded:recorded});
+    }catch(error){
+     const e=error as {submissionState?:string;errorCode?:string};const state=e.submissionState==='FAILED'?'FAILED':'UNKNOWN';
+     let recorded=true;try{await record({op:'complete',attempt_id:claim.attempt_id,submission_state:state,error_code:e.errorCode||null});}catch{recorded=false;}
+     attempts.push({channel:'sms',state,recipientRole:role||undefined,destinationSuffix:suffix,attemptId:claim.attempt_id,auditRecorded:recorded});
+    }
+    continue;
+   }
    try{await twilioSms(sid,tok,from,destination,body);channels.push('sms:…'+pref.destination.slice(-4));attempts.push({channel:'sms',state:'SUBMITTED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});}catch{attempts.push({channel:'sms',state:'FAILED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});}
   }else if(pref.channel==='sms'){
    attempts.push({channel:'sms',state:'NOT_CONFIGURED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});
@@ -73,7 +100,7 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
   }else{attempts.push({channel:String(pref.channel||'unknown'),state:'NOT_CONFIGURED'});}
  }
  const dispatched=!!incidentId&&attempts.some(a=>a.state==='SUBMITTED');
- const state=dispatched?'SUBMITTED':attempts.some(a=>a.state==='FAILED')?'FAILED':'NOT_CONFIGURED';
+ const state=dispatched?'SUBMITTED':attempts.some(a=>a.state==='UNKNOWN')?'UNKNOWN':attempts.some(a=>a.state==='FAILED')?'FAILED':attempts.length&&attempts.every(a=>a.state==='NOT_REQUIRED')?'NOT_REQUIRED':'NOT_CONFIGURED';
  // SUBMITTED means Twilio accepted a request; it does not prove delivery or vendor acknowledgment.
  return {dispatched,channels,incidentId,attempts,state};
 }
