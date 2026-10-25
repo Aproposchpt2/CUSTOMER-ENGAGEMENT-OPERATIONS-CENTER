@@ -28,6 +28,8 @@ jobs:
         run: node --test tests/specialistStaging.test.mts tests/voiceBridgeRuntime.test.mts tests/voiceBridgeSafety.test.mts
       - name: Run PMA emergency tool regression
         run: node --test twilio-bridge/tests/pma-emergency-tool-invocation.test.cjs
+      - name: Verify Fly PMA image dependency closure
+        run: node --test tests/pmaFlyJointImageDependencies.test.mts
       - name: Run complete application test suite
         id: full_suite
         continue-on-error: true
