@@ -528,7 +528,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         output = await pmaAdapter.checkAvailability(args,{callSid,sessionId:session.session_id});
         logEvent(JSON.stringify({event:'pma_availability_completed',callSid,sessionId:session.session_id,toolCallId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null,state:output.state,success:output.success,unitCount:output.units?.length??0,returnedBedrooms:output.units?.map(u=>u.bedrooms)??[],elapsedMs:Date.now()-started}));
       } else if (name === 'pma_property_workflow' && profile === 'pma' && pmaAdapter.enabled) {
+        const pmaStarted=Date.now();
+        const pmaToolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
+        logEvent(JSON.stringify({event:'pma_workflow_started',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,intent:typeof args.intent==='string'?args.intent:null,confirmed:args.confirmed===true}));
         output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
+        logEvent(JSON.stringify({event:'pma_workflow_completed',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,state:output?.state||null,incidentId:output?.emergencyDispatch?.incidentId||null,dispatchState:output?.emergencyDispatch?.state||null,elapsedMs:Date.now()-pmaStarted}));
       } else if (name === 'submit_business_profile') {
         if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
         if(session&&args.confirmed!==true)throw new Error('Lead details require caller confirmation');
