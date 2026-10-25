@@ -1,5 +1,5 @@
 # PMA-only release image. The shared bridge Dockerfile remains independent.
-FROM node:20-alpine
+FROM node:24-alpine
 ARG PMA_SOURCE_SHA
 RUN node -e "if (!/^[0-9a-f]{40}$/.test(process.env.PMA_SOURCE_SHA || '')) process.exit(1)"
 ENV BRIDGE_RELEASE_SHA=${PMA_SOURCE_SHA}

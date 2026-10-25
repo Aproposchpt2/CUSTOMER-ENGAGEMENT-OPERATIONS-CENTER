@@ -1,0 +1,41 @@
+name: PMA Fly Isolated Image Validation
+on:
+  push:
+    branches: [repair/pma-fly-validation-security-20261025]
+  pull_request:
+    branches: [integration/ss-pma-joint-20261025]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  image-and-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Production bridge dependency audit
+        run: npm ci --prefix twilio-bridge --ignore-scripts && npm audit --prefix twilio-bridge --omit=dev --audit-level=moderate
+      - name: Dependency closure and full application regressions
+        run: npm test
+      - name: Complete bridge regressions including PMA emergency invocation
+        run: node --test twilio-bridge/tests/*.test.cjs
+      - name: HVAC persistence regression
+        run: npm ci --prefix tests/ss-staging-002 --ignore-scripts && node tests/ss-staging-002/postgres.mjs
+      - name: TypeScript and optimized build
+        run: npm run build
+      - name: Build dedicated Fly image and start without network
+        env:
+          PMA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/pma-fly/image-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pma-fly-image-evidence
+          path: evidence/pma-fly/
