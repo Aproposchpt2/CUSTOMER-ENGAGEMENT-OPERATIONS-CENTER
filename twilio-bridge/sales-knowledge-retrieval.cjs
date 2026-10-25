@@ -14,7 +14,7 @@ async function lookupSalesKnowledge({query, tenantId, fetchImpl=fetch, env=proce
   const clean=query.trim().replace(/[%(),*]/g,' ').replace(/\s+/g,' ').slice(0,120);
   if (clean.length<3) return {status:'INVALID_QUERY',entries:[]};
   const url=new URL('/rest/v1/ai4cc_knowledge_entries',base);
-  url.searchParams.set('select','id,tenant_id,title,content,category,approved,visibility,publication_state,audience_scope,source_status,effective_at,expires_at');
+  url.searchParams.set('select','id,tenant_id,title,content,category,approved,visibility,publication_state,audience_scope,source_status,effective_at,expires_at,valid_until');
   url.searchParams.set('tenant_id','eq.'+tenantId);
   url.searchParams.set('approved','eq.true');
   url.searchParams.set('publication_state','eq.published');

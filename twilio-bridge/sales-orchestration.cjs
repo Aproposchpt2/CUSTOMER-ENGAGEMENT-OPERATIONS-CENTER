@@ -5,7 +5,7 @@
  * Source of truth: config/sales-intelligence/master-intent-registry-v1.0.json
  * Implements server-owned decisions rather than assuming prompt instructions are controls.
  */
-const registry = require('../../config/sales-intelligence/master-intent-registry-v1.0.json');
+const registry = require('../config/sales-intelligence/master-intent-registry-v1.0.json');
 const ALL = Array.isArray(registry.intents) ? registry.intents : [];
 const map = new Map(ALL.map(item => [item.reference_id || item.ref_id, item]));
 const SALES = new Set(ALL.filter(x => x.group === 'sales').map(x => x.reference_id));
@@ -35,8 +35,13 @@ function requireApprovedKnowledge(row, { tenantId, callerRole = 'public', now = 
   if (!row || typeof row !== 'object' || !tenantId || row.tenant_id !== tenantId) return null;
   if (row.approved !== true || row.publication_state !== 'published') return null;
   if (row.visibility !== 'public' || row.audience_scope !== 'public') return null;
-  if (row.expires_at && new Date(row.expires_at).getTime() <= now.getTime()) return null;
-  if (row.effective_at && new Date(row.effective_at).getTime() > now.getTime()) return null;
+  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) return null;
+  for (const field of ['effective_at','expires_at','valid_until']) {
+    const value = row[field];
+    if (value == null) continue;
+    if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) return null;
+    if (field === 'effective_at' ? Date.parse(value) > now.getTime() : Date.parse(value) <= now.getTime()) return null;
+  }
   if (typeof row.content !== 'string' || !row.content.trim()) return null;
   if (row.source_status !== 'VERIFIED') return null;
   if (callerRole !== 'public') return null; // Caller-facing channel always assumes public.
