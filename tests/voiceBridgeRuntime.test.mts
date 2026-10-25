@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(import.meta.url);
+const bridgeRequire = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
 async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
@@ -15,7 +16,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
     close() { this.readyState=3; }
   }
   const timers:any[]=[];
-  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:require(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
+  const context:any = { require:(n:string)=>n==='./staging-support-intake.cjs'?{readiness:()=> 'STAGING_WRITES_DISABLED',submitStagingSupport:async()=>{if(supportSave)return supportSave();throw new Error('STAGING_WRITES_DISABLED');}}:n==='express'?()=>({}):n==='ws'?{WebSocket:Socket,WebSocketServer:class{}}:bridgeRequire(n), console:{log(){},error(){}}, process:{env:{OPENAI_API_KEY:'mock',BRIDGE_HMAC_SECRET:'mock',NETLIFY_BASE_URL:'https://staging.invalid',RAILWAY_ENVIRONMENT_NAME:staging?'staging':'test'}}, Buffer, URL, AbortSignal, setTimeout:(fn:any,ms:number)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){},setInterval:(fn:any,ms:number)=>{timers.push({fn,ms,interval:true});return timers.length;},clearInterval:(id:number)=>{if(timers[id-1])timers[id-1].cleared=true;},fetch:async(url:string,opts:any)=>{
     const body=JSON.parse(opts.body); requests.push(body);
     return {ok:true,json:async()=>body.action==='start'?{interactionId:'fictional-interaction',transferAllowed:'yes',knownCallerName:'Test'}:failSave?{}:{lead:{id:'fictional-lead'}}};
   }};
@@ -295,4 +296,14 @@ test('Support review does not duplicate active backend work or run after disconn
  phoneEvent(s,{event:'stop'});
  const after=s.outbound.length;s.timers.filter(x=>x.ms===15000).at(-1).fn();
  assert.equal(s.outbound.length,after);
+});
+
+test('model arguments cannot override server-owned support tenant or Sales action',async()=>{
+ const support=await session('support');
+ await support.tool('tenant-spoof','submit_support_intake',{tenantId:'d7e80001-0000-4000-b000-000000000001'});
+ assert.equal(support.requests[0].tenantId,'5885a020-d363-4c27-910a-c035eda132f5');
+ const sales=await session('sales');
+ await sales.tool('action-spoof','submit_business_profile',{action:'start',interactionId:'spoof'});
+ assert.equal(sales.requests.at(-1).action,'submit');
+ assert.equal(sales.requests.at(-1).interactionId,'fictional-interaction');
 });
