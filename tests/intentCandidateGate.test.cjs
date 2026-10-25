@@ -1,0 +1,10 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict');
+const {assess}=require('../twilio-bridge/intent-candidate-gate.cjs');
+const sales='5885a020-d363-4c27-910a-c035eda132f5';
+const support='d7e80001-0000-4000-b000-000000000001';
+test('Sales recognizes canonical candidate but does not authorize writes',()=>{const r=assess({profile:'sales',tenantId:sales,reference:'SAL-001',confidence:.96});assert.equal(r.decision,'CANDIDATE_RECOGNIZED');assert.equal(r.mayExecute,false)});
+test('Support recognizes canonical candidate but does not authorize writes',()=>{const r=assess({profile:'support',tenantId:support,reference:'SUP-001',confidence:.96});assert.equal(r.decision,'CANDIDATE_RECOGNIZED');assert.equal(r.mayExecute,false)});
+test('cross tenant and cross agent intents are denied',()=>{assert.equal(assess({profile:'support',tenantId:sales,reference:'SUP-001',confidence:1}).decision,'DENIED_TENANT');assert.equal(assess({profile:'sales',tenantId:sales,reference:'SUP-001',confidence:1}).decision,'UNKNOWN_INTENT')});
+test('confidence thresholds and malformed values cannot authorize a workflow',()=>{for(const confidence of [0,.5,.75,.9,1,NaN,-1,2]){const r=assess({profile:'sales',tenantId:sales,reference:'SAL-001',confidence});assert.equal(r.mayExecute,false)}assert.equal(assess({profile:'sales',tenantId:sales,reference:'SAL-001',confidence:.8}).decision,'CLARIFY')});
+test('only trusted scanner safety evidence can override ordinary intent',()=>{const r=assess({profile:'support',tenantId:support,reference:'SUP-001',confidence:1,safetyReference:'SAFE-001'});assert.equal(r.decision,'SAFETY_OVERRIDE');assert.equal(r.mayExecute,false);assert.equal(assess({profile:'support',tenantId:support,safetyReference:'SAL-001'}).decision,'INVALID_SAFETY_SIGNAL')});
