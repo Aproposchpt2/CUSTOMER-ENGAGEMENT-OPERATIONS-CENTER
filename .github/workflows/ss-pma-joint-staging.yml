@@ -30,6 +30,8 @@ jobs:
         run: node --test twilio-bridge/tests/pma-emergency-tool-invocation.test.cjs
       - name: Verify Fly PMA image dependency closure
         run: node --test tests/pmaFlyJointImageDependencies.test.mts
+      - name: Build dedicated PMA Fly staging image
+        run: docker build --file twilio-bridge/Dockerfile.pma-staging --build-arg PMA_SOURCE_SHA="$GITHUB_SHA" --tag stellar-pma-joint:ci twilio-bridge
       - name: Run complete application test suite
         id: full_suite
         continue-on-error: true
