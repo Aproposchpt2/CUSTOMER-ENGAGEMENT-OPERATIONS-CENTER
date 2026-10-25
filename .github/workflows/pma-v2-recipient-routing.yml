@@ -5,6 +5,7 @@ on:
     paths:
       - 'lib/propertyManagement/emergencyDispatch.ts'
       - 'tests/pma-v2-recipient-routing.test.mts'
+      - 'tests/pma-v2-recipient-runtime.test.mts'
       - '.github/workflows/pma-v2-recipient-routing.yml'
   push:
     branches: [fix/pma-v2-recipient-routing-20261024]
@@ -19,7 +20,7 @@ jobs:
         with:
           node-version: '24'
       - name: Verify notification routing contract tests
-        run: node --test tests/pma-v2-recipient-routing.test.mts
+        run: node --test tests/pma-v2-recipient-routing.test.mts tests/pma-v2-recipient-runtime.test.mts
       - name: Verify notification evidence source test if present
         run: |
           if test -f tests/pma-notification-evidence.test.mts; then
