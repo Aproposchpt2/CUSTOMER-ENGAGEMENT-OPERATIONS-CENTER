@@ -1,0 +1,1 @@
+{"name":"ss-staging-002-postgres-verification","private":true,"type":"module","dependencies":{"@electric-sql/pglite":"0.5.11"}}
