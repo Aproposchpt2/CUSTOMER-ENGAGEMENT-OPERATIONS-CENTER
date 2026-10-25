@@ -3,7 +3,6 @@ import {useState} from 'react';
 import s from '@/styles/stellarNarrative.module.css';
 
 const products=[
- {name:'Property Management Assistant',group:'PROPERTY OPERATIONS',href:'/solutions/property-management-assistant',promise:'Emergency response coordination, resident questions, leasing requests, and maintenance intake.',detail:'Designed to route urgent property concerns according to approved procedures and verified escalation contacts.'},
  {name:'Contact Center Solutions',group:'CUSTOMER COMMUNICATIONS',href:'/products/support-specialist',promise:'A coordinated approach to responding to inbound calls and directing requests.',detail:'Explore the Support Specialist and other customer communication workflows through the existing product and demo experience.'},
  {name:'Customer Engagement Solutions',group:'CONNECTED OPERATIONS',href:'/products/customer-engagement-operations-center',promise:'Customer context, engagement workflow visibility, and operating control.',detail:'Discover the Customer Engagement Operations Center and the intelligent services it connects.'},
  {name:'Lead Management Solutions',group:'GROWTH OPERATIONS',href:'/products/sales-service-system',promise:'Inbound opportunity intake, qualification, and connected follow-up context.',detail:'See how the Sales Specialist supports responsiveness and passes useful information to the people advancing the relationship.'}
