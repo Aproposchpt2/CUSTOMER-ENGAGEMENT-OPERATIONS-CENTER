@@ -5,6 +5,7 @@ RUN node -e "if (!/^[0-9a-f]{40}$/.test(process.env.PMA_SOURCE_SHA || '')) proce
 ENV BRIDGE_RELEASE_SHA=${PMA_SOURCE_SHA}
 LABEL org.opencontainers.image.revision=${PMA_SOURCE_SHA}
 WORKDIR /app
+RUN node -e "require('fs').writeFileSync('bridge-image-revision', process.env.PMA_SOURCE_SHA)" && chmod 444 bridge-image-revision
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 COPY server.js staging-support-intake.cjs orchestrator-voice-adapter.staging.cjs pma-adapter.cjs pma-availability.cjs pma-profile.json pma-knowledge-v1.json pma-intents.cjs pma-intent-catalog-v1.json latency-logger.js voice-quality-analyzer.js ./
