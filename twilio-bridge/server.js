@@ -9,6 +9,7 @@ const stellarIntentCatalog = require('./voice-agent-catalog.json');
 const stellarKnowledgeBase = require('./stellar-kb-v1.json');
 const { searchCatalog } = require('./voice-intent-search.cjs');
 const { searchKnowledge } = require('./approved-staging-knowledge.cjs');
+const { assess: assessIntentCandidate } = require('./intent-candidate-gate.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -499,6 +500,16 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     parameters:{type:'object',properties:{query:{type:'string'}},required:['query'],additionalProperties:false},
   };
 
+  const stagingIntentAssessmentTool = {
+    type:'function',
+    name:'assess_staging_intent_candidate',
+    description:'Validate a proposed canonical intent reference and confidence. A recognized candidate NEVER authorizes an action.',
+    parameters:{type:'object',properties:{
+      reference:{type:'string'},confidence:{type:'number'},
+      entities:{type:'object',additionalProperties:{type:'string'}}
+    },required:['reference','confidence'],additionalProperties:false},
+  };
+
   // ── Execute a tool call ────────────────────────────────────────────────────
   async function executeTool(callId, name, argsStr) {
     let output = {};
@@ -507,7 +518,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'search_approved_staging_knowledge' && STAGING_ONLY && process.env.STELLAR_STAGING_APPROVED_KB_ENABLED === 'true') {
+      if (name === 'assess_staging_intent_candidate' && STAGING_ONLY && process.env.STELLAR_STAGING_INTENT_ASSESSMENT_ENABLED === 'true') {
+        output = assessIntentCandidate({profile,reference:args.reference,confidence:args.confidence,entities:args.entities||{},tenantId:profile==='sales'?'5885a020-d363-4c27-910a-c035eda132f5':'d7e80001-0000-4000-b000-000000000001'});
+      } else if (name === 'search_approved_staging_knowledge' && STAGING_ONLY && process.env.STELLAR_STAGING_APPROVED_KB_ENABLED === 'true') {
         output = await searchKnowledge({profile,query:args.query});
       } else if (name === 'search_staging_intent_catalog' && STAGING_ONLY && process.env.STELLAR_STAGING_INTENT_LOOKUP_ENABLED === 'true') {
         output = searchCatalog({profile,query:args.query});
@@ -769,6 +782,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
 
         if (STAGING_ONLY && process.env.STELLAR_STAGING_APPROVED_KB_ENABLED === 'true') {
           tools = [...tools, stagingKnowledgeTool];
+        }
+
+        if (STAGING_ONLY && process.env.STELLAR_STAGING_INTENT_ASSESSMENT_ENABLED === 'true') {
+          tools = [...tools, stagingIntentAssessmentTool];
         }
 
         startSession(instructions, tools);
