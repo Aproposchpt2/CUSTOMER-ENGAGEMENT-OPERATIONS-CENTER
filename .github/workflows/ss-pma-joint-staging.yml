@@ -29,10 +29,20 @@ jobs:
       - name: Run PMA emergency tool regression
         run: node --test twilio-bridge/tests/pma-emergency-tool-invocation.test.cjs
       - name: Run complete application test suite
+        id: full_suite
+        continue-on-error: true
         run: npm test
       - name: Install isolated PostgreSQL test dependencies
+        if: always()
         run: npm ci --prefix tests/ss-staging-002 --ignore-scripts
       - name: Run isolated PostgreSQL persistence regression
+        if: always()
         run: node tests/ss-staging-002/postgres.mjs
       - name: Verify optimized build and types
+        if: always()
         run: npm run build
+      - name: Enforce complete-suite gate
+        if: always() && steps.full_suite.outcome == 'failure'
+        run: |
+          echo 'Complete application suite failed; review inherited and newly introduced failures.'
+          exit 1
