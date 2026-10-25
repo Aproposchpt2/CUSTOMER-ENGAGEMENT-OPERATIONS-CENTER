@@ -1,0 +1,10 @@
+{
+  "project": "hvzauakkhlivzeqatfqm",
+  "execution": "existing functions in BEGIN/SET LOCAL ROLE service_role/ROLLBACK; no schema or authorization changes",
+  "leadIdWithinTransaction": "3665d22d-f9a4-45f8-86cb-5f415fd99ed4",
+  "first": {"persisted": true, "testOnly": true, "notificationSent": false, "deduplicated": false},
+  "second": {"sameLead": true, "testOnly": true, "notificationSent": false, "deduplicated": true},
+  "postRollbackLeadCount": 0,
+  "foreignTenantAttempt": {"sqlstate": "42501", "message": "Sales session rejected"},
+  "telephoneEndToEndVerified": false
+}
