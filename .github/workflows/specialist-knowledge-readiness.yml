@@ -12,6 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Validate readiness eligibility and staging isolation
+        run: node --test twilio-bridge/knowledge/check-specialist-readiness.test.cjs
       - name: Validate source recovery, unpublished status, and intent coverage
         run: node twilio-bridge/knowledge/check-specialist-readiness.cjs --offline
   caller-knowledge-release-gate:
