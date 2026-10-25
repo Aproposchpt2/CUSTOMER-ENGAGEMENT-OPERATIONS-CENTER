@@ -8,10 +8,10 @@ const env={STELLAR_BRIDGE_STAGING:'true',PMA_ENVIRONMENT:'staging',VOICE_DEMO_IV
 const tick=()=>new Promise(r=>setImmediate(r));
 class Socket extends EventEmitter{readyState=1;sent=[];send(x){this.sent.push(JSON.parse(x));}close(){this.readyState=3;this.emit('close');}message(x){this.emit('message',JSON.stringify(x));}}
 function setup(overrides={}){
- const twilio=new Socket(),live=new Socket(),state={choices:[],ends:[],handoffs:[],release:0};
+ const twilio=new Socket(),live=new Socket(),state={choices:[],ends:[],handoffs:[],release:0};let openCount=0;
  const entry={reception:async(session,agent=null)=>{if(!agent)return s;state.choices.push(agent);return {...s,agentRoute:agent};},endReception:async(_,r)=>state.ends.push(r),...overrides};
- const controller=startReceptionist({twilioWs:twilio,session:s,startMessage:{event:'start',start:{streamSid:'MZtest',callSid:s.call_sid,accountSid:s.account_sid}},entry,openLive:()=>live,model:'existing-live',reasoningModel:'existing-reasoning',release:()=>state.release++,handoff:(profile,session)=>state.handoffs.push({profile,session})});
- return {twilio,live,state,controller};
+ const controller=startReceptionist({twilioWs:twilio,session:s,startMessage:{event:'start',start:{streamSid:'MZtest',callSid:s.call_sid,accountSid:s.account_sid}},entry,openLive:()=>{openCount++;return live;},model:'existing-live',reasoningModel:'existing-reasoning',release:()=>state.release++,handoff:(profile,session)=>state.handoffs.push({profile,session})});
+ return {twilio,live,state,controller,openCount:()=>openCount};
 }
 test('reception token cannot authorize specialist or cross-call access',()=>{
  const start={callSid:s.call_sid,accountSid:s.account_sid},token=makeRouteToken(s,env.BRIDGE_HMAC_SECRET,Date.now(),true);
@@ -30,13 +30,28 @@ test('receptionist uses Marin, approved greeting and only one allowlisted routin
  assert.equal(config.audio.output.voice,process.env.IVR_VOICE||'marin');assert.match(INSTRUCTIONS,/Stellar Intelligent Technologies/);assert.match(INSTRUCTIONS,/ambiguous/);
  assert.deepEqual(config.delegation.responses.tools.map(t=>t.name),['select_agent']);x.controller.close('TEST_END');
 });
+test('call pickup starts the live connection alongside session validation and session.started triggers one greeting',async()=>{
+ let resolve;const gate=new Promise(r=>resolve=r);const x=setup({reception:async()=>{await gate;return s;}});
+ assert.equal(x.openCount(),1);assert.equal(x.live.sent.length,0);
+ resolve();await tick();
+ x.live.message({type:'session.started'});x.live.message({type:'session.started'});
+ assert.equal(x.live.sent.filter(m=>m.type==='response.create').length,1);
+ x.controller.close('TEST_END');
+});
 for(const [digit,profile]of [['1','support'],['2','sales'],['3','pma']])test('keypad '+digit+' hands off once without ending parent call',async()=>{
  const x=setup();await tick();x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit}});x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'2'}});await tick();
  assert.equal(x.state.handoffs.length,1);assert.equal(x.state.handoffs[0].profile,profile);assert.equal(x.state.ends.length,0);assert.equal(x.twilio.readyState,1);assert.equal(x.state.release,1);assert.equal(Object.isFrozen(x.state.handoffs[0].session),true);
 });
 test('spoken selection uses completed OpenAI tool output and deduplicates',async()=>{
- const x=setup();await tick();const item={type:'function_call',call_id:'call_1',name:'select_agent',arguments:JSON.stringify({agentRoute:'sales-specialist'})};
+ const x=setup();await tick();x.live.message({type:'response.created'});x.live.message({type:'response.completed'});x.live.message({type:'response.created'});
+ const item={type:'function_call',call_id:'call_1',name:'select_agent',arguments:JSON.stringify({agentRoute:'sales-specialist'})};
  x.live.message({type:'response.event',event:{type:'response.output_item.done',item}});x.live.message({type:'response.output_item.done',item});await tick();
+ assert.equal(x.state.handoffs.length,0);assert.equal(x.twilio.sent.some(m=>m.mark?.name==='stellar-handoff-played'),false);
+ x.live.message({type:'session.output_audio.delta',delta:Buffer.alloc(160).toString('base64')});
+ x.live.message({type:'response.completed'});await tick();
+ const mark=x.twilio.sent.find(m=>m.event==='mark'&&m.mark?.name==='stellar-handoff-played');assert.ok(mark);
+ assert.equal(x.state.handoffs.length,0);assert.ok(x.twilio.sent.findIndex(m=>m.event==='media')<x.twilio.sent.indexOf(mark));
+ x.twilio.message({event:'mark',streamSid:'MZtest',mark:{name:'stellar-handoff-played'}});await tick();
  assert.equal(x.state.handoffs.length,1);assert.equal(x.state.handoffs[0].profile,'sales');
 });
 test('invalid tool destination cannot route and stays conversational',async()=>{
