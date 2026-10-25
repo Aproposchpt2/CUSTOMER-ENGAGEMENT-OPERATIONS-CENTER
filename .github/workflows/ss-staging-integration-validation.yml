@@ -1,0 +1,27 @@
+name: Sales Support Staging Regression
+on:
+  push:
+    branches:
+      - repair/ss-summit-intake-and-ci-20261025
+  pull_request:
+    branches:
+      - repair/ss-intent-authorization-gate-20261025
+  workflow_dispatch:
+jobs:
+  ss-staging-contract-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check bridge syntax
+        run: node --check twilio-bridge/server.js
+      - name: Run Sales and Support boundary tests
+        run: |
+          node --test tests/voiceIntentSearch.test.cjs tests/approvedStagingKnowledge.test.cjs tests/intentCandidateGate.test.cjs tests/summitSupportIntake.test.cjs
+      - name: Check module packaging
+        run: |
+          for file in staging-support-intake.cjs summit-support-intake.staging.cjs stellar-kb-v1.json voice-agent-catalog.json voice-intent-search.cjs approved-staging-knowledge.cjs intent-candidate-gate.cjs; do
+            grep -Fq "$file" twilio-bridge/Dockerfile || { echo "missing Docker COPY $file"; exit 1; }
+          done
