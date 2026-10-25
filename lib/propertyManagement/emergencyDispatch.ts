@@ -51,7 +51,8 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
  // An approved SMS sender can differ from the inbound IVR DID.
  const from=env.PMA_STAGING_SMS_FROM||env.PMA_STAGING_DID;
  const incRef=incidentId?incidentId.slice(0,8):'—';
- const callerRef=ctx.callerNumber?`Caller: ${ctx.callerNumber}`:'Caller: unknown';
+ // Only the authorized owner may receive the caller phone number. Other roles get the incident reference.
+ const ownerCallerRef=ctx.callerNumber?`Caller: ${ctx.callerNumber}. `:'';
  for(const pref of prefs){
   const destination=typeof pref.destination==='string'?pref.destination:'';
   const role=Object.hasOwn(PMA_STAGING_TEST_ROLES,destination)?PMA_STAGING_TEST_ROLES[destination]:null;
@@ -61,7 +62,8 @@ export async function dispatchEmergency(ctx:DispatchCtx,admin:any,env:NodeJS.Pro
   }
   if(pref.channel==='sms'&&sid&&tok&&from){
    const action=role==='vendor'?'Maintenance vendor notification — please acknowledge through the authorized workflow.':role==='tenant'?'Tenant incident notice — follow emergency safety instructions.':role==='owner_backup'?'Property owner backup action may be required.':'Owner action required.';
-   const body=`[PMA STAGING] ${label} at Desert Ridge. ${callerRef}. Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. ${action} This is a staging test.`;
+   const callerDetails=role==='owner'?ownerCallerRef:'';
+   const body=`[PMA STAGING] ${label} at Desert Ridge. ${callerDetails}Call ID: ${ctx.callSid.slice(0,16)}… Incident: ${incRef}. ${action} This is a staging test.`;
    try{await twilioSms(sid,tok,from,destination,body);channels.push('sms:…'+pref.destination.slice(-4));attempts.push({channel:'sms',state:'SUBMITTED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});}catch{attempts.push({channel:'sms',state:'FAILED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});}
   }else if(pref.channel==='sms'){
    attempts.push({channel:'sms',state:'NOT_CONFIGURED',destinationSuffix:destination.slice(-4),recipientRole:role||undefined});
