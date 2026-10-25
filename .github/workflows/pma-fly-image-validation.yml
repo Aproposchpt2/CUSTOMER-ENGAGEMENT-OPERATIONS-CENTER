@@ -1,9 +1,9 @@
 name: PMA Fly Isolated Image Validation
 on:
   push:
-    branches: [repair/pma-fly-validation-security-20261025]
+    branches: [repair/pma-fly-validation-security-20261025, repair/fly-staging-runtime-guards-20261025]
   pull_request:
-    branches: [integration/ss-pma-joint-20261025]
+    branches: [integration/ss-pma-joint-20261025, repair/pma-fly-validation-security-20261025]
   workflow_dispatch:
 permissions:
   contents: read
@@ -35,6 +35,11 @@ jobs:
       - name: Build dedicated Fly image and start without network
         env:
           PMA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/pma-fly/image-smoke.mjs
+      - name: Build shared specialist image and verify startup isolation
+        env:
+          PMA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          BRIDGE_DOCKERFILE: Dockerfile
         run: node scripts/pma-fly/image-smoke.mjs
       - uses: actions/upload-artifact@v4
         if: always()

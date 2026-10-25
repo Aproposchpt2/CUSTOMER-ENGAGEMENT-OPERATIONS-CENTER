@@ -12,6 +12,7 @@ COPY server.js staging-support-intake.cjs orchestrator-voice-adapter.staging.cjs
 COPY tests/staging-runner/support-orchestration-integration.staging.cjs ./tests/staging-runner/
 COPY voice-entry.cjs voice-agent-routing.json voice-agent-catalog.json voice-system-prompts.json ./
 COPY voice-receptionist.cjs ./
+COPY staging-runtime-config.cjs ./
 COPY voice-agent-catalog-expanded.json stellar-kb-v1.json specialist-staging.cjs staging-knowledge-policy.cjs safety-intents.cjs support-intelligence.cjs support-intent-catalog-v1.json ./
 EXPOSE 8080
 CMD ["node", "server.js"]

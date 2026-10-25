@@ -908,6 +908,9 @@ function imageProvenance() {
   }
 }
 function start() {
+  // Fail before pool connections/listeners if staging could reach a production
+  // gateway or enabled specialists lack their server-owned tenant/DB bindings.
+  require('./staging-runtime-config.cjs').validateStagingRuntime(process.env);
   if (!OPENAI_API_KEY) { console.error('OPENAI_API_KEY not set'); process.exit(1); }
   if (!BRIDGE_HMAC_SECRET) { console.error('BRIDGE_HMAC_SECRET not set'); process.exit(1); }
 
