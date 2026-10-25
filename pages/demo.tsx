@@ -6,8 +6,8 @@ import BrandSignature from '@/components/BrandSignature';
 
 import { CALL_RECORDING_NOTICE } from '@/lib/legal';
 
-const PHONE_DISPLAY = '(725) 330-5102';
-const PHONE_TEL = 'tel:+17253305102';
+const PHONE_DISPLAY = '(725) 201-0584';
+const PHONE_TEL = 'tel:+17252010584';
 
 type LiveCall = {
   callerName: string | null; businessName: string | null; phone: string | null;
@@ -56,7 +56,7 @@ export default function DemoPage() {
         <BrandSignature/>
         <div className="eyebrow">LIVE DEMO</div>
         <h1>Don&apos;t take our word for it. Call it.</h1>
-        <p>This is a real, production system — not a sandbox, not a recording. Three steps, no signup.</p>
+        <p>Call the configured Stellar telephone entry point to experience the available intelligent service routes. Live capabilities depend on the service you select.</p>
         <button type="button" className="guideButton" onClick={() => setDrawerOpen(true)}>Open demo guide →</button>
       </section>
 
@@ -73,19 +73,19 @@ export default function DemoPage() {
         <div className="step">
           <span>02</span>
           <h2>Have a real conversation</h2>
-          <p>Play the role of a business owner or decision-maker shopping for a Contact Center, CRM or Lead Management solution. Ask what you would genuinely want to know and let the conversation develop naturally.</p>
+          <p>Follow the available IVR options to explore a product demonstration. For property management, discuss a fictional maintenance or resident-service scenario. Do not use a demonstration line for real emergencies.</p>
         </div>
         <div className="step">
           <span>03</span>
-          <h2>Watch it become a lead</h2>
-          <p>The moment you hang up, a structured lead exists in the CRM. Enter the last 4 digits of your phone below to see it — no data entry, nobody typing notes after the call.</p>
+          <h2>Review the result when available</h2>
+          <p>Where lead capture is configured and verified, you may use the lookup below to check for a corresponding record. Not every IVR path creates a sales lead, and a call does not guarantee record creation.</p>
         </div>
       </section>
 
       <section className="result">
         <div className="resultHead">
           <small>{checked && call ? 'LIVE · YOUR CALL' : 'FIND YOUR CALL'}</small>
-          <h2>{checked && call ? 'Here\'s what your call produced' : checked ? 'No matching call yet' : 'See the lead your call created'}</h2>
+          <h2>{checked && call ? 'Here\'s what your call produced' : checked ? 'No matching call yet' : 'Check for a sales lead if applicable'}</h2>
           <p>{checked && !call
             ? 'We couldn\'t find a completed call from the last hour ending in those digits. If you just hung up, give it a few seconds and check again.'
             : 'For privacy, only your own call is shown. Enter the last 4 digits of the phone you called from.'}</p>
@@ -126,15 +126,15 @@ export default function DemoPage() {
       <div className="drawerHead">
         <div>
           <small>LIVE DEMO</small>
-          <h2>How to experience the AI</h2>
+          <h2>How to explore Stellar products</h2>
         </div>
         <button type="button" className="closeButton" aria-label="Close demo guide" onClick={() => setDrawerOpen(false)}>×</button>
       </div>
 
       <div className="drawerBody">
-        <p className="role"><strong>The Conversational Agent is currently programmed to serve as a representative of the Operation Center's sales team.</strong></p>
+        <p className="role"><strong>The IVR entry point offers access to configured Stellar business-product experiences. Available routes may differ by product.</strong></p>
 
-        <p>For this demonstration, play the role of a business owner or decision-maker who is shopping for a <strong>Contact Center, CRM or Lead Management solution.</strong></p>
+        <p>Select the relevant product experience. For PMA, use a <strong>fictional maintenance issue</strong> to explore intake and escalation behavior; never report an actual emergency through the demo.</p>
 
         <p>Call the Agent and have a normal conversation. Ask whatever questions you would genuinely ask if you were evaluating this type of solution for your company.</p>
 
@@ -150,7 +150,7 @@ export default function DemoPage() {
 
         <div className="afterCall">
           <small>AFTER YOUR CALL</small>
-          <p>Close this guide and watch the Operation Center convert the conversation into a structured Lead in the live CRM.</p>
+          <p>If you selected a sales experience and its CRM integration is enabled, you can check for an associated lead. A property-management call may follow a different workflow.</p>
         </div>
       </div>
     </aside>
