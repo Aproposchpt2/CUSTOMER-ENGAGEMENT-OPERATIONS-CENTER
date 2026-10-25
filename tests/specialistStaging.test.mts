@@ -30,6 +30,19 @@ test('knowledge reads the bound tenant and denies private, draft, expired and fo
  const r=await s.knowledge({query:'Heating'});assert.deepEqual(r.entries.map((x:any)=>x.id),['k1']);assert.equal(r.status,'FOUND');
  assert.equal((await make({request:async()=>{throw Error('secret');}}).knowledge({query:'Heating'})).status,'UNAVAILABLE');
 });
+test('Sales rejects PMA articles sharing the STELLAR tenant even when public and verified',async()=>{
+ const common={tenant_id:TENANTS.sales,approved:true,visibility:'public',audience_scope:'public',publication_state:'published',source_status:'VERIFIED',content:'Fictional verified answer',title:'Pricing'};
+ const rows=[{...common,id:'pma',category:'policy'},{...common,id:'leasing',category:'leasing'},{...common,id:'sales',category:'sales_approved_qa'},{...common,id:'staff',category:'sales_approved_qa',visibility:'staff'}];
+ const s=make({profile:'sales',env:env('sales'),request:async(url:string)=>{
+  const u=new URL(url);
+  assert.equal(u.searchParams.get('tenant_id'),'eq.'+TENANTS.sales);
+  assert.equal(u.searchParams.get('category'),'like.sales_*');
+  return {ok:true,json:async()=>rows};
+ }});
+ const result=await s.knowledge({query:'pricing'});
+ assert.equal(result.status,'FOUND');
+ assert.deepEqual(result.entries.map((x:any)=>x.id),['sales']);
+});
 test('draft JSON candidates never become caller-approved answers',async()=>{
  const s=make({profile:'sales',env:env('sales'),request:async()=>({ok:true,json:async()=>[]})});
  const r=await s.knowledge({query:'pricing'});assert.equal(r.entries.length,0);assert.equal(r.status,'NO_APPROVED_MATCH');assert.ok(!JSON.stringify(r).includes('approvedVoiceAnswer'));

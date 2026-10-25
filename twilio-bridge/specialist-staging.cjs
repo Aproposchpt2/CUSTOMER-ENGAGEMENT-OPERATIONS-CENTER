@@ -51,7 +51,9 @@ function createSpecialistSession({profile,callSid,env=process.env,request=fetch,
   const clean=query.trim().replace(/[^\p{L}\p{N}\s-]/gu,' ').replace(/\s+/g,' ').slice(0,120);if(clean.length<3)return {status:'INVALID_QUERY',entries:[]};
   u.searchParams.set('or',`(title.ilike.*${clean}*,content.ilike.*${clean}*)`);u.searchParams.set('limit','5');
   try{const r=await request(u.toString(),{headers:headers(),signal:AbortSignal.timeout(7000)});if(!r.ok)throw Error();const rows=await r.json();if(!Array.isArray(rows))throw Error();
-   const entries=profile==='support'?safeSupportAssets({trustedTenantId:tenantId,knowledgeEntries:rows}).knowledgeEntries:rows.map(row=>requireApprovedKnowledge(row,{tenantId})).filter(Boolean);
+   // The main STELLAR tenant also contains PMA knowledge. Tenant identity alone is insufficient.
+   // Sales may retrieve only explicitly Sales-classified, approved caller-public articles.
+   const entries=profile==='support'?safeSupportAssets({trustedTenantId:tenantId,knowledgeEntries:rows}).knowledgeEntries:rows.filter(row=>typeof row.category==='string'&&row.category.startsWith('sales_')).map(row=>requireApprovedKnowledge(row,{tenantId})).filter(Boolean);
    return {status:entries.length?'FOUND':'NO_APPROVED_MATCH',tenantId,entries:entries.slice(0,5).map(({id,title,content,source_status})=>({id,title,content:content.slice(0,3500),source_status})),candidateLineage:kb.records.filter(x=>x.group===profile&&x.label.toLowerCase().includes(clean.toLowerCase())).map(x=>({id:x.id,lifecycle:x.lifecycle})).slice(0,5)};
   }catch{return {status:'UNAVAILABLE',entries:[]};}
  }
