@@ -1,6 +1,6 @@
 'use strict';
 const TENANT='5885a020-d363-4c27-910a-c035eda132f5';
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function validSession(ctx){return Boolean(ctx&&ctx.tenantId===TENANT&&ctx.synthetic===true&&ctx.voiceDemo===true&&ctx.selectedRoute==='sales-specialist'&&['propertyId','contactId','actorId','sessionId'].every(key=>UUID.test(ctx[key]||'')));}
 function payloadForTrustedSession(ctx,details){
  if(!validSession(ctx))throw Error('TRUSTED_SALES_SESSION_REQUIRED');
