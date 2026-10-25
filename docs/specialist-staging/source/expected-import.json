@@ -1,0 +1,12 @@
+{
+  "rows": 655,
+  "package_key": "specialist-source-20261025-v1",
+  "counts": {
+    "guide": 1,
+    "hvac_reference": 44,
+    "intent": 269,
+    "knowledge": 250,
+    "manifest": 1,
+    "test_bundle": 90
+  }
+}
