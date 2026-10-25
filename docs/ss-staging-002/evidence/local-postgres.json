@@ -1,0 +1,36 @@
+{
+  "runtimeEvidence": {
+    "runtimeToLocalPostgres": "PASS",
+    "posts": 1,
+    "bridgeResult": {
+      "success": true,
+      "state": "COMPLETED",
+      "operationId": "a54c9f41202c87fb1cf64a4bb97c055ea422f6b46d496ae2547f80b78abe13c8",
+      "caseId": "0762f88b-0b10-4f89-b961-c5dcad1bf3ba",
+      "customerId": "e22e024b-a213-400d-9187-53b69cb42bce",
+      "testOnly": true,
+      "notificationSent": false,
+      "technicianFollowupConfirmed": false
+    }
+  },
+  "engine": "PGlite PostgreSQL, isolated minimal schema; not hosted staging",
+  "baseline": "42501 reproduced",
+  "sourceConstraintDefect": "23514 reproduced",
+  "corrected": "PASS",
+  "idempotency": "PASS",
+  "foreignTenant": "REJECTED",
+  "anon": "REJECTED",
+  "authenticated": "REJECTED",
+  "evidence": [
+    {
+      "id": "12ebef5d-d133-48a8-8d1f-9ffbdcb148f8",
+      "tenant_id": "d7e80001-0000-4000-b000-000000000001",
+      "test_only": true,
+      "metadata": {
+        "source": "phone_staging_hvac_demo",
+        "test_only": true,
+        "notifications_disabled": true
+      }
+    }
+  ]
+}
