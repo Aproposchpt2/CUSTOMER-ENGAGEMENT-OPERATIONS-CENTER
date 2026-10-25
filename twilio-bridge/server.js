@@ -989,9 +989,9 @@ function start() {
             model:LIVE_MODEL,reasoningModel:REASONING_MODEL,
             release:()=>{if(!released){released=true;activeCalls=Math.max(0,activeCalls-1);}},
             log:message=>logEvent(`[${callSid}] ${message}`),
-            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen);ws.emit('message',JSON.stringify(start));}
+            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen).catch(()=>ws.close());ws.emit('message',JSON.stringify(start));}
           });
-        }else{handleCall(ws, profile, callerPhone, callSid,session);ws.emit('message', raw);}
+        }else{handleCall(ws, profile, callerPhone, callSid,session).catch(()=>ws.close());ws.emit('message', raw);}
       };
 
       ws.on('message', firstMessage);
