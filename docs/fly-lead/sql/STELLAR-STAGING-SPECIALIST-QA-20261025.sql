@@ -9,7 +9,11 @@ BEGIN
  IF (SELECT count(*) FROM public.ai4cc_specialist_intent_catalog WHERE group_name='conversation_control')<>9 THEN RAISE EXCEPTION 'Control intents incomplete'; END IF;
  IF (SELECT count(*) FROM public.ai4cc_specialist_intent_catalog WHERE group_name='safety')<>8 THEN RAISE EXCEPTION 'Safety intents incomplete'; END IF;
  IF (SELECT count(*) FROM public.ai4cc_specialist_intent_catalog WHERE enabled OR approval_state<>'review_required')<>0 THEN RAISE EXCEPTION 'unapproved intent enabled'; END IF;
- IF (SELECT count(*) FROM public.ai4cc_specialist_package_versions)<>4 THEN RAISE EXCEPTION 'package ledger incomplete'; END IF;
+ IF (SELECT count(*) FROM public.ai4cc_specialist_package_versions)<>6 THEN RAISE EXCEPTION 'package ledger incomplete'; END IF;
+ IF (SELECT count(*) FROM public.ai4cc_specialist_kb_candidates)<>148 THEN RAISE EXCEPTION 'extended KB candidate registry incomplete'; END IF;
+ IF (SELECT count(*) FROM public.ai4cc_specialist_kb_candidates WHERE group_name='sales')<>75 THEN RAISE EXCEPTION 'Sales candidates incomplete'; END IF;
+ IF (SELECT count(*) FROM public.ai4cc_specialist_kb_candidates WHERE group_name='support')<>73 THEN RAISE EXCEPTION 'Support candidates incomplete'; END IF;
+ IF (SELECT count(*) FROM public.ai4cc_specialist_kb_candidates WHERE enabled OR caller_approved OR review_state<>'draft')<>0 THEN RAISE EXCEPTION 'unapproved KB candidate enabled'; END IF;
  IF (SELECT count(*) FROM public.ai4cc_specialist_package_versions WHERE active OR approved)<>0 THEN RAISE EXCEPTION 'unapproved package active'; END IF;
  IF (SELECT count(*) FROM public.ai4cc_knowledge_entries WHERE category='sales_source_review_draft' AND 'source-package-20261025-v1'=any(tags))<>39 THEN RAISE EXCEPTION 'Sales source drafts incomplete'; END IF;
  IF (SELECT count(*) FROM public.ai4cc_knowledge_entries WHERE category='support_platform_review_draft' AND 'source-package-20261025-v1'=any(tags))<>7 THEN RAISE EXCEPTION 'Support platform source drafts incomplete'; END IF;
