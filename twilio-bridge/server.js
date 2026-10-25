@@ -7,6 +7,7 @@ const { WebSocket, WebSocketServer } = require('ws');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 const stellarIntentCatalog = require('./voice-agent-catalog.json');
 const stellarKnowledgeBase = require('./stellar-kb-v1.json');
+const { searchCatalog } = require('./voice-intent-search.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '8080', 10);
@@ -477,6 +478,19 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
     });
   }
 
+  // Explicit opt-in on isolated staging only; read-only intent definitions, no domain action.
+  const stagingCatalogTool = {
+    type: 'function',
+    name: 'search_staging_intent_catalog',
+    description: 'Look up canonical Sales or Support intent definitions in the expanded staging catalog. This does NOT classify callers or authorize any action.',
+    parameters: {
+      type: 'object',
+      properties: { query: {type:'string',description:'Caller topic, short phrase, or intent label'} },
+      required: ['query'],
+      additionalProperties: false,
+    },
+  };
+
   // ── Execute a tool call ────────────────────────────────────────────────────
   async function executeTool(callId, name, argsStr) {
     let output = {};
@@ -485,7 +499,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
       if (typeof callId !== 'string' || !callId.trim()) throw new Error('Missing tool call ID');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'submit_business_profile') {
+      if (name === 'search_staging_intent_catalog' && STAGING_ONLY && process.env.STELLAR_STAGING_INTENT_LOOKUP_ENABLED === 'true') {
+        output = searchCatalog({profile,query:args.query});
+      } else if (name === 'submit_business_profile') {
         if (leadSubmissionPending) throw new Error('Lead submission already pending');
         if (leadSaved) { output = { success: true, alreadySaved: true }; }
         else {
@@ -735,6 +751,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid) {
           instructions = APPROVED_SUPPORT_INSTRUCTIONS
             + `\n\n# CALL CONTEXT\nCALL_SID: ${callSid}\nCALLER_PHONE: ${callerPhone}`;
           tools = supportTools;
+        }
+
+        if (STAGING_ONLY && process.env.STELLAR_STAGING_INTENT_LOOKUP_ENABLED === 'true') {
+          tools = [...tools, stagingCatalogTool];
         }
 
         startSession(instructions, tools);
