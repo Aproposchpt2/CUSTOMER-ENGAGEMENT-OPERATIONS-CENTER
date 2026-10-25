@@ -1,0 +1,21 @@
+{
+  "project": "hvzauakkhlivzeqatfqm",
+  "authorization": "Owner explicitly approved reviewed staging HVAC correction",
+  "migrations": ["ss002_hvac_intake_invoker_authorization", "ss002_hvac_intake_existing_test_source"],
+  "securityDefiner": false,
+  "execute": {"anon": false, "authenticated": false, "service_role": true},
+  "caseId": "6c683250-466a-4368-8675-95d7ece9b243",
+  "customerId": "d31356a7-d7e5-4991-8b64-c1e50d8add7a",
+  "tenantId": "d7e80001-0000-4000-b000-000000000001",
+  "session": "phone-staging:CA00000000000000000000000000000102",
+  "firstCreatedNew": true,
+  "replayCreatedNew": false,
+  "caseCount": 1,
+  "source": "private_voice_test",
+  "testOnly": true,
+  "notificationsDisabled": true,
+  "foreignTenant": "42501 rejected",
+  "anon": "42501 permission denied",
+  "authenticated": "42501 permission denied",
+  "telephoneEndToEndVerified": false
+}

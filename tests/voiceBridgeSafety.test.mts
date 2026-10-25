@@ -18,6 +18,6 @@ test('human transfer requires a confirmed saved lead', () => {
 
 test('lead state is set only after a persisted lead identifier', () => {
   assert.match(bridge, /typeof persisted\.lead\?\.id !== 'string'/);
-  const code = bridge.slice(bridge.indexOf("name === 'submit_business_profile'"), bridge.indexOf("name === 'submit_support_intake'"));
+  const code = bridge.slice(bridge.indexOf("name === 'submit_business_profile'"), bridge.indexOf("} else if (name === 'submit_support_intake')"));
   assert.ok(code.indexOf("typeof persisted.lead?.id") < code.indexOf("leadSaved = true"));
 });

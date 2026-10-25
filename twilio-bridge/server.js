@@ -4,6 +4,7 @@ const http = require('http');
 const crypto = require('crypto');
 const express = require('express');
 const { WebSocket, WebSocketServer } = require('ws');
+const { createSpecialistSession } = require('./specialist-staging.cjs');
 const { readiness: supportWriteReadiness, submitStagingSupport } = require('./staging-support-intake.cjs');
 const {createVoiceOrchestrationAdapter}=require('./orchestrator-voice-adapter.staging.cjs');
 const ORCH_STAGING_URL='https://hvzauakkhlivzeqatfqm.supabase.co';
@@ -176,7 +177,7 @@ async function callSalesIntakeSubmit(body) {
   const res = await fetch(`${NETLIFY_BASE_URL}/api/intake/webhook`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-ai4cc-intake-key': AI4CC_INTAKE_KEY },
-    body: JSON.stringify({ action: 'submit', ...body }),
+    body: JSON.stringify({ ...body, action: 'submit' }),
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`intake/submit ${res.status}`);
@@ -188,7 +189,7 @@ async function callSupportIntake(body) {
   const res = await fetch(`${NETLIFY_BASE_URL}/api/twilio/phone-support-intake`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-bridge-signature': makeBridgeSignature() },
-    body: JSON.stringify({ tenantId: CSS_TENANT_ID, ...body }),
+    body: JSON.stringify({ ...body, tenantId: CSS_TENANT_ID }),
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) throw new Error(`support-intake ${res.status}`);
@@ -397,6 +398,8 @@ const stagingSupportTools = [
 
 // ─── Per-call WebSocket handler ───────────────────────────────────────────────
 async function handleCall(twilioWs, profile, callerPhone, callSid, session=null) {
+  const specialist = process.env.SS_STAGING_INTELLIGENCE_ENABLED === 'true' && ['sales','support'].includes(profile)
+    ? createSpecialistSession({profile,callSid,env:process.env,request:(url,options)=>fetch(url,options),trustedSession:session,salesSubmit:args=>voiceEntry.salesSubmit(session,args)}) : null;
   const stagingOrchestrator=STAGING_ONLY&&profile==='support'?(session?createVoiceOrchestrationAdapter({rpc:(name,args,context)=>voiceEntry.supportRpc(session,name,args,context.operationId),staging:true,deadlineMs:9000}):buildStagingOrchestrator()):null;
   logEvent(`[${callSid}] ${profile} call started${session ? ' session='+session.session_id+' agentRoute='+session.agentRoute : ''}`);
   activeCalls++;
@@ -433,6 +436,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   function cleanup(reason) {
     if (callEnded) return;
     callEnded = true;
+    specialist?.close();
     clearTimeout(deadline);
     clearTimeout(greetingDeadline);
     clearTimeout(supportReviewTimer);
@@ -486,12 +490,16 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
     // Initialize the session without a developer input turn; issue exactly one
     // response.create once the OpenAI Live session reports session.started.
     const sessionInput = {};
+    if (specialist) {
+      instructions = `The approved opening is: "${specialist.greeting}". Never repeat it after delivery.\n` + instructions + '\n' + specialist.instructions;
+      tools = [...tools, ...specialist.tools];
+    }
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+        instructions: specialist ? `Start by saying exactly: "${specialist.greeting}" Then wait. For each caller objective, Generate <|SpawnThinking|> so the backend can classify and retrieve approved knowledge. Never invent results.` : session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
           : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
             ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
             : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
@@ -503,7 +511,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: specialist ? instructions : session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
             tools,
             tool_choice: 'auto',
           },
@@ -521,7 +529,11 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       if(profile==='pma'&&!['pma_check_availability','pma_property_workflow'].includes(name))throw new Error('PMA tool unavailable');
       const args = JSON.parse(argsStr);
       if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid tool arguments');
-      if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
+      if (specialist && ['assess_specialist_intent','search_specialist_knowledge','submit_support_intake','submit_business_profile'].includes(name)) {
+        output = name === 'assess_specialist_intent' ? specialist.assess(args)
+          : name === 'search_specialist_knowledge' ? await specialist.knowledge(args)
+          : name === 'submit_support_intake' ? await specialist.submit(args) : await specialist.submitSales(args);
+      } else if (name === 'pma_check_availability' && profile === 'pma' && pmaAdapter.enabled && session?.agentRoute==='property-management-assistant') {
         const started=Date.now();
         const toolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
         logEvent(JSON.stringify({event:'pma_availability_started',callSid,sessionId:session.session_id,toolCallId,requestedBedrooms:Number.isInteger(args.bedrooms)?args.bedrooms:null}));
@@ -629,6 +641,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+      if (specialist && t === 'session.input_transcript.delta') {
+        const danger = specialist.observe(msg.delta || '', false);
+        if (danger) { clearTwilioAudio(); sendToOpenAI({type:'session.instructions.append',content:`SAFETY OVERRIDE: ${danger.script} Stop routine intake and troubleshooting. No dispatch is confirmed.`}); }
+      }
       if (STAGING_ONLY && profile === 'pma' && t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
         pmaSafetyText = (pmaSafetyText + msg.delta).slice(-4000);
         const safety = require('./pma-intents.cjs').classify(pmaSafetyText);
@@ -772,7 +788,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
       // Resolve sales context before exposing sales tools; support keeps its own intake.
       const intakeStartedAt = Date.now();
-      const intakeP = profile === 'sales'
+      const intakeP = specialist ? Promise.resolve(null) : profile === 'sales'
         ? callSalesIntakeStart(callSid, callerPhone).then(result => {
             logEvent(`[${callSid}] sales intake/start complete elapsedMs=${Date.now() - intakeStartedAt}`);
             return result;
@@ -805,7 +821,10 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
         let instructions;
         let tools;
-        if (profile === 'pma' && pmaAdapter.enabled) {
+        if (specialist) {
+          instructions = profile === 'sales' ? PREFERRED_SALES_BEHAVIOR + voicePrompts['sales-specialist'].instructions : APPROVED_SUPPORT_INSTRUCTIONS + SUPPORT_TICKET_FLOW;
+          tools = profile === 'support' ? stagingSupportTools : salesTools(session.session_id).filter(t=>t.name!=='submit_support_intake');
+        } else if (profile === 'pma' && pmaAdapter.enabled) {
           instructions = pmaAdapter.instructions;
           tools = pmaAdapter.tools;
         } else if (profile === 'sales') {
@@ -824,7 +843,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           if(session)instructions=SUPPORT_GREETING_INSTRUCTION+instructions+SUPPORT_TICKET_FLOW;
         }
 
-        if(session)instructions=boundInstructions(instructions,session,assets);
+        if(session&&!specialist)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
           if(profile==='pma'){instructions=instructions.replace(/Start by saying: "[^"]*"\n?/,'');}
           if(profile==='pma')instructions+='\n# PMA CUSTOMER EXPERIENCE PERSONA\nDeliver every response in a grounded, resonant, distinctly male register — low, full, and confident, never light, breathy, or high-pitched. Speak with the energy of an outstanding front-desk hospitality professional: genuinely warm, cheerful, and enthusiastic, as if you enjoy this work. Project steady confidence and natural authority without stiffness. Vary your pace naturally — slow down to land important details, pick up energy when welcoming the caller. Smile in the voice. Avoid a flat, monotone, mechanical, overly formal, or exaggerated delivery. Acknowledge each request positively, keep sentences short and punchy, and let the caller feel heard. Preserve all factual, authorization, privacy, emergency, consent, booking and no-fabrication requirements. This persona affects delivery only and never changes which tools or facts are permitted.';
@@ -970,9 +989,9 @@ function start() {
             model:LIVE_MODEL,reasoningModel:REASONING_MODEL,
             release:()=>{if(!released){released=true;activeCalls=Math.max(0,activeCalls-1);}},
             log:message=>logEvent(`[${callSid}] ${message}`),
-            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen);ws.emit('message',JSON.stringify(start));}
+            handoff:(nextProfile,chosen,start)=>{handleCall(ws,nextProfile,callerPhone,callSid,chosen).catch(()=>ws.close());ws.emit('message',JSON.stringify(start));}
           });
-        }else{handleCall(ws, profile, callerPhone, callSid,session);ws.emit('message', raw);}
+        }else{handleCall(ws, profile, callerPhone, callSid,session).catch(()=>ws.close());ws.emit('message', raw);}
       };
 
       ws.on('message', firstMessage);
