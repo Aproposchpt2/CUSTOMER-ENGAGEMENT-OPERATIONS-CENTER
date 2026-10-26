@@ -431,6 +431,20 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   let supportReviewedVersion = 0;
   let supportBackendActive = false;
   let supportSavePending = false;
+  const pmaTranscriptTurns = [];
+  const pmaTranscriptBuffers = { customer: '', agent: '' };
+  let pmaTranscriptSource = null;
+
+  function appendPmaTranscript(speaker, delta) {
+    if (typeof delta !== 'string' || !delta.trim() || pmaTranscriptTurns.length >= 200) return;
+    pmaTranscriptBuffers[speaker] = (pmaTranscriptBuffers[speaker] + delta).slice(0, 4000);
+  }
+  function flushPmaTranscript(speaker, finalText) {
+    if (pmaTranscriptTurns.length >= 200) return;
+    const content = (pmaTranscriptBuffers[speaker] || (typeof finalText === 'string' ? finalText : '')).trim().slice(0, 4000);
+    pmaTranscriptBuffers[speaker] = '';
+    if (content) pmaTranscriptTurns.push({ speaker, content });
+  }
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -453,7 +467,18 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       if (qaInbound)  logEvent(voiceLogger.logLine('audio_qa', { inbound:  qaInbound.diagnose()  }));
       if (qaOutbound) logEvent(voiceLogger.logLine('audio_qa', { outbound: qaOutbound.diagnose() }));
     }
-    if(session)void voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
+    if(session) {
+      const closeSession=()=>voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
+      if(STAGING_ONLY&&profile==='pma'&&pmaAdapter.enabled){
+        flushPmaTranscript('customer');flushPmaTranscript('agent');
+        if(pmaTranscriptTurns.length){
+          void pmaAdapter.saveTranscript(pmaTranscriptTurns,{callSid,sessionId:session.session_id})
+            .then(result=>logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:result?.state||'UNKNOWN',turns:result?.transcriptTurns||0})))
+            .catch(()=>logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:'UNKNOWN',turns:0})))
+            .finally(closeSession);
+        } else void closeSession();
+      } else void closeSession();
+    }
     if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
     if (twilioWs.readyState === WebSocket.OPEN) twilioWs.close();
   }
@@ -556,7 +581,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         const pmaStarted=Date.now();
         const pmaToolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
         logEvent(JSON.stringify({event:'pma_workflow_started',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,intent:typeof args.intent==='string'?args.intent:null,confirmed:args.confirmed===true}));
-        output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
+        const observedCallerTurns=pmaTranscriptTurns.filter(turn=>turn.speaker==='customer').map(turn=>turn.content);
+        if(pmaTranscriptBuffers.customer.trim())observedCallerTurns.push(pmaTranscriptBuffers.customer.trim());
+        output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id, observedCallerTurns:observedCallerTurns.slice(-20) });
         logEvent(JSON.stringify({event:'pma_workflow_completed',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,state:output?.state||null,incidentId:output?.emergencyDispatch?.incidentId||null,dispatchState:output?.emergencyDispatch?.state||null,elapsedMs:Date.now()-pmaStarted}));
       } else if (name === 'submit_business_profile') {
         if(session&&profile!=='sales')throw new Error('Agent workflow mismatch');
@@ -658,6 +685,19 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
+      if (STAGING_ONLY && profile === 'pma') {
+        if (t === 'session.input_transcript.delta') appendPmaTranscript('customer',msg.delta);
+        if (t === 'session.input_transcript.done') flushPmaTranscript('customer',msg.transcript);
+        if (['response.audio_transcript.delta','response.output_audio_transcript.delta','session.output_audio_transcript.delta','session.output_transcript.delta'].includes(t)) {
+          if (!pmaTranscriptSource) pmaTranscriptSource=t;
+          if (pmaTranscriptSource===t) appendPmaTranscript('agent',msg.delta);
+        }
+        if (['response.audio_transcript.done','response.output_audio_transcript.done','session.output_audio_transcript.done','session.output_transcript.done'].includes(t)
+          && (!pmaTranscriptSource || t===pmaTranscriptSource.replace(/\.delta$/,'.done'))) {
+          flushPmaTranscript('agent',msg.transcript);
+          pmaTranscriptSource=null;
+        }
+      }
       if (specialist && t === 'session.input_transcript.delta') {
         const danger = specialist.observe(msg.delta || '', false);
         if (danger) { clearTwilioAudio(); sendToOpenAI({type:'session.instructions.append',content:`SAFETY OVERRIDE: ${danger.script} Stop routine intake and troubleshooting. No dispatch is confirmed.`}); }
