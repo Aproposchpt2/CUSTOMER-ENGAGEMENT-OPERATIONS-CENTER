@@ -20,7 +20,8 @@
     "react": "^18",
     "react-dom": "^18",
     "reactflow": "^11.11.4",
-    "twilio": "6.2.0"
+    "twilio": "6.2.0",
+    "ws": "8.22.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11",

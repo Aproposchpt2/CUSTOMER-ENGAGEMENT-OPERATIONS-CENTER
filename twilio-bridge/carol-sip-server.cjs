@@ -2,7 +2,6 @@
 // SIP carries media directly between Twilio and OpenAI. This process handles
 // signed setup events and server-side tools only; it never relays audio.
 const crypto=require('node:crypto');
-const express=require('express');
 const {WebSocket}=require('ws');
 const {PERSONA}=require('./stellar-conversational-persona.cjs');
 const GREETING="Thank you for calling Desert Ridge Customer Care Center. My name is Carol, and I'll be your intake specialist today. To get started, may I please have your name and property address?";
@@ -21,6 +20,17 @@ const CREATE=tool('create_incident','Create the single scoped incident after col
 const PREFERENCE=tool('record_contact_preference','Record a confirmed destination and explicit consent against the already-created incident. Does not send messages.',{method:{type:'string',enum:['sms','email','phone']},destination:{type:'string'},consent:{type:'boolean',enum:[true]}},['method','destination','consent']);
 const END=tool('end_call','Use only when the caller is finished or cancels. The server lets the farewell audio play before hangup.',{},[]);
 function safeEqual(a,b){if(typeof a!=='string'||typeof b!=='string')return false;const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&crypto.timingSafeEqual(x,y);}
+function signControl(raw,secret,now=Date.now()){
+ if(typeof secret!=='string'||secret.length<32)throw Error('INVALID_CONTROL_SECRET');
+ const ts=String(Math.floor(now/1000));return `${ts}.${crypto.createHmac('sha256',secret).update(`carol-sip:${ts}:${raw}`).digest('hex')}`;
+}
+function verifyControl(raw,signature,secret,now=Date.now()){
+ if(typeof raw!=='string'||raw.length>65536||typeof signature!=='string'||typeof secret!=='string'||secret.length<32)throw Error('INVALID_CONTROL');
+ const [ts,mac,...extra]=signature.split('.');if(extra.length||!/^\d{1,12}$/.test(ts||'')||Math.abs(now/1000-Number(ts))>300)throw Error('INVALID_CONTROL');
+ const expected=crypto.createHmac('sha256',secret).update(`carol-sip:${ts}:${raw}`).digest('hex');if(!safeEqual(mac,expected))throw Error('INVALID_CONTROL');
+ const binding=JSON.parse(raw);if(!binding||typeof binding!=='object'||Array.isArray(binding)||!/^CA[0-9a-f]{32}$/i.test(binding.call_sid||'')||!/^[-a-zA-Z0-9_]{1,200}$/.test(binding.sip_call_id||'')||!/^[0-9a-f-]{36}$/i.test(binding.session_id||''))throw Error('INVALID_CONTROL');
+ return binding;
+}
 function verifyWebhook(raw,headers,secret,now=Date.now()){
  const id=headers['webhook-id'],ts=headers['webhook-timestamp'],signature=headers['webhook-signature'];
  if(!secret||typeof id!=='string'||id.length>200||typeof ts!=='string'||!/^\d{1,12}$/.test(ts)||Math.abs(now/1000-Number(ts))>300||typeof signature!=='string')throw Error('INVALID_WEBHOOK');
@@ -40,16 +50,17 @@ function incoming(event,env){
  return {call_sid:sid,sip_call_id:event.data.call_id,caller_number:match[1]};
 }
 function sessionConfig(env){return {type:'realtime',model:env.OPENAI_REALTIME_SIP_MODEL||'gpt-realtime-2.1',instructions:INSTRUCTIONS,audio:{input:{transcription:{model:'gpt-4o-mini-transcribe'},turn_detection:{type:'server_vad',interrupt_response:true,create_response:true}},output:{voice:env.PMA_VOICE||'verse'}},tools:[CREATE,END],tool_choice:'auto'};}
-function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{},setTimer=setTimeout,clearTimer=clearTimeout}={}){
+function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{},setTimer=setTimeout,clearTimer=clearTimeout,dispatchControl}={}){
  const sessions=new Map();let pending=0;
- const enabled=()=>env.PMA_SIP_ENABLED==='true'&&env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_ENVIRONMENT==='staging'&&env.PMA_STAGING_BASE_URL==='https://pma-validation--ai4cc-staging.netlify.app'&&!!env.OPENAI_API_KEY&&!!env.OPENAI_WEBHOOK_SECRET&&!!env.BRIDGE_HMAC_SECRET_STAGING;
+ const enabled=()=>env.PMA_SIP_ENABLED==='true'&&env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_ENVIRONMENT==='staging'&&env.PMA_STAGING_BASE_URL==='https://pma-validation--ai4cc-staging.netlify.app'&&!!env.OPENAI_API_KEY&&!!env.OPENAI_WEBHOOK_SECRET&&!!env.BRIDGE_HMAC_SECRET_STAGING&&!!env.PMA_SIP_CONTROL_SECRET;
  async function api(callId,action,body){const r=await request(`https://api.openai.com/v1/realtime/calls/${encodeURIComponent(callId)}/${action}`,{method:'POST',headers:{authorization:'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('OPENAI_CALL_ACTION_FAILED');}
  async function backend(body){const ts=String(Math.floor(Date.now()/1000)),encoded=JSON.stringify(body);const sig=crypto.createHmac('sha256',env.BRIDGE_HMAC_SECRET_STAGING).update(`pma-staging:${ts}:${encoded}`).digest('hex');const r=await request(env.PMA_STAGING_BASE_URL+'/api/intake/pma-sip-staging',{method:'POST',headers:{'content-type':'application/json','x-bridge-signature':`${ts}.${sig}`},body:encoded,signal:AbortSignal.timeout(9000)});if(!r.ok)throw Error('INTAKE_UNCONFIRMED');return (await r.json()).result;}
- async function finish(state){if(state.closed)return;state.closed=true;clearTimer(state.deadline);clearTimer(state.closeTimer);try{await api(state.binding.sip_call_id,'hangup');}catch{log('sip_hangup_unconfirmed');}try{await backend({...state.binding,action:'close'});}catch{log('sip_session_close_unconfirmed');}state.ws?.close();sessions.delete(state.binding.sip_call_id);}
+ async function finish(state){if(state.closed)return;state.closed=true;clearTimer(state.deadline);clearTimer(state.closeTimer);try{await api(state.binding.sip_call_id,'hangup');}catch{log('sip_hangup_unconfirmed');}try{await backend({...state.binding,action:'close'});}catch{log('sip_session_close_unconfirmed');}state.ws?.close();sessions.delete(state.binding.sip_call_id);state.resolveDone?.();}
  function attach(binding){
-  const state={binding,closed:false,seen:new Set(),turns:[],incident:null,preferenceSaved:false,queue:Promise.resolve(),ending:false,farewellDone:false,playbackStopped:false};
+  let resolveDone;const done=new Promise(resolve=>{resolveDone=resolve;});
+  const state={binding,closed:false,seen:new Set(),turns:[],incident:null,preferenceSaved:false,queue:Promise.resolve(),ending:false,farewellDone:false,playbackStopped:false,done,resolveDone};
   sessions.set(binding.sip_call_id,state);
-  state.deadline=setTimer(()=>void finish(state),20*60*1000);
+  state.deadline=setTimer(()=>void finish(state),Math.min(Number(env.PMA_SIP_MAX_CALL_MS)||14*60*1000,14*60*1000));
   const ws=new Socket('wss://api.openai.com/v1/realtime?call_id='+encodeURIComponent(binding.sip_call_id),{headers:{Authorization:'Bearer '+env.OPENAI_API_KEY}});state.ws=ws;
   const send=value=>{if(!state.closed&&ws.readyState===1)ws.send(JSON.stringify(value));};
   const output=(id,value)=>{send({type:'conversation.item.create',item:{type:'function_call_output',call_id:id,output:JSON.stringify(value)}});send({type:'response.create'});};
@@ -113,14 +124,12 @@ function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{
    const binding=await backend({...info,action:'start'});
    if(binding?.duplicate)return {status:200,body:{duplicate:true}};
    if(binding?.sip_call_id!==info.sip_call_id||binding?.call_sid!==info.call_sid||typeof binding.session_id!=='string')throw Error();
-   try{await api(info.sip_call_id,'accept',sessionConfig(env));accepted=true;attach(binding);}catch{
+   try{await api(info.sip_call_id,'accept',sessionConfig(env));accepted=true;if(dispatchControl)await dispatchControl(binding);else attach(binding);}catch{
     try{await api(info.sip_call_id,'hangup');}catch{}try{await backend({...binding,action:'close'});}catch{}throw Error();
    }
    return {status:200,body:{accepted:true}};
   }catch{if(!accepted){try{await api(info.sip_call_id,'reject',{status_code:503});}catch{log('sip_rejection_unconfirmed');}}log('sip_setup_unconfirmed');return {status:503,body:{error:'SIP setup unconfirmed'}};}finally{pending--;}
  }
- return {handle,enabled,shutdown:()=>Promise.all([...sessions.values()].map(finish)),activeCount:()=>sessions.size};
+ return {handle,enabled,run:binding=>attach(binding).done,shutdown:()=>Promise.all([...sessions.values()].map(finish)),activeCount:()=>sessions.size};
 }
-function createApp(options={}){const service=createService(options),app=express();app.disable('x-powered-by');app.get('/health',(_,res)=>res.json({ok:true,stagingOnly:true,transport:'direct-realtime-sip',revision:process.env.BRIDGE_RELEASE_SHA||null,enabled:service.enabled(),activeCalls:service.activeCount()}));app.post('/openai/realtime-sip',express.raw({type:'application/json',limit:'64kb'}),async(req,res)=>{const result=await service.handle(req.body,req.headers);res.status(result.status).json(result.body);});return {app,service};}
-if(require.main===module){const {app,service}=createApp({log:event=>console.log(JSON.stringify({event}))});const server=app.listen(Number(process.env.PORT||8080));process.on('SIGTERM',()=>{server.close();void service.shutdown().finally(()=>process.exit(0));});}
-module.exports={createService,createApp,sessionConfig,verifyWebhook,incoming,INSTRUCTIONS,GREETING};
+module.exports={createService,sessionConfig,verifyWebhook,incoming,signControl,verifyControl,INSTRUCTIONS,GREETING};
