@@ -4,9 +4,10 @@ on:
     branches: [pma-validation]
     paths:
       - 'lib/pmaSip/**'
+      - 'netlify/functions/carol-sip-control-background.mts'
+      - 'pages/api/intake/carol-sip-openai.ts'
       - 'pages/api/intake/pma-sip-staging.ts'
       - 'twilio-bridge/carol-sip-server.cjs'
-      - 'twilio-bridge/Dockerfile.carol-sip'
       - 'twilio-bridge/tests/carol-sip.test.cjs'
       - 'tests/carolSipDatabase.test.mts'
       - '.github/workflows/carol-sip-staging.yml'
@@ -35,20 +36,7 @@ jobs:
           npm audit --prefix twilio-bridge --omit=dev --audit-level=moderate
       - name: Optimized build and types
         run: npm run build
-      - name: Direct SIP image build
-        run: docker build --file twilio-bridge/Dockerfile.carol-sip --build-arg PMA_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}" --tag stellar-carol-sip:ci twilio-bridge
-      - name: Verify isolated service boots disabled with no credentials
+      - name: Netlify background controller bundle and syntax
         run: |
-          docker run --detach --name carol-sip --publish 127.0.0.1:8081:8080 stellar-carol-sip:ci
-          node --input-type=module <<'JS'
-          import assert from 'node:assert/strict';
-          let health;
-          for(let i=0;i<30;i++){
-            try {const r=await fetch('http://127.0.0.1:8081/health');health=await r.json();break;}catch{await new Promise(r=>setTimeout(r,500));}
-          }
-          assert.equal(health?.transport,'direct-realtime-sip');
-          assert.equal(health?.enabled,false);
-          const rejected=await fetch('http://127.0.0.1:8081/openai/realtime-sip',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
-          assert.equal(rejected.status,503);
-          JS
-          docker rm --force carol-sip
+          npx --no-install esbuild netlify/functions/carol-sip-control-background.mts --bundle --platform=node --format=esm --outfile=/tmp/carol-sip-control-background.mjs
+          node --check /tmp/carol-sip-control-background.mjs
