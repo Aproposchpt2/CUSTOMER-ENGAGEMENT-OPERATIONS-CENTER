@@ -44,7 +44,7 @@ try{
   assert.equal(session.assess({reference:profile==='sales'?'SUP-049':'SAL-033',confidence:1}).state,'CLARIFY');session.close();
  }
  const pma=createPmaAdapter(process.env,forbidden);assert.equal(pma.enabled,true);assert.ok(pma.tools.some(t=>t.name==='pma_property_workflow'));
- assert.match(pma.instructions,/invoke pma_property_workflow during that same active call/);
+ assert.match(pma.instructions,/Submit the complete incident once through the dedicated emergency intent/);
  assert.equal(createPmaAdapter({...process.env,STELLAR_BRIDGE_STAGING:'false'},forbidden).enabled,false);
  console.log(JSON.stringify({node:process.version,specialists:['echo','cedar'],pmaTool:true,tenantIsolation:true,networkCalls:0}));
  `));

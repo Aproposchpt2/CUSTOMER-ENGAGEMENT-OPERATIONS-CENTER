@@ -134,9 +134,9 @@ test('staging voice agents retain distinct departmental identities and acoustic 
  const receptionist=require('../voice-receptionist.cjs');
  assert.match(receptionist.INSTRUCTIONS,/AI receptionist/);
  assert.match(server,/profile === 'pma' \? \(process\.env\.PMA_VOICE\|\|'verse'\) : profile === 'sales' \? 'echo' : 'cedar'/);
- assert.match(server,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(server,/PMA_HANDOFF/);
  assert.match(server,/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
- assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/Thank you for calling Desert Ridge Customer Care Center/);
  assert.doesNotMatch(adapter.createPmaAdapter({}).instructions,/Start by saying: "Hello, this is the AI4Businesses/);
 });
 

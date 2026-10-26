@@ -3,7 +3,7 @@ on:
   push:
     branches: [repair/pma-fly-validation-security-20261025, repair/fly-staging-runtime-guards-20261025]
   pull_request:
-    branches: [integration/ss-pma-joint-20261025, repair/pma-fly-validation-security-20261025]
+    branches: [pma-validation, integration/ss-pma-joint-20261025, repair/pma-fly-validation-security-20261025]
   workflow_dispatch:
 permissions:
   contents: read

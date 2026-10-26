@@ -4,6 +4,19 @@ import {calendarDate} from './availability';
 import {showingInstant} from './scheduling';
 import {isEmergencyIntent,dispatchEmergency} from './emergencyDispatch';
 
+// A caller may give their identity and incident in one uninterrupted utterance.
+// Accept an exact observed span, never a model paraphrase or partial word.
+export function isObservedIncident(description:string,observed:string[]){
+ const text=description.trim();
+ return !!text&&observed.some(value=>{
+  for(let at=value.indexOf(text);at!==-1;at=value.indexOf(text,at+1)){
+   const before=value.slice(0,at).slice(-1),after=value.slice(at+text.length,at+text.length+1);
+   if(!new RegExp('[\\p{L}\\p{N}]','u').test(before)&&!new RegExp('[\\p{L}\\p{N}]','u').test(after))return true;
+  }
+  return false;
+ });
+}
+
 export const voiceStates=['INFORMATION','CLARIFICATION_REQUIRED','AUTHORIZATION_REQUIRED','REQUESTED','CONFIRMED','CONFLICT','UNKNOWN','FAILED'] as const;
 /** Model arguments carry facts/consent only. Identity and operation IDs never come from them. */
 export function prepareVoiceTurn(body:Record<string,any>){
@@ -11,7 +24,10 @@ export function prepareVoiceTurn(body:Record<string,any>){
  const message=text(body.message,'message',4000);
  const detailMessage=typeof body.maintenance?.description==='string'?body.maintenance.description.slice(0,4000):null;
  const detailSafety=detailMessage?intentDecision(detailMessage):null;
- const decision=detailSafety?.safety_override?detailSafety:intentDecision(message,body.modelOutput);
+ const observed=body.observedCallerTurns;
+ const observedSafety=body.maintenance&&Array.isArray(observed)&&observed.length<=20&&observed.every((v:any)=>typeof v==='string'&&v.length<=4000)
+  ? observed.map((v:string)=>intentDecision(v)).find((v:any)=>v.safety_override):null;
+ const decision=detailSafety?.safety_override?detailSafety:observedSafety??intentDecision(message,body.modelOutput);
  const base={intent:decision.intent,confidence:decision.confidence,message,confirmed:body.confirmed===true};
  // Safety wins even when other model arguments are corrupt. Never send untrusted role fields to SQL.
  // Give the model/backend the safety override when no report payload is ready.
@@ -59,7 +75,7 @@ export function prepareVoiceTurn(body:Record<string,any>){
   if(reportedName.length<2||reportedAddress.length<5||reportedUnit.length<1)throw new PmaError('Name, property address and apartment number are required');
   const observed=body.observedCallerTurns;
   if(!Array.isArray(observed)||observed.length<1||observed.length>20||observed.some((v:any)=>typeof v!=='string'||v.length>4000))return {...base,action:'clarify',clarification:'I want to record your words accurately. Could you repeat the issue exactly as you would like it written in the report?'};
-  if(!observed.some((v:string)=>v.trim()===description.trim()))return {...base,action:'clarify',clarification:'I want to capture your wording exactly. Could you repeat the issue once more so I can record it accurately?'};
+  if(!isObservedIncident(description,observed))return {...base,action:'clarify',clarification:'I want to capture your wording exactly. Could you repeat the issue once more so I can record it accurately?'};
   if(body.confirmed!==true)return {...base,action:'clarify',details:{reportedName,reportedAddress,reportedUnit,description}};
   return {...base,action:'incident_report',details:{reportedName,reportedAddress,reportedUnit,description},...(decision.safety_override?{safety:decision.intent}:{})};
  }

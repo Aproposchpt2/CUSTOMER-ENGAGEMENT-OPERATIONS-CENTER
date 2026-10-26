@@ -27,6 +27,7 @@ const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, op
 const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./voice-entry.cjs');
 const voiceEntry=createVoiceEntry(process.env);
 const {PERSONA: STELLAR_PERSONA}=require('./stellar-conversational-persona.cjs');
+const {createPmaTranscript,PMA_HANDOFF,PMA_SAFETY_OVERRIDE}=require('./pma-conversation.cjs');
 const voicePrompts=require('./voice-system-prompts.json');
 const {startReceptionist}=require('./voice-receptionist.cjs');
 const { LatencyLogger } = require('./latency-logger.js');
@@ -431,20 +432,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
   let supportReviewedVersion = 0;
   let supportBackendActive = false;
   let supportSavePending = false;
-  const pmaTranscriptTurns = [];
-  const pmaTranscriptBuffers = { customer: '', agent: '' };
-  let pmaTranscriptSource = null;
-
-  function appendPmaTranscript(speaker, delta) {
-    if (typeof delta !== 'string' || !delta.trim() || pmaTranscriptTurns.length >= 200) return;
-    pmaTranscriptBuffers[speaker] = (pmaTranscriptBuffers[speaker] + delta).slice(0, 4000);
-  }
-  function flushPmaTranscript(speaker, finalText) {
-    if (pmaTranscriptTurns.length >= 200) return;
-    const content = (pmaTranscriptBuffers[speaker] || (typeof finalText === 'string' ? finalText : '')).trim().slice(0, 4000);
-    pmaTranscriptBuffers[speaker] = '';
-    if (content) pmaTranscriptTurns.push({ speaker, content });
-  }
+  const pmaTranscript = createPmaTranscript();
 
   const deadline = setTimeout(() => { logEvent(`[${callSid}] max duration`); cleanup('MAX_DURATION'); }, MAX_CALL_MS);
 
@@ -470,13 +458,16 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
     if(session) {
       const closeSession=()=>voiceEntry.closeSession(session,reason).catch(()=>logEvent(`[${callSid}] session end persistence unconfirmed; provider callback can reconcile`));
       if(STAGING_ONLY&&profile==='pma'&&pmaAdapter.enabled){
-        flushPmaTranscript('customer');flushPmaTranscript('agent');
+        const pmaTranscriptTurns=pmaTranscript.snapshot();
         if(pmaTranscriptTurns.length){
           void pmaAdapter.saveTranscript(pmaTranscriptTurns,{callSid,sessionId:session.session_id})
-            .then(result=>logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:result?.state||'UNKNOWN',turns:result?.transcriptTurns||0})))
+            .then(result=>logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:result?.state||'UNKNOWN',turns:result?.transcriptTurns||0,failureClass:result?.failureClass||null,httpStatus:result?.httpStatus||null,truncated:pmaTranscript.truncated})))
             .catch(()=>logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:'UNKNOWN',turns:0})))
             .finally(closeSession);
-        } else void closeSession();
+        } else {
+          logEvent(JSON.stringify({event:'pma_transcript_capture',callSid,sessionId:session.session_id,state:'NO_TRANSCRIPT',turns:0}));
+          void closeSession();
+        }
       } else void closeSession();
     }
     if (openaiWs && openaiWs.readyState !== WebSocket.CLOSED) openaiWs.close();
@@ -540,7 +531,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: speechInstructions,
+        instructions: profile==='pma' ? speechInstructions+'\nDelegate to the configured Responses backend when a record must be created, a contact preference saved, or a verified lookup is needed. Do not merely describe taking the action. Continue listening while work runs; announce success only from a verified tool result.' : speechInstructions,
         // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
         // PMA_VOICE env var overrides the PMA voice for live A/B testing without redeploy.
         audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? (process.env.PMA_VOICE||'verse') : profile === 'sales' ? 'echo' : 'cedar' } },
@@ -581,8 +572,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         const pmaStarted=Date.now();
         const pmaToolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
         logEvent(JSON.stringify({event:'pma_workflow_started',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,intent:typeof args.intent==='string'?args.intent:null,confirmed:args.confirmed===true}));
-        const observedCallerTurns=pmaTranscriptTurns.filter(turn=>turn.speaker==='customer').map(turn=>turn.content);
-        if(pmaTranscriptBuffers.customer.trim())observedCallerTurns.push(pmaTranscriptBuffers.customer.trim());
+        const observedCallerTurns=pmaTranscript.callerEvidence();
         output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id, observedCallerTurns:observedCallerTurns.slice(-20) });
         logEvent(JSON.stringify({event:'pma_workflow_completed',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,state:output?.state||null,incidentId:output?.emergencyDispatch?.incidentId||null,dispatchState:output?.emergencyDispatch?.state||null,elapsedMs:Date.now()-pmaStarted}));
       } else if (name === 'submit_business_profile') {
@@ -685,35 +675,24 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       // Delegated Responses events may arrive inside Live response.event envelopes.
       if (msg.type === 'response.event' && msg.event && typeof msg.event === 'object') msg = msg.event;
       const t = msg.type;
-      if (STAGING_ONLY && profile === 'pma') {
-        if (t === 'session.input_transcript.delta') appendPmaTranscript('customer',msg.delta);
-        if (t === 'session.input_transcript.done') flushPmaTranscript('customer',msg.transcript);
-        if (['response.audio_transcript.delta','response.output_audio_transcript.delta','session.output_audio_transcript.delta','session.output_transcript.delta'].includes(t)) {
-          if (!pmaTranscriptSource) pmaTranscriptSource=t;
-          if (pmaTranscriptSource===t) appendPmaTranscript('agent',msg.delta);
-        }
-        if (['response.audio_transcript.done','response.output_audio_transcript.done','session.output_audio_transcript.done','session.output_transcript.done'].includes(t)
-          && (!pmaTranscriptSource || t===pmaTranscriptSource.replace(/\.delta$/,'.done'))) {
-          flushPmaTranscript('agent',msg.transcript);
-          pmaTranscriptSource=null;
-        }
-      }
+      if (STAGING_ONLY && profile === 'pma') pmaTranscript.observe(msg);
       if (specialist && t === 'session.input_transcript.delta') {
         const danger = specialist.observe(msg.delta || '', false);
         if (danger) { clearTwilioAudio(); sendToOpenAI({type:'session.instructions.append',content:`SAFETY OVERRIDE: ${danger.script} Stop routine intake and troubleshooting. No dispatch is confirmed.`}); }
       }
-      if (STAGING_ONLY && profile === 'pma' && t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+      if (STAGING_ONLY && profile === 'pma' && t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.length) {
         pmaSafetyText = (pmaSafetyText + msg.delta).slice(-4000);
         const safety = require('./pma-intents.cjs').classify(pmaSafetyText);
         if (safety.safety_override && !pmaSafetyAnnounced) {
           pmaSafetyAnnounced = true;
-          sendToOpenAI({type:'session.commentary.append',delegation_id:null,content:'SAFETY OVERRIDE: Advise moving to safety/fresh air and contacting local emergency services immediately. Do not delay for intake or tools. Do not claim dispatch.'});
-          void pmaAdapter.submit({message:pmaSafetyText,confirmed:false},{callSid,sessionId:session?.session_id}).catch(()=>{});
+          clearTwilioAudio();
+          sendToOpenAI({type:'session.instructions.append',event_id:'pma-safety-override',delegation_id:null,content:PMA_SAFETY_OVERRIDE});
+          logEvent(JSON.stringify({event:'pma_safety_override_requested',callSid,sessionId:session?.session_id,intent:safety.intent}));
         }
       }
-      if (profile === 'pma' && ['input_audio_buffer.speech_started','session.input_audio.speech_started'].includes(t)) pmaSafetyText = '';
+      if (profile === 'pma' && ['input_audio_buffer.speech_started','session.speech_started','session.input_audio.speech_started'].includes(t)) pmaSafetyText = '';
       if (STAGING_ONLY && profile === 'support') {
-        if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.trim()) {
+        if (t === 'session.input_transcript.delta' && typeof msg.delta === 'string' && msg.delta.length) {
           supportInputVersion++;
           scheduleSupportReview();
         }
@@ -903,9 +882,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         if(session&&!specialist)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
           if(profile==='pma'){instructions=instructions.replace(/Start by saying: "[^"]*"\n?/,'');}
-          if(profile==='pma')instructions+='\n# PMA CUSTOMER EXPERIENCE PERSONA\nDeliver every response in a grounded, resonant, distinctly male register — low, full, and confident, never light, breathy, or high-pitched. Speak with the energy of an outstanding front-desk hospitality professional: genuinely warm, cheerful, and enthusiastic, as if you enjoy this work. Project steady confidence and natural authority without stiffness. Vary your pace naturally — slow down to land important details, pick up energy when welcoming the caller. Smile in the voice. Avoid a flat, monotone, mechanical, overly formal, or exaggerated delivery. Acknowledge each request positively, keep sentences short and punchy, and let the caller feel heard. Preserve all factual, authorization, privacy, emergency, consent, booking and no-fabrication requirements. This persona affects delivery only and never changes which tools or facts are permitted.';
-      const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
-          instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
+          if(profile==='pma') {
+            instructions+='\n'+PMA_HANDOFF;
+          } else {
+            const departmentGreeting=profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
+            instructions+='\n# RECEPTION HANDOFF\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
+          }
         }
 
         startSession(instructions, tools);
