@@ -17,9 +17,15 @@ export function prepareVoiceTurn(body:Record<string,any>){
  // Give the model/backend the safety override when no report payload is ready.
  // Once intake fields are present, persist the single tenant incident and then
  // dispatch through the dedicated emergency path below.
- if(decision.safety_override&&body.maintenance===undefined)return {...base,message:detailSafety?.safety_override?detailMessage:message,action:'safety',safety:decision.intent};
+ const intake=body.maintenance;
+ const completeIncident=intake&&typeof intake==='object'&&!Array.isArray(intake)
+  &&typeof intake.reportedName==='string'&&typeof intake.reportedAddress==='string'
+  &&typeof intake.reportedUnit==='string'&&typeof intake.description==='string';
+ if(decision.safety_override&&!completeIncident)return {...base,message:detailSafety?.safety_override?detailMessage:message,action:'safety',safety:decision.intent};
  if(Object.keys(body).some(k=>!['message','modelOutput','confirmed','call_sid','session_id','agentRoute','prospect','showingAt','maintenance','contactPreference','observedCallerTurns','cancelOrReschedule','listTourSlots','recoverOperation'].includes(k)))throw new PmaError('Untrusted PMA fields');
  if(body.agentRoute!=='property-management-assistant')throw new PmaError('PMA route required',403);
+ if(decision.intent==='MAINTENANCE_REQUEST'&&body.maintenance===undefined)return {...base,action:'maintenance'};
+ if(body.maintenance!==undefined&&!completeIncident)return {...base,action:'clarify',clarification:'Please provide the caller-reported name, property address, unit when applicable, and exact incident description.'};
  if(decision.requires_clarification&&body.maintenance===undefined&&body.contactPreference===undefined)return {...base,action:'clarify'};
  if(body.recoverOperation!==undefined){if(!['prospect','showing'].includes(body.recoverOperation))throw new PmaError('Invalid recovery kind');return {...base,action:'recover',kind:body.recoverOperation};}
  if(body.contactPreference!==undefined){
