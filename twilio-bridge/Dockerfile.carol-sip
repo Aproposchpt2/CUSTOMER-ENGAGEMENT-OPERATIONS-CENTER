@@ -1,0 +1,11 @@
+FROM node:24-alpine
+ARG PMA_SOURCE_SHA
+RUN node -e "if (!/^[0-9a-f]{40}$/.test(process.env.PMA_SOURCE_SHA || '')) process.exit(1)"
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
+COPY carol-sip-server.cjs stellar-conversational-persona.cjs ./
+ENV BRIDGE_RELEASE_SHA=${PMA_SOURCE_SHA}
+LABEL org.opencontainers.image.revision=${PMA_SOURCE_SHA}
+EXPOSE 8080
+CMD ["node", "carol-sip-server.cjs"]

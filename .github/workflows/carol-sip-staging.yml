@@ -1,0 +1,54 @@
+name: Carol Direct Realtime SIP Validation
+on:
+  pull_request:
+    branches: [pma-validation]
+    paths:
+      - 'lib/pmaSip/**'
+      - 'pages/api/intake/pma-sip-staging.ts'
+      - 'twilio-bridge/carol-sip-server.cjs'
+      - 'twilio-bridge/Dockerfile.carol-sip'
+      - 'twilio-bridge/tests/carol-sip.test.cjs'
+      - 'tests/carolSipDatabase.test.mts'
+      - '.github/workflows/carol-sip-staging.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  direct-sip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm ci --prefix twilio-bridge --ignore-scripts
+      - name: Complete application and isolated PostgreSQL regressions
+        run: npm test
+      - name: Complete bridge and direct SIP protocol regressions
+        run: node --test twilio-bridge/tests/*.test.cjs
+      - name: Dependency audits
+        run: |
+          npm audit --omit=dev --audit-level=moderate
+          npm audit --prefix twilio-bridge --omit=dev --audit-level=moderate
+      - name: Optimized build and types
+        run: npm run build
+      - name: Direct SIP image build
+        run: docker build --file twilio-bridge/Dockerfile.carol-sip --build-arg PMA_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}" --tag stellar-carol-sip:ci twilio-bridge
+      - name: Verify isolated service boots disabled with no credentials
+        run: |
+          docker run --detach --name carol-sip --publish 127.0.0.1:8081:8080 stellar-carol-sip:ci
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          let health;
+          for(let i=0;i<30;i++){
+            try {const r=await fetch('http://127.0.0.1:8081/health');health=await r.json();break;}catch{await new Promise(r=>setTimeout(r,500));}
+          }
+          assert.equal(health?.transport,'direct-realtime-sip');
+          assert.equal(health?.enabled,false);
+          const rejected=await fetch('http://127.0.0.1:8081/openai/realtime-sip',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
+          assert.equal(rejected.status,503);
+          JS
+          docker rm --force carol-sip
