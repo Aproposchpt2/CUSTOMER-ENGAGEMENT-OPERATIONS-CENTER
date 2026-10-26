@@ -77,7 +77,7 @@ begin
  insert into private.pm_voice_operations_v1(session_id,kind,revision,facts,outcome)
  values(session_id,'maintenance',0,facts,'{}'::jsonb) returning * into op;
  opid=op.operation_id;
- urgent=description~*'(fire|smoke|gas leak|smell gas|sparking|electrical danger|severe flooding|burst pipe|immediate threat|immediate danger)';
+ urgent=description~*'(fire|smoke|gas leak|smell gas|carbon monoxide|sparking|electrical hazard|electrical danger|severe flooding|burst pipe|immediate threat|immediate danger)';
  insert into public.pm_maintenance_requests(tenant_id,property_id,unit_id,contact_id,interaction_id,summary,description,category,priority,status,source_channel,idempotency_key,intake_details)
  values(t,p,null,cid,session_id,left(description,500),description,'other',case when urgent then 'emergency' else 'normal' end,'New','voice','pma-voice:'||session_id::text,
    jsonb_build_object('voiceSessionId',session_id,'callerAssertedIdentity',true,'reportedName',name,'reportedAddress',address,
