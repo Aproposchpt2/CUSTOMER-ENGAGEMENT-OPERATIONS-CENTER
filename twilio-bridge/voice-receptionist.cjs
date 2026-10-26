@@ -13,13 +13,36 @@ const TOOL={type:'function',name:'select_agent',description:'Connect this caller
 // Uses the shared bridge's pooled OpenAI transport and existing specialist handler.
 // The Twilio stream stays open across handoff, so no intermediate stop callback ends the call.
 function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,reasoningModel,handoff,release,log=()=>{},maxMs=120000}){
- let live,ready=false,done=false,selecting=false,silence,deadline,opening,validated=false,pendingDigit=null,streamSid=startMessage.start.streamSid||startMessage.streamSid;
+ let live,ready=false,done=false,selecting=false,silence,deadline,opening,drainDeadline,validated=false,pendingDigit=null,streamSid=startMessage.start.streamSid||startMessage.streamSid;
+ let pendingHandoff=null,responseFinished=false,handoffMark=null;
  const completed=new Set();let queued=[],queuedBytes=0;
  const sendTwilio=o=>{if(twilioWs.readyState===1)twilioWs.send(JSON.stringify(o));};
  const send=o=>{if(!done&&live?.readyState===1)live.send(JSON.stringify(o));};
- function detach(){clearInterval(silence);clearTimeout(deadline);clearTimeout(opening);twilioWs.removeListener('message',onTwilio);twilioWs.removeListener('close',onClose);twilioWs.removeListener('error',onClose);}
+ function detach(){clearInterval(silence);clearTimeout(deadline);clearTimeout(opening);clearTimeout(drainDeadline);twilioWs.removeListener('message',onTwilio);twilioWs.removeListener('close',onClose);twilioWs.removeListener('error',onClose);}
  function close(reason){if(done)return;done=true;detach();if(live){live.close();}release();void entry.endReception(session,reason).catch(()=>log('Reception end unconfirmed; provider callback can reconcile'));if(twilioWs.readyState===1)twilioWs.close();}
  function onClose(){close('RECEPTION_CALL_ENDED');}
+ function finishHandoff(){
+  if(done||!pendingHandoff)return;
+  const {profile,chosen,startMessage:handoffStart}=pendingHandoff;
+  done=true;detach();live?.close();queued=[];
+  sendTwilio({event:'clear',streamSid});release();
+  log('Reception handoff confirmed agent='+profile+' announcementPlayback=complete');
+  handoff(profile,chosen,handoffStart);
+ }
+ function requestHandoffDrain(){
+  if(done||!pendingHandoff)return;
+  // Keypad callers have no spoken announcement to drain. Spoken selections
+  // wait for the response to finish and for Twilio to echo the playback mark.
+  if(!pendingHandoff.callId){finishHandoff();return;}
+  if(!responseFinished||handoffMark)return;
+  handoffMark='stellar-handoff-played';
+  sendTwilio({event:'mark',streamSid,mark:{name:handoffMark}});
+  drainDeadline=setTimeout(()=>{
+   if(done||!handoffMark)return;
+   log('Reception handoff playback mark timed out; keeping reception connected');
+   handoffMark=null;responseFinished=false;
+  },8000);
+ }
  async function choose(agentRoute,callId){
   if(done||selecting)return;
   if(!Object.hasOwn(byAgent,agentRoute)){if(callId)toolError(callId,'Please choose support, sales or property management.');return;}
@@ -28,16 +51,15 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
    const chosen=await entry.reception(session,agentRoute);
    if(done)return;
    if(chosen.agentRoute!==agentRoute||chosen.call_sid!==session.call_sid||chosen.session_id!==session.session_id||chosen.end_time)throw Error('Route confirmation missing');
-   done=true;detach();live?.close();queued=[];
-   sendTwilio({event:'clear',streamSid});release();
-   log('Reception handoff confirmed agent='+agentRoute);
-   handoff(byAgent[agentRoute].profile,Object.freeze({...chosen,receptionHandoff:true}),startMessage);
+   pendingHandoff={profile:byAgent[agentRoute].profile,chosen:Object.freeze({...chosen,receptionHandoff:true}),startMessage,callId};
+   requestHandoffDrain();
   }catch{selecting=false;if(callId)toolError(callId,'Connection was not confirmed. Ask the caller to try a destination again.');else send({type:'session.instructions.append',content:'The keypad connection was not confirmed. Tell the caller briefly and ask them to try again.'});}
  }
  function toolError(id,error){send({type:'response.item.create',item:{type:'function_call_output',call_id:id,output:JSON.stringify({success:false,error})}});send({type:'response.create'});}
  function onTwilio(raw){
   if(done)return;let m;try{m=JSON.parse(raw.toString());}catch{return;}
   if(m.event==='stop'){close('RECEPTION_TWILIO_STOP');return;}
+  if(m.event==='mark'&&m.streamSid===streamSid&&handoffMark&&m.mark?.name===handoffMark){clearTimeout(drainDeadline);handoffMark=null;finishHandoff();return;}
   if(m.event==='dtmf'&&m.streamSid===streamSid){
    const digit=m.dtmf?.digit;
    if(Object.hasOwn(routes,digit)){if(validated)void choose(routes[digit].agent);else if(pendingDigit===null)pendingDigit=digit;}
@@ -50,17 +72,26 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
  }
  async function begin(){
   try{
-   await entry.reception(session);
+   // Start the OpenAI socket alongside trusted-session validation so pickup
+   // does not wait for two serial network round trips before greeting.
+   live=openLive();
+   const socketReady=live.readyState===1?Promise.resolve():new Promise((resolve,reject)=>{
+    live.once('open',resolve);live.once('error',reject);
+   });
+   await Promise.all([entry.reception(session),socketReady]);
    if(done)return;
    validated=true;
    if(pendingDigit!==null){void choose(routes[pendingDigit].agent);return;}
-   live=openLive();
    live.on('message',raw=>{
     if(done)return;let m;try{m=JSON.parse(raw.toString());}catch{return;}
     if(m.type==='response.event'&&m.event)m=m.event;
     if(m.type==='session.started'&&!ready){ready=true;clearTimeout(opening);send({type:'response.create'});for(const audio of queued)send({type:'session.input_audio.append',audio});queued=[];
      if(!queuedBytes)silence=setInterval(()=>send({type:'session.input_audio.append',audio:Buffer.alloc(160,255).toString('base64')}),20);
      log('Reception OpenAI session ready voice=marin');
+    }else if(m.type==='response.created'){
+     responseFinished=false;
+    }else if(['response.completed','response.done'].includes(m.type)){
+     responseFinished=true;requestHandoffDrain();
     }else if(['session.output_audio.delta','response.output_audio.delta'].includes(m.type)&&m.delta){sendTwilio({event:'media',streamSid,media:{payload:m.delta}});}
     else if(m.type==='response.output_item.done'&&m.item?.type==='function_call'){
      const item=m.item;if(typeof item.call_id!=='string'||completed.has(item.call_id))return;completed.add(item.call_id);
@@ -69,8 +100,8 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
     }else if(m.type==='error'){log('Reception OpenAI request failed');close('RECEPTION_OPENAI_ERROR');}
    });
    live.on('close',()=>{if(!done)close('RECEPTION_OPENAI_CLOSE');});live.on('error',()=>close('RECEPTION_OPENAI_ERROR'));
-   const configure=()=>{if(done)return;send({type:'session.start',session:{model,instructions:INSTRUCTIONS,audio:{format:{type:'audio/pcmu',rate:8000},output:{voice:process.env.IVR_VOICE||'marin'}},delegation:{type:'responses',responses:{model:reasoningModel,instructions:INSTRUCTIONS,tools:[TOOL],tool_choice:'auto'}}}});};
-   if(live.readyState===1)configure();else live.once('open',configure);
+   if(live.readyState!==1)throw Error('OpenAI socket did not become ready');
+   if(!done)live.send(JSON.stringify({type:'session.start',session:{model,instructions:INSTRUCTIONS,audio:{format:{type:'audio/pcmu',rate:8000},output:{voice:process.env.IVR_VOICE||'marin'}},delegation:{type:'responses',responses:{model:reasoningModel,instructions:INSTRUCTIONS,tools:[TOOL],tool_choice:'auto'}}}}));
   }catch{close('RECEPTION_START_FAILED');}
  }
  twilioWs.on('message',onTwilio);twilioWs.on('close',onClose);twilioWs.on('error',onClose);
