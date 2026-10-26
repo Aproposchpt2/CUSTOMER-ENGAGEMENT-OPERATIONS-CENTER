@@ -5,10 +5,10 @@ begin;
 alter table public.pm_maintenance_requests
   add column if not exists case_number text;
 update public.pm_maintenance_requests
-   set case_number='DR-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,16))
+   set case_number='PMA-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))
  where case_number is null;
 alter table public.pm_maintenance_requests
-  alter column case_number set default ('DR-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,16))),
+  alter column case_number set default ('PMA-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,10))),
   alter column case_number set not null;
 create unique index if not exists pm_maintenance_requests_case_number_uq
   on public.pm_maintenance_requests(case_number);
