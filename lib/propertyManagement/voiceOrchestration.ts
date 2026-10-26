@@ -88,7 +88,7 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
  const session=uuid(body?.session_id);const call=text(body?.call_sid,'call SID',34);
  if(!/^CA[0-9a-f]{32}$/i.test(call))throw new PmaError('Invalid call',403);
  const prepared=prepareVoiceTurn(body);
- if(prepared.action==='incident_report'){
+ if(prepared.action==='incident_report'&&'details' in prepared){
   const response=await admin.rpc('pma_voice_incident_create_v1',{t:tenant,p:property,session_id:session,call_sid:call,incident:prepared.details});
   if(response.error){
    if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);
