@@ -49,7 +49,7 @@ function incoming(event,env){
  if(!match||match[1]!==env.PMA_STAGING_TEST_CALLER)throw Error('UNAPPROVED_CALLER');
  return {call_sid:sid,sip_call_id:event.data.call_id,caller_number:match[1]};
 }
-function sessionConfig(env){return {type:'realtime',model:env.OPENAI_REALTIME_SIP_MODEL||'gpt-realtime-2.1',instructions:INSTRUCTIONS,audio:{input:{transcription:{model:'gpt-4o-mini-transcribe'},turn_detection:{type:'server_vad',interrupt_response:true,create_response:true}},output:{voice:env.PMA_VOICE||'verse'}},tools:[CREATE,END],tool_choice:'auto'};}
+function sessionConfig(env){return {type:'realtime',model:env.OPENAI_REALTIME_SIP_MODEL||'gpt-realtime-2',instructions:INSTRUCTIONS,audio:{input:{transcription:{model:'gpt-4o-mini-transcribe'},turn_detection:{type:'server_vad',interrupt_response:true,create_response:true}},output:{voice:env.PMA_VOICE||'verse'}},tools:[CREATE,END],tool_choice:'auto'};}
 function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{},setTimer=setTimeout,clearTimer=clearTimeout,dispatchControl}={}){
  const sessions=new Map();let pending=0;
  const enabled=()=>env.PMA_SIP_ENABLED==='true'&&env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_ENVIRONMENT==='staging'&&env.PMA_STAGING_BASE_URL==='https://pma-validation--ai4cc-staging.netlify.app'&&!!env.OPENAI_API_KEY&&!!env.OPENAI_WEBHOOK_SECRET&&!!env.BRIDGE_HMAC_SECRET_STAGING&&!!env.PMA_SIP_CONTROL_SECRET;

@@ -32,7 +32,7 @@ Control-service configuration:
 - STELLAR_BRIDGE_STAGING=true; PMA_ENVIRONMENT=staging
 - PMA_STAGING_BASE_URL=https://pma-validation--ai4cc-staging.netlify.app
 - PMA_STAGING_DID: exact isolated test DID; PMA_STAGING_TEST_CALLER: owner test caller
-- OPENAI_REALTIME_SIP_MODEL=gpt-realtime-2.1 (configurable)
+- OPENAI_REALTIME_SIP_MODEL=gpt-realtime-2 (configurable)
 - PMA_VOICE=verse unless the owner selects another Realtime-supported voice
 
 The staging backend requires its existing PMA/transport/tenant/property/contact/actor settings, service-role secret and PMA_SIP_ENABLED=true. It is pinned to `https://hvzauakkhlivzeqatfqm.supabase.co`. Caller identity is reported, never proof of occupancy. Admission is limited to the configured test caller and trunk; production is rejected.
