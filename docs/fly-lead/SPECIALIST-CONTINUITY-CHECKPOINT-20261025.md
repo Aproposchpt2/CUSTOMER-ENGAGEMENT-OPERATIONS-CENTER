@@ -1,3 +1,5 @@
+**HISTORICAL CHECKPOINT — superseded by `docs/specialist-staging/FLY-HANDOFF.md`. Preserve this report as prior evidence; its readiness counts are not current.**
+
 # Sales and Support expansion — continuity checkpoint
 
 2026-10-25. STAGING ONLY. This is a progress checkpoint, not final Fly.io acceptance.

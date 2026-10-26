@@ -1,3 +1,5 @@
+**HISTORICAL CHECKPOINT — superseded by `docs/specialist-staging/FLY-HANDOFF.md`. Preserve this report as prior evidence; its readiness counts are not current.**
+
 # STELLAR — SALES/SUPPORT HANDOFF TO FLY.IO LEAD ENGINEER
 **Date:** 2026-10-25  | **Classification:** STAGING ONLY / P0 / NOT RELEASE AUTHORIZED
 **Owner:** STELLAR INTELLIGENT TECHNOLOGIES, operated by Apropos Group LLC
