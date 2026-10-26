@@ -106,8 +106,8 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
   }
   return incidentResult;
  }
- if(prepared.action==='clarify'&&body.maintenance!==undefined)return projectVoiceResult({state:'CLARIFICATION_REQUIRED',interactionPersisted:false,domainPersisted:false,reply:prepared.clarification||'Please confirm your name, property address, apartment number and incident description before I create the report.',notificationSent:false});
- if(prepared.action==='contact_preference'){
+ if(prepared.action==='clarify'&&body.maintenance!==undefined)return projectVoiceResult({state:'CLARIFICATION_REQUIRED',interactionPersisted:false,domainPersisted:false,reply:('clarification' in prepared?prepared.clarification:undefined)||'Please confirm your name, property address, apartment number and incident description before I create the report.',notificationSent:false});
+ if(prepared.action==='contact_preference'&&'details' in prepared){
   const response=await admin.rpc('pma_voice_incident_preference_v1',{t:tenant,p:property,session_id:session,call_sid:call,request_id:prepared.details.requestId,method:prepared.details.method,destination:prepared.details.destination,consent:prepared.details.consent});
   if(response.error){if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);return projectVoiceResult(null);}
   return projectVoiceResult(response.data);
