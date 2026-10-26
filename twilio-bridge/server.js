@@ -516,9 +516,9 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         model: LIVE_MODEL,
         ...sessionInput,
         instructions: speechInstructions,
-        // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
-        // PMA_VOICE env var overrides the PMA voice for live A/B testing without redeploy.
-        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? (process.env.PMA_VOICE||'verse') : profile === 'sales' ? 'echo' : 'cedar' } },
+        // Distinct OpenAI voices for the IVR and each specialist; PMA uses the
+        // owner-approved voice consistently across calls and handoffs.
+        audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? 'verse' : profile === 'sales' ? 'echo' : 'cedar' } },
         // OpenAI Live API rejects session.turn_detection; use provider-default turn handling.
         delegation: {
           type: 'responses',
@@ -556,6 +556,8 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
         const pmaStarted=Date.now();
         const pmaToolCallId='sha256:'+crypto.createHash('sha256').update(callId).digest('hex');
         logEvent(JSON.stringify({event:'pma_workflow_started',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,intent:typeof args.intent==='string'?args.intent:null,confirmed:args.confirmed===true}));
+        sendToOpenAI({type:'session.commentary.append',delegation_id:null,
+          content:'I am checking what this staging call can safely submit. I will tell you clearly whether a maintenance request was actually saved.'});
         output = await pmaAdapter.submit(args, { callSid, sessionId:session?.session_id });
         logEvent(JSON.stringify({event:'pma_workflow_completed',callSid,sessionId:session?.session_id,toolCallId:pmaToolCallId,state:output?.state||null,incidentId:output?.emergencyDispatch?.incidentId||null,dispatchState:output?.emergencyDispatch?.state||null,elapsedMs:Date.now()-pmaStarted}));
       } else if (name === 'submit_business_profile') {
@@ -862,10 +864,12 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
 
         if(session&&!specialist)instructions=boundInstructions(instructions,session,assets);
         if(session?.receptionHandoff){
-          if(profile==='pma'){instructions=instructions.replace(/Start by saying: "[^"]*"\n?/,'');}
-          if(profile==='pma')instructions+='\n# PMA CUSTOMER EXPERIENCE PERSONA\nDeliver every response in a grounded, resonant, distinctly male register — low, full, and confident, never light, breathy, or high-pitched. Speak with the energy of an outstanding front-desk hospitality professional: genuinely warm, cheerful, and enthusiastic, as if you enjoy this work. Project steady confidence and natural authority without stiffness. Vary your pace naturally — slow down to land important details, pick up energy when welcoming the caller. Smile in the voice. Avoid a flat, monotone, mechanical, overly formal, or exaggerated delivery. Acknowledge each request positively, keep sentences short and punchy, and let the caller feel heard. Preserve all factual, authorization, privacy, emergency, consent, booking and no-fabrication requirements. This persona affects delivery only and never changes which tools or facts are permitted.';
-      const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
-          instructions+='\\n# RECEPTION HANDOFF\\nThe caller already heard the Stellar Intelligent Technologies IVR receptionist. You are a separate departmental OpenAI voice agent. Your first spoken words MUST be exactly: "'+departmentGreeting+'" Then stop and listen. Do not repeat the IVR greeting or menu. Match the IVR receptionist\'s friendly energy and natural conversational pace: warm, engaging, confident, attentive, clear and concise. Welcome interruptions, pause to listen, and ask one question at a time. Avoid audible breaths, mouth noises, filler words, exaggerated delivery, or long artificial pauses. Keep your distinct voice and authorized specialist tools, tenant identity and safety constraints. This instruction overrides earlier first-turn greetings.';
+          const departmentGreeting=profile==='pma'?'You have reached Desert Ridge Apartments. How can I help you?':profile==='support'?'You have reached Summit Comfort Heating & Air. How can I help you?':'You have reached the Sales Department at Stellar Intelligent Technologies. How can I help you?';
+          const handoffInstructions=`# FIRST RESPONSE AFTER IVR HANDOFF\nThe IVR has already greeted the caller and selected this department. Do not greet them as STELLAR again. Do not say "okay", announce a transfer, describe the handoff, or speak any filler. Begin immediately with exactly: "${departmentGreeting}" Then stop and listen.\n\n# STELLAR VOICE DELIVERY\nUse the shared STELLAR personality: genuinely warm, upbeat, attentive, empathetic, confident, and conversational. Use natural intonation, varied cadence, clear diction, and short, fluid sentences. For PMA, use the configured male voice with a grounded, resonant, confident delivery; be friendly and lively for routine requests, patient for frustration, and calm and serious for safety issues. Never use a dry or robotic delivery. This changes delivery only, not facts, tools, authorization, privacy, consent, or safety rules.`;
+          if(profile==='pma'){
+            instructions=instructions.replace(/You are in an isolated fictional property-management demonstration\. Start by saying: "[^"]*"\s*/,'');
+            instructions=`${handoffInstructions}\n\n${instructions}`;
+          } else instructions=`${handoffInstructions}\n\n${instructions}`;
         }
 
         startSession(instructions, tools);
@@ -934,7 +938,7 @@ function start() {
   for(const [path,action] of Object.entries({'/api/ivr/main':'entry','/api/ivr/router':'route','/api/ivr/status':'status','/api/ivr/complete':'complete'}))app.all(path,(req,res)=>void voiceEntry.handle(req,res,action));
   app.get('/health', (_, res) => res.json({ ok: true, activeCalls, pool: wsPool.length, stagingOnly: STAGING_ONLY, commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.BRIDGE_RELEASE_SHA || null, ...imageProvenance(),
     supportPersonaFingerprint: STAGING_ONLY ? crypto.createHash('sha256').update(JSON.stringify([APPROVED_SUPPORT_BRIEF, APPROVED_SUPPORT_INSTRUCTIONS])).digest('hex') : null,
-    pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0' },
+    pma: { enabled: pmaAdapter.enabled, path: '/ws/pma', catalogVersion: '1.0', voice: STAGING_ONLY ? 'verse' : null },
     voiceDemo: {receptionist:'openai-live-marin',enabled:voiceEntry.enabled,entry:'/api/ivr/main',routes:['support-specialist','sales-specialist','property-management-assistant']},
     supportLastSave: STAGING_ONLY ? lastStagingSupportSave : null,
     supportPersistence: STAGING_ONLY ? supportWriteReadiness(process.env) : null,

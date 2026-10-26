@@ -133,10 +133,16 @@ test('staging voice agents retain distinct departmental identities and acoustic 
  const adapter=require('../pma-adapter.cjs');
  const receptionist=require('../voice-receptionist.cjs');
  assert.match(receptionist.INSTRUCTIONS,/AI receptionist/);
- assert.match(server,/profile === 'pma' \? \(process\.env\.PMA_VOICE\|\|'verse'\) : profile === 'sales' \? 'echo' : 'cedar'/);
+ assert.match(server,/profile === 'pma' \? 'verse' : profile === 'sales' \? 'echo' : 'cedar'/);
+ assert.match(server,/pma: \{ enabled: pmaAdapter\.enabled, path: '\/ws\/pma', catalogVersion: '1\.0', voice: STAGING_ONLY \? 'verse' : null \}/);
  assert.match(server,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(server,/FIRST RESPONSE AFTER IVR HANDOFF/);
+ assert.doesNotMatch(server,/instructions\+='\\\\n# RECEPTION HANDOFF/);
  assert.match(server,/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
  assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/cannot authenticate a resident or create a maintenance work order/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/no maintenance request was saved and no SMS was sent/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/do not ask for the caller's name, phone number, or SMS preference/);
  assert.doesNotMatch(adapter.createPmaAdapter({}).instructions,/Start by saying: "Hello, this is the AI4Businesses/);
 });
 
