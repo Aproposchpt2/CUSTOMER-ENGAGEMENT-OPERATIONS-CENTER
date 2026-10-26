@@ -24,7 +24,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?'CA'+'1'.repeat(32):profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:profile==='sales'?'sales-specialist':'support-specialist'}:trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
+  await context.handleCall(phone,profile,'+12025550199',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?'CA'+'1'.repeat(32):profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:profile==='sales'?'sales-specialist':'support-specialist'}:trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',receptionHandoff:extraEnv.TEST_RECEPTION_HANDOFF===true,assets:{knowledgeEntries:[],intents:[]}}:null);
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
@@ -386,7 +386,9 @@ test('PMA trusted runtime binds session, tolerates interruption, and returns req
 test('PMA deterministic medical/CO transcript safety precedes tools and disconnect suppresses late success',async()=>{
  const s=await session('pma',false,true,true,null,true);
  oai(s,{type:'session.input_transcript.delta',delta:'The carbon mon'});oai(s,{type:'session.input_transcript.delta',delta:'oxide alarm is going off'});
- assert.ok(s.outbound.some(x=>x.type==='session.commentary.append'&&x.content.includes('SAFETY OVERRIDE')));
+ assert.ok(s.outbound.some(x=>x.type==='session.instructions.append'&&x.delegation_id===null&&x.content.includes('SAFETY OVERRIDE')));
+ assert.equal(s.requests.length,0,'transcript guardrail cannot dispatch a partial report');
+ assert.ok(s.phoneOutbound.some(x=>x.event==='clear'),'discard queued routine speech');
  let resolve:any;const pending=new Promise(r=>resolve=r);
  const d=await session('pma',false,true,true,()=>pending,true);
  const task=d.tool('late-pma','pma_property_workflow',{message:'Request a tour',confirmed:true},true);
@@ -405,4 +407,48 @@ test('SS002 opt-in uses signed route context, full catalog, approved departmenta
   await s.tool('ss002-assess','assess_specialist_intent',{reference:profile==='sales'?'SAL-001':'SUP-049',confidence:1});
   assert.match(s.outbound.find(x=>x.item?.call_id==='ss002-assess').item.output,/CLASSIFIED/);
  }
+});
+
+
+test('Carol instructions reach both Live and Responses after an IVR handoff without the old greeting override',async()=>{
+ const s=await session('pma',false,false,true,null,true,null,{TEST_RECEPTION_HANDOFF:true});
+ const start=s.outbound.find(x=>x.type==='session.start').session;
+ for(const prompt of [start.instructions,start.delegation.responses.instructions]){
+  assert.match(prompt,/Thank you for calling Desert Ridge Customer Care Center/);
+  assert.match(prompt,/My name is Carol/);
+  assert.match(prompt,/Skip any question already answered/);
+  assert.match(prompt,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/);
+  assert.doesNotMatch(prompt,/You have reached Desert Ridge Apartments\. How can I help you/);
+  assert.doesNotMatch(prompt,/Deliver every response.*male register/);
+ }
+ assert.equal(start.audio.output.voice,'verse');
+ assert.match(start.instructions,/Delegate to the configured Responses backend/);
+});
+
+test('split gas report triggers one serious safety instruction with no premature workflow or SMS request',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ for(const delta of ['There is a gas',' ','leak in my apartment'])oai(s,{type:'session.input_transcript.delta',delta});
+ const events=s.outbound.filter(x=>x.event_id==='pma-safety-override');
+ assert.equal(events.length,1);assert.match(events[0].content,/calling 911/);
+ assert.match(events[0].content,/Do not ask how you can help/);
+ oai(s,{type:'session.input_transcript.delta',delta:'. I am outside.'});
+ assert.equal(s.outbound.filter(x=>x.event_id==='pma-safety-override').length,1);
+ assert.equal(s.requests.length,0);
+});
+
+test('documented Live transcript fragments survive overlap and spaces and reach the authenticated workflow evidence',async()=>{
+ const s=await session('pma',false,false,true,null,true);
+ oai(s,{type:'session.input_transcript.delta',event_id:'user-1',delta:'My name is Jeff. My sink',start_ms:100,end_ms:300});
+ oai(s,{type:'session.output_transcript.delta',event_id:'agent-1',delta:'Thank you.',start_ms:200,end_ms:400});
+ oai(s,{type:'session.input_transcript.delta',event_id:'user-2',delta:' ',start_ms:300,end_ms:350});
+ oai(s,{type:'session.input_transcript.delta',event_id:'user-3',delta:"won’t drain.",start_ms:350,end_ms:500});
+ await s.tool('incident-with-evidence','pma_property_workflow',{message:'My sink won’t drain.',intent:'MAINTENANCE_REQUEST',confidence:1,confirmed:true,maintenance:{reportedName:'Jeff',reportedAddress:'Fictional address',reportedUnit:'101',description:'My sink won’t drain.'}},true);
+ assert.equal(s.requests[0].observedCallerTurns[0],'My name is Jeff. My sink won’t drain.');
+ phoneEvent(s,{event:'stop'});
+ for(let i=0;i<12;i++)await Promise.resolve();
+ const capture=s.requests.find(x=>Array.isArray(x.transcript));
+ assert.ok(capture);assert.equal(capture.agentRoute,'property-management-assistant');
+ assert.deepEqual(capture.transcript.map(x=>x.speaker),['customer','agent','customer']);
+ assert.equal(capture.transcript[2].content,' won’t drain.');
+ assert.doesNotMatch(s.logs.join(' '),/My name is Jeff|My sink|won’t drain/);
 });
