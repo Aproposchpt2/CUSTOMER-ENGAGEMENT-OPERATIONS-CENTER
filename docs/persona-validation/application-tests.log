@@ -1,0 +1,15 @@
+Final output excerpt; full execution completed locally.
+✔ PMA trusted runtime binds session, tolerates interruption, and returns request-only result (3.428124ms)
+✔ PMA deterministic medical/CO transcript safety precedes tools and disconnect suppresses late success (4.60509ms)
+✔ SS002 opt-in uses signed route context, full catalog, approved departmental greetings and voices (3.916894ms)
+✔ GPT-Live delegated tool results use the response item protocol (1.478919ms)
+✔ human transfer requires a confirmed saved lead (0.315922ms)
+✔ lead state is set only after a persisted lead identifier (0.223345ms)
+ℹ tests 315
+ℹ suites 0
+ℹ pass 315
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9013.79529

@@ -61,6 +61,10 @@ function startReceptionist({twilioWs,session,startMessage,entry,openLive,model,r
     if(m.type==='session.started'&&!ready){ready=true;clearTimeout(opening);send({type:'response.create'});for(const audio of queued)send({type:'session.input_audio.append',audio});queued=[];
      if(!queuedBytes)silence=setInterval(()=>send({type:'session.input_audio.append',audio:Buffer.alloc(160,255).toString('base64')}),20);
      log('Reception OpenAI session ready voice=marin');
+    }else if(['input_audio_buffer.speech_started','session.speech_started','session.input_audio.speech_started'].includes(m.type)){
+     // Stop buffered telephone playback on barge-in. Live owns full-duplex
+     // generation; do not cancel delegated routing or create another greeting.
+     if(ready)sendTwilio({event:'clear',streamSid});
     }else if(['session.output_audio.delta','response.output_audio.delta'].includes(m.type)&&m.delta){sendTwilio({event:'media',streamSid,media:{payload:m.delta}});}
     else if(m.type==='response.output_item.done'&&m.item?.type==='function_call'){
      const item=m.item;if(typeof item.call_id!=='string'||completed.has(item.call_id))return;completed.add(item.call_id);
