@@ -4,12 +4,12 @@
 
 Carol answers as Desert Ridge Customer Care Center, gathers the caller-reported name, property address and unit when applicable, and records the incident description verbatim. The runtime uses a `PMA-` case number. After the trusted workflow confirms persistence, Carol asks whether the caller is ready, reads the actual case number twice, explains current portal capability accurately, and records a text, email or phone preference only after explicit consent.
 
-Routine reports use one `MAINTENANCE_REQUEST` workflow; callers do not select a category or severity. Fire, suspected gas leaks and immediate threats continue through the dedicated emergency path. The original description remains unchanged in either path.
+Routine reports use one `MAINTENANCE_REQUEST` workflow; callers do not select a category or severity. Fire, smoke, gas, carbon monoxide, electrical hazards and immediate threats receive the safety interruption first. The agent then submits the complete caller report once; the server persists the case and invokes the dedicated emergency dispatcher. Emergency priority and dispatch remain separate from routine work. The original description remains unchanged.
 
 ## Persistence and scope
 
 - The staging case is recorded in `public.pm_maintenance_requests`, which is already visible to the property operations portal.
-- `case_number` is a generated random reference distinct from the internal request UUID.
+- `case_number` is a generated `PMA-` reference distinct from the internal request UUID.
 - Caller name, address and unit are stored as caller-reported facts; they do not authenticate occupancy.
 - The operation is bound to the active synthetic voice session, call SID, tenant, configured property and configured property writer.
 - An exact repeat in the same call replays the original case. Changed details in that call return a conflict for staff review.
