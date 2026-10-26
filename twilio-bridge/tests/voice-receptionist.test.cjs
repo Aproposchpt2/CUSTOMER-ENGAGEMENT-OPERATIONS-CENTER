@@ -60,3 +60,18 @@ test('reception gateway rejects already selected sessions and foreign callers',a
  await assert.rejects(processVoiceDemo({...body,caller_number:'+15555550999'},dep),/binding/);
  await assert.rejects(processVoiceDemo({...body,action:'reception_choose',agentRoute:'other-agent'},dep),/destination/);
 });
+
+test('caller interruption clears queued IVR playback without cancelling routing or resetting persona',async()=>{
+ const x=setup();await tick();
+ x.live.message({type:'session.started'});
+ x.live.message({type:'session.output_audio.delta',delta:'AQID'});
+ for(const type of ['input_audio_buffer.speech_started','session.speech_started','session.input_audio.speech_started'])
+  x.live.message({type:'response.event',event:{type}});
+ assert.equal(x.twilio.sent.filter(m=>m.event==='clear'&&m.streamSid==='MZtest').length,3);
+ assert.equal(x.live.sent.filter(m=>m.type==='session.start').length,1);
+ assert.equal(x.live.sent.filter(m=>m.type==='response.cancel').length,0);
+ assert.match(x.live.sent[0].session.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/);
+ const item={type:'function_call',call_id:'after-interruption',name:'select_agent',arguments:JSON.stringify({agentRoute:'support-specialist'})};
+ x.live.message({type:'response.output_item.done',item});await tick();
+ assert.equal(x.state.handoffs.length,1);assert.equal(x.state.handoffs[0].profile,'support');
+});

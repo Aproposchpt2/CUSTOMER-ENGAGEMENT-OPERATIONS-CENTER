@@ -1,0 +1,15 @@
+Final output excerpt; full execution completed locally.
+├ ○ /voice-operations                                 6.9 kB         167 kB
+├ ○ /voicemails                                      5.57 kB         166 kB
+├ ○ /web-chat                                        4.98 kB         165 kB
+└ ○ /workforce-management                            5.79 kB         166 kB
++ First Load JS shared by all                        90.5 kB
+  ├ chunks/framework-f31701c9d93f12a4.js             44.8 kB
+  ├ chunks/main-1839dd3e47a99517.js                  36.5 kB
+  └ other shared chunks (total)                      9.23 kB
+
+ƒ Middleware                                         90.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

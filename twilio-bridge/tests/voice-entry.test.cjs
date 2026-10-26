@@ -136,7 +136,7 @@ test('staging voice agents retain distinct departmental identities and acoustic 
  assert.match(server,/profile === 'pma' \? \(process\.env\.PMA_VOICE\|\|'verse'\) : profile === 'sales' \? 'echo' : 'cedar'/);
  assert.match(server,/You have reached Desert Ridge Apartments\. How can I help you\?/);
  assert.match(server,/You have reached Summit Comfort Heating & Air\. How can I help you\?/);
- assert.match(adapter.createPmaAdapter({}).instructions,/You have reached Desert Ridge Apartments\. How can I help you\?/);
+ assert.match(adapter.createPmaAdapter({}).instructions,/My name is Carol, and I’ll be your intake specialist today/);
  assert.doesNotMatch(adapter.createPmaAdapter({}).instructions,/Start by saying: "Hello, this is the AI4Businesses/);
 });
 

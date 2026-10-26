@@ -1,0 +1,42 @@
+name: Carol Direct Realtime SIP Validation
+on:
+  pull_request:
+    branches: [pma-validation]
+    paths:
+      - 'lib/pmaSip/**'
+      - 'netlify/functions/carol-sip-control-background.mts'
+      - 'pages/api/intake/carol-sip-openai.ts'
+      - 'pages/api/intake/pma-sip-staging.ts'
+      - 'twilio-bridge/carol-sip-server.cjs'
+      - 'twilio-bridge/tests/carol-sip.test.cjs'
+      - 'tests/carolSipDatabase.test.mts'
+      - '.github/workflows/carol-sip-staging.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  direct-sip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm ci --prefix twilio-bridge --ignore-scripts
+      - name: Complete application and isolated PostgreSQL regressions
+        run: npm test
+      - name: Complete bridge and direct SIP protocol regressions
+        run: node --test twilio-bridge/tests/*.test.cjs
+      - name: Dependency audits
+        run: |
+          npm audit --omit=dev --audit-level=moderate
+          npm audit --prefix twilio-bridge --omit=dev --audit-level=moderate
+      - name: Optimized build and types
+        run: npm run build
+      - name: Netlify background controller bundle and syntax
+        run: |
+          npx --no-install esbuild netlify/functions/carol-sip-control-background.mts --bundle --platform=node --format=esm --outfile=/tmp/carol-sip-control-background.mjs
+          node --check /tmp/carol-sip-control-background.mjs

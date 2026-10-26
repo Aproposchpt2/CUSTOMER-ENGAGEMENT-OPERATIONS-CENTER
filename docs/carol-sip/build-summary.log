@@ -1,0 +1,14 @@
+  ├ chunks/framework-f31701c9d93f12a4.js             44.8 kB
+  ├ chunks/main-1839dd3e47a99517.js                  36.5 kB
+  └ other shared chunks (total)                      9.23 kB
+
+ƒ Middleware                                         90.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

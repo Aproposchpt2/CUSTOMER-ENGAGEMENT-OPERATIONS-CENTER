@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 import { EventEmitter } from 'node:events';
 const require = createRequire(new URL('../twilio-bridge/server.js', import.meta.url));
 const source = readFileSync(new URL('../twilio-bridge/server.js', import.meta.url), 'utf8').replace(/start\(\);\s*$/, 'globalThis.handleCall = handleCall; globalThis.wsPool = wsPool;');
-async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null, extraEnv:any = {}) {
+async function session(profile, failSave = false, warm = false, staging = false, supportSave:any = null, trustedPma = false, inventory:any = null, extraEnv:any = {}, receptionHandoff = false) {
   const outbound:any[] = [], requests:any[] = [], sockets:any[] = [], phoneOutbound:any[] = [];
   class Socket extends EventEmitter {
     static OPEN = 1; readyState = 1;
@@ -24,7 +24,7 @@ async function session(profile, failSave = false, warm = false, staging = false,
   vm.runInNewContext(source,context);
   const phone:any=new EventEmitter(); phone.readyState=1;phone.send=(raw:string)=>phoneOutbound.push(JSON.parse(raw));phone.close=()=>{phone.readyState=3;};
   if(warm){const pooled:any=new Socket();pooled._poolReady=true;context.wsPool.push(pooled);}
-  await context.handleCall(phone,profile,'+12025550199',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?'CA'+'1'.repeat(32):profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:profile==='sales'?'sales-specialist':'support-specialist'}:trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',assets:{knowledgeEntries:[],intents:[]}}:null);
+  await context.handleCall(phone,profile,'+12025550199',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?'CA'+'1'.repeat(32):profile==='pma'?'CA'+'1'.repeat(32):'TEST_CALL',extraEnv.SS_STAGING_INTELLIGENCE_ENABLED?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:profile==='sales'?'sales-specialist':'support-specialist',receptionHandoff}:trustedPma?{session_id:'a0000000-0000-4000-8000-000000000001',call_sid:'CA'+'1'.repeat(32),agentRoute:'property-management-assistant',receptionHandoff,assets:{knowledgeEntries:[],intents:[]}}:null);
   phone.emit('message',Buffer.from(JSON.stringify({event:'start',start:{streamSid:'TEST_STREAM'}})));
   const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();}; await flush();
   const ws=sockets[0];
@@ -146,6 +146,37 @@ test('shared STELLAR persona reaches caller-facing and delegated runtime instruc
  const pmaConfig=pma.outbound.find(x=>x.type==='session.start').session;
  assert.match(pmaConfig.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,'PMA speech model');
  assert.match(pmaConfig.delegation.responses.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,'PMA delegated model');
+});
+
+test('shared persona survives fallback sessions, tool failure and repeated turns without granting authority',async()=>{
+ const {PERSONA}=require('../twilio-bridge/stellar-conversational-persona.cjs');
+ for(const profile of ['sales','support','pma']){
+  const s=await session(profile,true,false,true);
+  const config=s.outbound.find(x=>x.type==='session.start').session;
+  assert.ok(config.instructions.includes(PERSONA),profile+' fallback speech');
+  assert.ok(config.delegation.responses.instructions.includes(PERSONA),profile+' fallback reasoning');
+  const originalTools=JSON.stringify(config.delegation.responses.tools);
+  for(let i=0;i<12;i++)oai(s,{type:'session.started'});
+  await s.tool('persona-unsupported','not_an_authorized_tool',{});
+  assert.equal(s.outbound.filter(x=>x.type==='session.start').length,1);
+  assert.equal(JSON.stringify(config.delegation.responses.tools),originalTools);
+  assert.equal(config.instructions.split(PERSONA).length-1,1);
+  assert.match(PERSONA,/Safety emergencies require immediate, concise, serious/);
+  assert.match(PERSONA,/unless its authoritative tool result proves it/);
+  assert.match(PERSONA,/tenant-isolation, financial authorization/);
+ }
+});
+
+test('all specialist receptionist handoffs retain the shared persona in both models',async()=>{
+ const {PERSONA}=require('../twilio-bridge/stellar-conversational-persona.cjs');
+ for(const profile of ['sales','support','pma']){
+  const env=profile==='pma'?{}:{SS_STAGING_INTELLIGENCE_ENABLED:'true',STELLAR_BRIDGE_STAGING:'true',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',[profile==='sales'?'SS_STAGING_SALES_TENANT_ID':'SS_STAGING_SUPPORT_TENANT_ID']:profile==='sales'?'5885a020-d363-4c27-910a-c035eda132f5':'d7e80001-0000-4000-b000-000000000001'};
+  const s=await session(profile,false,false,true,null,profile==='pma',null,env,true);
+  const config=s.outbound.find(x=>x.type==='session.start').session;
+  assert.ok(config.instructions.includes(PERSONA),profile+' handoff speech');
+  assert.ok(config.delegation.responses.instructions.includes(PERSONA),profile+' handoff reasoning');
+  assert.match(config.delegation.responses.instructions,/RECEPTION HANDOFF/);
+ }
 });
 
 test('Sales and Support can submit verified support tickets while preserving Sales lead tools',async()=>{
