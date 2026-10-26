@@ -14,7 +14,10 @@ export function prepareVoiceTurn(body:Record<string,any>){
  const decision=detailSafety?.safety_override?detailSafety:intentDecision(message,body.modelOutput);
  const base={intent:decision.intent,confidence:decision.confidence,message,confirmed:body.confirmed===true};
  // Safety wins even when other model arguments are corrupt. Never send untrusted role fields to SQL.
- if(decision.safety_override)return {...base,message:detailSafety?.safety_override?detailMessage:message,action:'safety',safety:decision.intent};
+ // Give the model/backend the safety override when no report payload is ready.
+ // Once intake fields are present, persist the single tenant incident and then
+ // dispatch through the dedicated emergency path below.
+ if(decision.safety_override&&body.maintenance===undefined)return {...base,message:detailSafety?.safety_override?detailMessage:message,action:'safety',safety:decision.intent};
  if(Object.keys(body).some(k=>!['message','modelOutput','confirmed','call_sid','session_id','agentRoute','prospect','showingAt','maintenance','contactPreference','observedCallerTurns','cancelOrReschedule','listTourSlots','recoverOperation'].includes(k)))throw new PmaError('Untrusted PMA fields');
  if(body.agentRoute!=='property-management-assistant')throw new PmaError('PMA route required',403);
  if(decision.requires_clarification&&body.maintenance===undefined&&body.contactPreference===undefined)return {...base,action:'clarify'};
@@ -51,7 +54,7 @@ export function prepareVoiceTurn(body:Record<string,any>){
   if(!Array.isArray(observed)||observed.length<1||observed.length>20||observed.some((v:any)=>typeof v!=='string'||v.length>4000))return {...base,action:'clarify',clarification:'I want to record your words accurately. Could you repeat the issue exactly as you would like it written in the report?'};
   if(!observed.some((v:string)=>v.trim()===description.trim()))return {...base,action:'clarify',clarification:'I want to capture your wording exactly. Could you repeat the issue once more so I can record it accurately?'};
   if(body.confirmed!==true)return {...base,action:'clarify',details:{reportedName,reportedAddress,reportedUnit,description}};
-  return {...base,action:'incident_report',details:{reportedName,reportedAddress,reportedUnit,description}};
+  return {...base,action:'incident_report',details:{reportedName,reportedAddress,reportedUnit,description},...(decision.safety_override?{safety:decision.intent}:{})};
  }
  if(decision.intent==='SHOWING_REQUEST'){
   if(body.confirmed!==true||!body.showingAt)return {...base,action:'clarify'};
@@ -80,8 +83,21 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
  const prepared=prepareVoiceTurn(body);
  if(prepared.action==='incident_report'){
   const response=await admin.rpc('pma_voice_incident_create_v1',{t:tenant,p:property,session_id:session,call_sid:call,incident:prepared.details});
-  if(response.error){if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);return projectVoiceResult(null);}
-  return projectVoiceResult(response.data);
+  if(response.error){
+   if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);
+   const failed=projectVoiceResult(null);
+   if('safety' in prepared&&isEmergencyIntent(String(prepared.safety))){
+    const emergencyReceipt=await dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.details.description),callerNumber:env.PMA_STAGING_TEST_CALLER},admin,env).catch(()=>({dispatched:false,incidentId:null,channels:[],state:'DISPATCH_UNCONFIRMED'}));
+    return {...failed,emergencyDispatch:emergencyReceipt};
+   }
+   return failed;
+  }
+  const incidentResult=projectVoiceResult(response.data);
+  if('safety' in prepared&&isEmergencyIntent(String(prepared.safety))){
+   const emergencyReceipt=await dispatchEmergency({tenantId:tenant,propertyId:property,callSid:call,sessionId:session,intent:String(prepared.safety),message:String(prepared.details.description),callerNumber:env.PMA_STAGING_TEST_CALLER},admin,env).catch(()=>({dispatched:false,incidentId:null,channels:[],state:'DISPATCH_UNCONFIRMED'}));
+   return {...incidentResult,emergencyDispatch:emergencyReceipt};
+  }
+  return incidentResult;
  }
  if(prepared.action==='clarify'&&body.maintenance!==undefined)return projectVoiceResult({state:'CLARIFICATION_REQUIRED',interactionPersisted:false,domainPersisted:false,reply:prepared.clarification||'Please confirm your name, property address, apartment number and incident description before I create the report.',notificationSent:false});
  if(prepared.action==='contact_preference'){
