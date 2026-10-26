@@ -25,6 +25,7 @@ export function prepareVoiceTurn(body:Record<string,any>){
  if(Object.keys(body).some(k=>!['message','modelOutput','confirmed','call_sid','session_id','agentRoute','prospect','showingAt','maintenance','contactPreference','observedCallerTurns','cancelOrReschedule','listTourSlots','recoverOperation'].includes(k)))throw new PmaError('Untrusted PMA fields');
  if(body.agentRoute!=='property-management-assistant')throw new PmaError('PMA route required',403);
  if(decision.intent==='MAINTENANCE_REQUEST'&&body.maintenance===undefined)return {...base,action:'maintenance'};
+ if(body.maintenance&&typeof body.maintenance==='object'&&!Array.isArray(body.maintenance)&&Object.keys(body.maintenance).some(k=>!['reportedName','reportedAddress','reportedUnit','description'].includes(k)))throw new PmaError('Invalid incident report fields');
  if(body.maintenance!==undefined&&!completeIncident)return {...base,action:'clarify',clarification:'Please provide the caller-reported name, property address, unit when applicable, and exact incident description.'};
  if(decision.requires_clarification&&body.maintenance===undefined&&body.contactPreference===undefined)return {...base,action:'clarify'};
  if(body.recoverOperation!==undefined){if(!['prospect','showing'].includes(body.recoverOperation))throw new PmaError('Invalid recovery kind');return {...base,action:'recover',kind:body.recoverOperation};}
