@@ -15,10 +15,19 @@ export function prepareVoiceTurn(body:Record<string,any>){
  const base={intent:decision.intent,confidence:decision.confidence,message,confirmed:body.confirmed===true};
  // Safety wins even when other model arguments are corrupt. Never send untrusted role fields to SQL.
  if(decision.safety_override)return {...base,message:detailSafety?.safety_override?detailMessage:message,action:'safety',safety:decision.intent};
- if(Object.keys(body).some(k=>!['message','modelOutput','confirmed','call_sid','session_id','agentRoute','prospect','showingAt','maintenance','cancelOrReschedule','listTourSlots','recoverOperation'].includes(k)))throw new PmaError('Untrusted PMA fields');
+ if(Object.keys(body).some(k=>!['message','modelOutput','confirmed','call_sid','session_id','agentRoute','prospect','showingAt','maintenance','contactPreference','observedCallerTurns','cancelOrReschedule','listTourSlots','recoverOperation'].includes(k)))throw new PmaError('Untrusted PMA fields');
  if(body.agentRoute!=='property-management-assistant')throw new PmaError('PMA route required',403);
- if(decision.requires_clarification)return {...base,action:'clarify'};
+ if(decision.requires_clarification&&body.maintenance===undefined&&body.contactPreference===undefined)return {...base,action:'clarify'};
  if(body.recoverOperation!==undefined){if(!['prospect','showing'].includes(body.recoverOperation))throw new PmaError('Invalid recovery kind');return {...base,action:'recover',kind:body.recoverOperation};}
+ if(body.contactPreference!==undefined){
+  const d=body.contactPreference;
+  if(!d||typeof d!=='object'||Array.isArray(d)||Object.keys(d).some(k=>!['requestId','method','destination','consent'].includes(k)))throw new PmaError('Invalid contact preference');
+  const requestId=uuid(d.requestId),method=text(d.method,'contact method',16),destination=text(d.destination,'contact destination',254);
+  if(!['sms','email','phone'].includes(method)||d.consent!==true||body.confirmed!==true)throw new PmaError('Explicit contact consent required');
+  if(method==='email'&&!/^[^ @]+@[^ @]+\.[^ @]+$/.test(destination))throw new PmaError('Valid email destination required');
+  if((method==='sms'||method==='phone')&&!/^\+[1-9][0-9]{7,14}$/.test(destination))throw new PmaError('Valid phone destination required');
+  return {...base,action:'contact_preference',details:{requestId,method,destination,consent:true}};
+ }
  if(body.cancelOrReschedule===true||/\b(cancel|reschedule|change my (tour|showing))\b/i.test(message))return {...base,action:'staff'};
  if(body.prospect!==undefined){
   const d=body.prospect;
@@ -33,13 +42,16 @@ export function prepareVoiceTurn(body:Record<string,any>){
  }
  if(body.listTourSlots===true)return {...base,action:'slots'};
  if(['OWNER_REQUEST','OWNER_OVERRIDE','VENDOR_RESPONSE','VENDOR_STATUS_UPDATE','MAINTENANCE_STATUS'].includes(decision.intent))return {...base,action:'authorization'};
- if(decision.intent==='MAINTENANCE_REQUEST'){
-  // A spoken name, caller ID or captured prospect is never an authenticated resident.
+ if(body.maintenance!==undefined||decision.intent==='MAINTENANCE_REQUEST'){
   const details=body.maintenance??{};
-  if(!details||typeof details!=='object'||Array.isArray(details)||Object.keys(details).some(k=>!['category','description','impact','urgency','safetyIndicators','preferredContactMethod','photos'].includes(k)))throw new PmaError('Invalid maintenance fields');
-  for(const k of ['category','description','impact','urgency','preferredContactMethod'])if(details[k]!==undefined)text(details[k],k,k==='description'?4000:2000);
-  for(const k of ['safetyIndicators','photos'])if(details[k]!==undefined&&(!Array.isArray(details[k])||details[k].length>(k==='photos'?5:10)||details[k].some((v:any)=>typeof v!=='string'||v.length>(k==='photos'?500:200))))throw new PmaError('Invalid optional maintenance evidence');
-  return {...base,action:'maintenance',details};
+  if(!details||typeof details!=='object'||Array.isArray(details)||Object.keys(details).some(k=>!['reportedName','reportedAddress','reportedUnit','description'].includes(k)))throw new PmaError('Invalid incident report fields');
+  const reportedName=text(details.reportedName,'tenant name',150),reportedAddress=text(details.reportedAddress,'reported address',300),reportedUnit=text(details.reportedUnit,'apartment number',80),description=text(details.description,'verbatim incident description',4000);
+  if(reportedName.length<2||reportedAddress.length<5||reportedUnit.length<1)throw new PmaError('Name, property address and apartment number are required');
+  const observed=body.observedCallerTurns;
+  if(!Array.isArray(observed)||observed.length<1||observed.length>20||observed.some((v:any)=>typeof v!=='string'||v.length>4000))return {...base,action:'clarify',clarification:'I want to record your words accurately. Could you repeat the issue exactly as you would like it written in the report?'};
+  if(!observed.some((v:string)=>v.trim()===description.trim()))return {...base,action:'clarify',clarification:'I want to capture your wording exactly. Could you repeat the issue once more so I can record it accurately?'};
+  if(body.confirmed!==true)return {...base,action:'clarify',details:{reportedName,reportedAddress,reportedUnit,description}};
+  return {...base,action:'incident_report',details:{reportedName,reportedAddress,reportedUnit,description}};
  }
  if(decision.intent==='SHOWING_REQUEST'){
   if(body.confirmed!==true||!body.showingAt)return {...base,action:'clarify'};
@@ -66,6 +78,17 @@ export async function executePmaVoice(body:Record<string,any>,admin:any,env:Node
  const session=uuid(body?.session_id);const call=text(body?.call_sid,'call SID',34);
  if(!/^CA[0-9a-f]{32}$/i.test(call))throw new PmaError('Invalid call',403);
  const prepared=prepareVoiceTurn(body);
+ if(prepared.action==='incident_report'){
+  const response=await admin.rpc('pma_voice_incident_create_v1',{t:tenant,p:property,session_id:session,call_sid:call,incident:prepared.details});
+  if(response.error){if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);return projectVoiceResult(null);}
+  return projectVoiceResult(response.data);
+ }
+ if(prepared.action==='clarify'&&body.maintenance!==undefined)return projectVoiceResult({state:'CLARIFICATION_REQUIRED',interactionPersisted:false,domainPersisted:false,reply:prepared.clarification||'Please confirm your name, property address, apartment number and incident description before I create the report.',notificationSent:false});
+ if(prepared.action==='contact_preference'){
+  const response=await admin.rpc('pma_voice_incident_preference_v1',{t:tenant,p:property,session_id:session,call_sid:call,request_id:prepared.details.requestId,method:prepared.details.method,destination:prepared.details.destination,consent:prepared.details.consent});
+  if(response.error){if(response.error.code==='42501')throw new PmaError('Active authorized PMA session required',403);return projectVoiceResult(null);}
+  return projectVoiceResult(response.data);
+ }
  // DB config resolves actor; RPC has no arbitrary actor/contact/unit parameters.
  const response=await admin.rpc('pm_voice_turn_v1',{t:tenant,p:property,session_id:session,call_sid:call,turn:prepared});
  if(response.error){
