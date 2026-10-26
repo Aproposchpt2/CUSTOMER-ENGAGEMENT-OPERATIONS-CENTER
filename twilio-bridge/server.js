@@ -26,6 +26,7 @@ const { createPmaAdapter } = require('./pma-adapter.cjs');
 const pmaAdapter = createPmaAdapter(process.env, (url, options) => fetch(url, options));
 const {createVoiceEntry,byPath,verifyRouteToken,boundInstructions}=require('./voice-entry.cjs');
 const voiceEntry=createVoiceEntry(process.env);
+const {PERSONA: STELLAR_PERSONA}=require('./stellar-conversational-persona.cjs');
 const voicePrompts=require('./voice-system-prompts.json');
 const {startReceptionist}=require('./voice-receptionist.cjs');
 const { LatencyLogger } = require('./latency-logger.js');
@@ -494,15 +495,27 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
       instructions = `The approved opening is: "${specialist.greeting}". Never repeat it after delivery.\n` + instructions + '\n' + specialist.instructions;
       tools = [...tools, ...specialist.tools];
     }
+    // Configure the shared standard on both models that shape spoken behavior:
+    // Live generates the caller-facing audio, while Responses directs tool use
+    // and follow-up turns. The prior specialist path populated the delegated
+    // prompt but sent only a greeting directive to Live, bypassing its persona.
+    const withStellarPersona = value => typeof value === 'string' && value.includes(STELLAR_PERSONA)
+      ? value
+      : `${value || ''}\n\n${STELLAR_PERSONA}`;
+    const fallbackInstructions = session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
+      : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
+        ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
+        : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.');
+    const speechInstructions = withStellarPersona(specialist
+      ? `Start by saying exactly: "${specialist.greeting}" Then wait. For each caller objective, Generate <|SpawnThinking|> so the backend can classify and retrieve approved knowledge. Never invent results.`
+      : fallbackInstructions);
+    const reasoningInstructions = withStellarPersona(specialist ? instructions : session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions);
     sendToOpenAI({
       type: 'session.start',
       session: {
         model: LIVE_MODEL,
         ...sessionInput,
-        instructions: specialist ? `Start by saying exactly: "${specialist.greeting}" Then wait. For each caller objective, Generate <|SpawnThinking|> so the backend can classify and retrieve approved knowledge. Never invent results.` : session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + APPROVED_SUPPORT_BRIEF + SUPPORT_TICKET_FLOW
-          : LIVE_GREETING_INSTRUCTION + (profile === 'sales'
-            ? 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Sales Specialist on a phone call. Be natural, professional, and concise. ' + PREFERRED_SALES_BEHAVIOR
-            : 'You are the STELLAR INTELLIGENT TECHNOLOGIES Intelligent Support Specialist on a phone call. Be warm, clear, and professional.'),
+        instructions: speechInstructions,
         // Distinct OpenAI voices for the IVR and each specialist; no Twilio Polly/ElevenLabs.
         // PMA_VOICE env var overrides the PMA voice for live A/B testing without redeploy.
         audio: { format: { type: 'audio/pcmu', rate: 8000 }, output: { voice: profile === 'pma' ? (process.env.PMA_VOICE||'verse') : profile === 'sales' ? 'echo' : 'cedar' } },
@@ -511,7 +524,7 @@ async function handleCall(twilioWs, profile, callerPhone, callSid, session=null)
           type: 'responses',
           responses: {
             model: REASONING_MODEL,
-            instructions: specialist ? instructions : session ? instructions : profile === 'pma' ? pmaAdapter.instructions : profile === 'support' ? SUPPORT_GREETING_INSTRUCTION + instructions + SUPPORT_TICKET_FLOW : BRAND_GREETING_INSTRUCTION + (profile === 'sales' ? PREFERRED_SALES_BEHAVIOR : '') + instructions,
+            instructions: reasoningInstructions,
             tools,
             tool_choice: 'auto',
           },

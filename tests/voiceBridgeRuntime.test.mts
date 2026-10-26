@@ -129,6 +129,25 @@ test('Sales mirrors the preferred calm Support Desk behavior without modifying s
  assert.deepEqual(s.audio.format,u.audio.format);
 });
 
+test('shared STELLAR persona reaches caller-facing and delegated runtime instructions for every agent path',async()=>{
+ const receptionist=require('../twilio-bridge/voice-receptionist.cjs');
+ assert.match(receptionist.INSTRUCTIONS,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/);
+
+ for(const profile of ['sales','support'] as const){
+  const settings={SS_STAGING_INTELLIGENCE_ENABLED:'true',STELLAR_BRIDGE_STAGING:'true',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',[profile==='sales'?'SS_STAGING_SALES_TENANT_ID':'SS_STAGING_SUPPORT_TENANT_ID']:profile==='sales'?'5885a020-d363-4c27-910a-c035eda132f5':'d7e80001-0000-4000-b000-000000000001'};
+  const s=await session(profile,false,false,true,null,false,null,settings);
+  const config=s.outbound.find(x=>x.type==='session.start').session;
+  assert.match(config.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,`${profile} speech model`);
+  assert.match(config.delegation.responses.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,`${profile} delegated model`);
+  assert.match(config.instructions,/Start by saying exactly:/,`${profile} approved opening remains first`);
+ }
+
+ const pma=await session('pma',false,true,true,null,true);
+ const pmaConfig=pma.outbound.find(x=>x.type==='session.start').session;
+ assert.match(pmaConfig.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,'PMA speech model');
+ assert.match(pmaConfig.delegation.responses.instructions,/STELLAR CONVERSATIONAL EXPERIENCE STANDARD/,'PMA delegated model');
+});
+
 test('Sales and Support can submit verified support tickets while preserving Sales lead tools',async()=>{
  const sales=await session('sales',false,true);
  const support=await session('support',false,true);
