@@ -2,7 +2,7 @@
 
 ## Product flow
 
-Desert Ridge Tenant Care answers the call, gathers the caller-reported name, property address and apartment number, and records the incident description in the caller's own words. The agent confirms the capture once, creates the report through the trusted PMA workflow, and gives the verified case number. It then records the caller's preferred update channel and explicit consent.
+Carol answers as Desert Ridge Customer Care Center, gathers the caller-reported name, property address and unit when applicable, and records the incident description verbatim. The runtime uses a `PMA-` case number. After the trusted workflow confirms persistence, Carol asks whether the caller is ready, reads the actual case number twice, explains current portal capability accurately, and records a text, email or phone preference only after explicit consent.
 
 Routine reports use one `MAINTENANCE_REQUEST` workflow; callers do not select a category or severity. Fire, suspected gas leaks and immediate threats continue through the dedicated emergency path. The original description remains unchanged in either path.
 
@@ -15,11 +15,13 @@ Routine reports use one `MAINTENANCE_REQUEST` workflow; callers do not select a 
 - An exact repeat in the same call replays the original case. Changed details in that call return a conflict for staff review.
 - The case is created as `New`; no maintenance vendor is assigned and no message is sent by this revision.
 - Contact preference, destination and explicit consent are stored against the case. A saved preference is not a notification receipt.
+- Carol must not say that stakeholder notifications were prepared or sent; the normal incident path does not prepare or send them yet.
+- The current resident portal requires an authorized account and does not support tenant case-number lookup. The spoken script must not promise that the case number currently opens a portal or exposes live tracking.
 - Staging call transcript turns are written to `public.ai4cc_transcripts` through a service-role-only RPC and property-scoped writer. Transcript content is not included in application logs.
 
 ## Portal and plan direction
 
-The tenant portal is a separate follow-on. Once it is available, a case-specific link can be delivered through the tenant's recorded text or email preference after a successful send. Phone preference supports phone updates; it cannot deliver a clickable link by itself. The current staging revision does not promise or send a portal link.
+The tenant case portal is a separate follow-on. Once it supports tenant case lookup and is enabled for Desert Ridge, a case-specific link can be delivered through the tenant's recorded text or email preference after a successful send. Phone preference supports phone updates; it cannot deliver a clickable link by itself. The current staging revision does not promise or send a portal link, and it does not guarantee future updates after recording a preference.
 
 Proposed service tiers remain product configuration, not runtime gates in this revision:
 
