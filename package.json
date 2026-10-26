@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/run-tests.mjs"
+    "test": "node scripts/run-tests.mjs",
+    "test:pma-maintenance": "node scripts/test-pma-maintenance-orchestration.mjs"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
