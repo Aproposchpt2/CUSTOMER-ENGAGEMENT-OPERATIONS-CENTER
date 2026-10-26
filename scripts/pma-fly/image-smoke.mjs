@@ -17,7 +17,7 @@ try{
  evidence.imageId=docker(['image','inspect',image,'--format','{{.Id}}']);
  const labels=JSON.parse(docker(['image','inspect',image,'--format','{{json .Config.Labels}}']));
  evidence.revision=labels?.['org.opencontainers.image.revision']||null;assert.equal(evidence.revision,dedicated?sha:null);
- const env={OPENAI_API_KEY:'synthetic-not-a-provider-key',BRIDGE_HMAC_SECRET:'synthetic-local-smoke-secret',STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',NETLIFY_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',STAGING_SUPPORT_WRITES_ENABLED:'false',STAGING_VOICE_ORCHESTRATION_ENABLED:'false',SS_STAGING_INTELLIGENCE_ENABLED:'true',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',SS_STAGING_SALES_TENANT_ID:'5885a020-d363-4c27-910a-c035eda132f5',SS_STAGING_SUPPORT_TENANT_ID:'d7e80001-0000-4000-b000-000000000001',STAGING_SUPABASE_SERVICE_ROLE_KEY:'synthetic-not-a-database-key',SS_STAGING_HVAC_WRITES_ENABLED:'false',SS_STAGING_SALES_WRITES_ENABLED:'false',PORT:'8080',BRIDGE_RELEASE_SHA:'0'.repeat(40)};
+ const env={OPENAI_API_KEY:'synthetic-not-a-provider-key',BRIDGE_HMAC_SECRET:'synthetic-local-smoke-secret',STELLAR_BRIDGE_STAGING:'true',PMA_CHANNELS_ENABLED:'true',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',NETLIFY_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',STAGING_SUPPORT_WRITES_ENABLED:'false',STAGING_VOICE_ORCHESTRATION_ENABLED:'false',SS_STAGING_INTELLIGENCE_ENABLED:'true',SS_STAGING_RETRIEVAL_VERSION:'scoped-v2',STAGING_SUPABASE_URL:'https://hvzauakkhlivzeqatfqm.supabase.co',SS_STAGING_SALES_TENANT_ID:'5885a020-d363-4c27-910a-c035eda132f5',SS_STAGING_SUPPORT_TENANT_ID:'d7e80001-0000-4000-b000-000000000001',STAGING_SUPABASE_SERVICE_ROLE_KEY:'synthetic-not-a-database-key',SS_STAGING_HVAC_WRITES_ENABLED:'false',SS_STAGING_SALES_WRITES_ENABLED:'false',PORT:'8080',BRIDGE_RELEASE_SHA:'0'.repeat(40)};
  evidence.rejectedConfigurations=[];
  for(const [name,patch,code] of [
   ['production-gateway',{NETLIFY_BASE_URL:'https://stellaruc.com'},'STAGING_GATEWAY_BINDING_REQUIRED'],
@@ -40,6 +40,7 @@ try{
  const forbidden=()=>{throw Error('Network forbidden during smoke');};
  for(const profile of ['sales','support']){
   const session=createSpecialistSession({profile,callSid,env:process.env,request:forbidden,trustedSession:{call_sid:callSid,session_id,agentRoute:profile==='sales'?'sales-specialist':'support-specialist'}});
+  assert.equal(session.status().knowledgeVersion,'scoped-v2');
   assert.equal(session.voice,profile==='sales'?'echo':'cedar');assert.equal(session.greeting,GREETINGS[profile]);assert.equal(session.tenantId,TENANTS[profile]);
   assert.equal(session.assess({reference:profile==='sales'?'SUP-049':'SAL-033',confidence:1}).state,'CLARIFY');session.close();
  }

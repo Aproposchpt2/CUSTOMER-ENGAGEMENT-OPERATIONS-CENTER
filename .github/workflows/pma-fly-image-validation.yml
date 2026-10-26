@@ -1,7 +1,7 @@
 name: PMA Fly Isolated Image Validation
 on:
   push:
-    branches: [repair/pma-fly-validation-security-20261025, repair/fly-staging-runtime-guards-20261025]
+    branches: [repair/pma-fly-validation-security-20261025, repair/fly-staging-runtime-guards-20261025, 'integration/specialist-source-staging-*']
   pull_request:
     branches: [integration/ss-pma-joint-20261025, repair/pma-fly-validation-security-20261025]
   workflow_dispatch:
@@ -27,7 +27,7 @@ jobs:
       - name: Dependency closure and full application regressions
         run: npm test
       - name: Complete bridge regressions including PMA emergency invocation
-        run: node --test twilio-bridge/tests/*.test.cjs
+        run: node --test twilio-bridge/tests/*.test.cjs twilio-bridge/voice-orchestrator-adapter.staging.test.cjs twilio-bridge/knowledge/*.test.cjs
       - name: HVAC persistence regression
         run: npm ci --prefix tests/ss-staging-002 --ignore-scripts && node tests/ss-staging-002/postgres.mjs
       - name: TypeScript and optimized build

@@ -1,0 +1,34 @@
+name: Specialist KB staging readiness
+on:
+  push:
+    branches:
+      - repair/specialist-knowledge-readiness
+      - integration/specialist-source-staging-*
+  workflow_dispatch:
+jobs:
+  source-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate readiness eligibility and staging isolation
+        run: node --test twilio-bridge/knowledge/*.test.cjs
+      - name: Validate source recovery, unpublished status, and intent coverage
+        run: node twilio-bridge/knowledge/check-specialist-readiness.cjs --offline
+  caller-knowledge-release-gate:
+    if: github.event_name == 'workflow_dispatch'
+    needs: source-inventory
+    runs-on: ubuntu-latest
+    environment: stellar-staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify both specialists have actual caller-eligible KB
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+        run: node twilio-bridge/knowledge/check-specialist-readiness.cjs
