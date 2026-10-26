@@ -1,14 +1,14 @@
-✔ invalid tool destination cannot route and stays conversational (0.81671ms)
-✔ zero repeats; invalid key and foreign stream cannot select (0.745382ms)
-✔ reception lookup failure closes once and never exposes OpenAI (0.72371ms)
-✔ DTMF received during authorization is queued and cannot race initialization (0.837662ms)
-✔ reception gateway rejects already selected sessions and foreign callers (1.012034ms)
-✔ caller interruption clears queued IVR playback without cancelling routing or resetting persona (1.944798ms)
-ℹ tests 72
+✔ invalid tool destination cannot route and stays conversational (0.952004ms)
+✔ zero repeats; invalid key and foreign stream cannot select (0.809259ms)
+✔ reception lookup failure closes once and never exposes OpenAI (0.563689ms)
+✔ DTMF received during authorization is queued and cannot race initialization (0.550199ms)
+✔ reception gateway rejects already selected sessions and foreign callers (1.224279ms)
+✔ caller interruption clears queued IVR playback without cancelling routing or resetting persona (2.026282ms)
+ℹ tests 73
 ℹ suites 0
-ℹ pass 72
+ℹ pass 73
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 236.490798
+ℹ duration_ms 251.581997

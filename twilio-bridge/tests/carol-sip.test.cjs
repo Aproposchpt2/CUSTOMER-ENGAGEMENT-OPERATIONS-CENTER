@@ -53,3 +53,9 @@ test('caller interruption during farewell cancels pending close and stale playba
  ws.message({type:'output_audio_buffer.stopped',response_id:'farewell'});await tick();
  assert.equal(h.service.activeCount(),1);assert.equal(h.requests.filter(r=>r.url.endsWith('/hangup')).length,0);await h.service.shutdown();
 });
+
+test('signed but unapproved trunk is explicitly declined without a database session or acceptance',async()=>{
+ const h=harness(),e=event();e.data.sip_headers.find(x=>x.name==='X-Stellar-Trunk-Token').value='wrong';const s=signed(e);
+ const r=await h.service.handle(s.raw,s.headers);assert.equal(r.body.rejected,true);assert.equal(h.d.calls.length,0);assert.equal(h.sockets.length,0);
+ assert.equal(h.requests.length,1);assert.ok(h.requests[0].url.endsWith('/reject'));assert.equal(JSON.parse(h.requests[0].options.body).status_code,403);
+});

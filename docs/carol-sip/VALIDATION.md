@@ -1,7 +1,7 @@
 # Carol SIP validation evidence — October 26, 2026
 
 Local complete application suite: 316 passed, 0 failed, 0 skipped.
-Local complete bridge suite: 72 passed, 0 failed, 0 skipped (includes 12 new SIP protocol tests).
+Local complete bridge suite: 73 passed, 0 failed, 0 skipped (includes 13 new SIP protocol tests).
 New isolated PostgreSQL authority test: 1 passed (included in application suite).
 Optimized Next build and TypeScript/lint stage: passed.
 Root and bridge production dependency audit: zero reported vulnerabilities in each.

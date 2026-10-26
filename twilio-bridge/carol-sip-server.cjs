@@ -103,21 +103,21 @@ function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{
   if(!enabled())return {status:503,body:{error:'SIP staging disabled'}};
   let event;try{event=verifyWebhook(raw,headers,env.OPENAI_WEBHOOK_SECRET);}catch{return {status:401,body:{error:'Invalid webhook'}};}
   if(event.type!=='realtime.call.incoming')return {status:200,body:{ignored:true}};
-  let info;try{info=incoming(event,env);}catch{return {status:403,body:{error:'Unapproved SIP call'}};}
+  let info;try{info=incoming(event,env);}catch{try{if(/^[-a-zA-Z0-9_]{1,200}$/.test(event.data?.call_id||''))await api(event.data.call_id,'reject',{status_code:403});}catch{log('sip_rejection_unconfirmed');}return {status:200,body:{rejected:true}};}
   if(sessions.has(info.sip_call_id))return {status:200,body:{duplicate:true}};
   // Durable compare-and-set in the staging API also excludes duplicate delivery
   // across processes/restarts. Never automatically accept an ambiguous call twice.
   if(sessions.size+pending>=3)return {status:503,body:{error:'SIP staging capacity reached'}};
-  pending++;
+  pending++;let accepted=false;
   try{
    const binding=await backend({...info,action:'start'});
    if(binding?.duplicate)return {status:200,body:{duplicate:true}};
    if(binding?.sip_call_id!==info.sip_call_id||binding?.call_sid!==info.call_sid||typeof binding.session_id!=='string')throw Error();
-   try{await api(info.sip_call_id,'accept',sessionConfig(env));attach(binding);}catch{
+   try{await api(info.sip_call_id,'accept',sessionConfig(env));accepted=true;attach(binding);}catch{
     try{await api(info.sip_call_id,'hangup');}catch{}try{await backend({...binding,action:'close'});}catch{}throw Error();
    }
    return {status:200,body:{accepted:true}};
-  }catch{log('sip_setup_unconfirmed');return {status:503,body:{error:'SIP setup unconfirmed'}};}finally{pending--;}
+  }catch{if(!accepted){try{await api(info.sip_call_id,'reject',{status_code:503});}catch{log('sip_rejection_unconfirmed');}}log('sip_setup_unconfirmed');return {status:503,body:{error:'SIP setup unconfirmed'}};}finally{pending--;}
  }
  return {handle,enabled,shutdown:()=>Promise.all([...sessions.values()].map(finish)),activeCount:()=>sessions.size};
 }
