@@ -28,6 +28,8 @@ test('verified entry connects directly to OpenAI receptionist without Twilio spe
 test('receptionist uses Marin, approved greeting and only one allowlisted routing tool',async()=>{
  const x=setup();await tick();const config=x.live.sent[0].session;
  assert.equal(config.audio.output.voice,process.env.IVR_VOICE||'marin');assert.match(INSTRUCTIONS,/Stellar Intelligent Technologies/);assert.match(INSTRUCTIONS,/ambiguous/);
+ assert.match(INSTRUCTIONS,/call select_agent with its exact agentRoute immediately and silently/);
+ assert.match(INSTRUCTIONS,/Do not say "okay", "I'll transfer you"/);
  assert.deepEqual(config.delegation.responses.tools.map(t=>t.name),['select_agent']);x.controller.close('TEST_END');
 });
 test('call pickup starts the live connection alongside session validation and session.started triggers one greeting',async()=>{
