@@ -11,12 +11,12 @@ async function rawBody(req:NextApiRequest){
 export default async function handler(req:NextApiRequest,res:NextApiResponse){
  privateResponse(res);if(req.method!=='POST')return res.status(405).json({error:'POST only'});
  try{
-  const service=createService({env:process.env,dispatchControl:async(binding:Record<string,unknown>)=>{
+  const service=createService({env:process.env,log:(event:string)=>console.info(JSON.stringify({event})),dispatchControl:async(binding:Record<string,unknown>)=>{
    const body=JSON.stringify(binding),signature=signControl(body,process.env.PMA_SIP_CONTROL_SECRET);
-   const response=await fetch(process.env.PMA_STAGING_BASE_URL+'/api/intake/carol-sip-control',{method:'POST',headers:{'content-type':'application/json','x-carol-control-signature':signature},body,signal:AbortSignal.timeout(5000)});
+   const response=await fetch(process.env.PMA_STAGING_BASE_URL+'/.netlify/functions/carol-sip-control-background',{method:'POST',headers:{'content-type':'application/json','x-carol-control-signature':signature},body,signal:AbortSignal.timeout(5000)});
    if(response.status!==202)throw new Error('CONTROL_NOT_ACCEPTED');
   }});
   const result=await service.handle(await rawBody(req),req.headers);return res.status(result.status).json(result.body);
- }catch{return res.status(503).json({error:'SIP setup unavailable'});}
+ }catch{console.error(JSON.stringify({event:'sip_webhook_handler_failed'}));return res.status(503).json({error:'SIP setup unavailable'});}
 }
 export const config={api:{bodyParser:false}};

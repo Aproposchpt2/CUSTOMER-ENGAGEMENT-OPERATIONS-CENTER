@@ -11,18 +11,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       process.env.PMA_SIP_ENABLED !== 'true') {
     return res.status(503).json({ error: 'SIP staging disabled' });
   }
+  const raw = JSON.stringify(req.body);
+  const signature = req.headers['x-carol-control-signature'];
   try {
-    const raw = JSON.stringify(req.body);
-    const signature = req.headers['x-carol-control-signature'];
-    const binding = verifyControl(raw, signature, process.env.PMA_SIP_CONTROL_SECRET);
-    const service = createService({ env: process.env });
-    if (!service.enabled()) return res.status(503).json({ error: 'SIP staging unavailable' });
-    // The WebSocket session must stay alive after this acknowledgment.
-    // Netlify request lifetimes are finite: production-grade SIP control needs
-    // an approved persistent execution strategy before end-to-end acceptance.
-    void service.run(binding).catch(() => {});
-    return res.status(202).json({ accepted: true });
+    verifyControl(raw, signature, process.env.PMA_SIP_CONTROL_SECRET);
   } catch {
     return res.status(401).json({ error: 'Invalid SIP control request' });
+  }
+  try {
+    const service = createService({ env: process.env });
+    if (!service.enabled()) return res.status(503).json({ error: 'SIP staging unavailable' });
+    // The background invocation owns and awaits the sideband session. Never
+    // detach a WebSocket from this short-lived Next.js response.
+    const response = await fetch(process.env.PMA_STAGING_BASE_URL + '/.netlify/functions/carol-sip-control-background', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-carol-control-signature': signature as string },
+      body: raw,
+      signal: AbortSignal.timeout(5000),
+    });
+    if (response.status !== 202) return res.status(503).json({ error: 'SIP controller unavailable' });
+    return res.status(202).json({ accepted: true });
+  } catch {
+    return res.status(503).json({ error: 'SIP controller unavailable' });
   }
 }

@@ -61,3 +61,24 @@ test('signed but unapproved trunk is explicitly declined without a database sess
  const r=await h.service.handle(s.raw,s.headers);assert.equal(r.body.rejected,true);assert.equal(h.d.calls.length,0);assert.equal(h.sockets.length,0);
  assert.equal(h.requests.length,1);assert.ok(h.requests[0].url.endsWith('/reject'));assert.equal(JSON.parse(h.requests[0].options.body).status_code,403);
 });
+
+
+test('dedicated Carol DID overrides the legacy staging DID without allowing the legacy number',()=>{
+ const settings={...env,PMA_SIP_DID:'+17252010584'},e=event();
+ assert.throws(()=>incoming(e,settings));
+ e.data.sip_headers.find(x=>x.name==='X-Stellar-DID').value=settings.PMA_SIP_DID;
+ assert.equal(incoming(e,settings).call_sid,call);
+});
+test('background dispatch failure tears down the accepted call and persisted session',async()=>{
+ const d=deps(),requests=[],logs=[];
+ const service=createService({env,log:e=>logs.push(e),dispatchControl:async()=>{throw Error('private error');},request:async(url,options)=>{
+  requests.push(url);if(url.includes('api.openai.com'))return {ok:true};
+  return {ok:true,json:async()=>({result:await processIntake(JSON.parse(options.body),d)})};
+ }});
+ const s=signed();assert.equal((await service.handle(s.raw,s.headers)).status,503);
+ assert.equal(requests.filter(x=>x.endsWith('/accept')).length,1);
+ assert.equal(requests.filter(x=>x.endsWith('/hangup')).length,1);
+ assert.equal(d.calls.at(-1).args.event,'end');
+ assert.ok(logs.includes('sip_accept_confirmed'));assert.ok(!logs.includes('sip_control_dispatched'));
+ assert.ok(!JSON.stringify(logs).includes('private error'));
+});

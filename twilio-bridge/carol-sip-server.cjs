@@ -43,7 +43,7 @@ function sipHeader(headers,name){const hits=Array.isArray(headers)?headers.filte
 function incoming(event,env){
  if(event.type!=='realtime.call.incoming'||!/^[-a-zA-Z0-9_]{1,200}$/.test(event.data?.call_id||''))throw Error('UNSUPPORTED_EVENT');
  const h=event.data.sip_headers;
- if((env.PMA_SIP_TRUNK_SECRET||'').length<32||!safeEqual(sipHeader(h,'X-Stellar-Trunk-Token'),env.PMA_SIP_TRUNK_SECRET)||sipHeader(h,'X-Stellar-DID')!==env.PMA_STAGING_DID)throw Error('UNAPPROVED_TRUNK');
+ if((env.PMA_SIP_TRUNK_SECRET||'').length<32||!safeEqual(sipHeader(h,'X-Stellar-Trunk-Token'),env.PMA_SIP_TRUNK_SECRET)||sipHeader(h,'X-Stellar-DID')!==(env.PMA_SIP_DID||env.PMA_STAGING_DID))throw Error('UNAPPROVED_TRUNK');
  const sid=sipHeader(h,'X-Twilio-CallSid');if(!/^CA[0-9a-f]{32}$/i.test(sid))throw Error('INVALID_TWILIO_CALL');
  const from=sipHeader(h,'From');const match=from.match(/(?:sip:|sips:|tel:)(\+[1-9][0-9]{7,14})(?:@|[;>]|$)/i);
  if(!match||match[1]!==env.PMA_STAGING_TEST_CALLER)throw Error('UNAPPROVED_CALLER');
@@ -53,7 +53,7 @@ function sessionConfig(env){return {type:'realtime',model:env.OPENAI_REALTIME_SI
 function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{},setTimer=setTimeout,clearTimer=clearTimeout,dispatchControl}={}){
  const sessions=new Map();let pending=0;
  const enabled=()=>env.PMA_SIP_ENABLED==='true'&&env.STELLAR_BRIDGE_STAGING==='true'&&env.PMA_ENVIRONMENT==='staging'&&env.PMA_STAGING_BASE_URL==='https://pma-validation--ai4cc-staging.netlify.app'&&!!env.OPENAI_API_KEY&&!!env.OPENAI_WEBHOOK_SECRET&&!!env.BRIDGE_HMAC_SECRET_STAGING&&!!env.PMA_SIP_CONTROL_SECRET;
- async function api(callId,action,body){const r=await request(`https://api.openai.com/v1/realtime/calls/${encodeURIComponent(callId)}/${action}`,{method:'POST',headers:{authorization:'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error('OPENAI_CALL_ACTION_FAILED');}
+ async function api(callId,action,body){const r=await request(`https://api.openai.com/v1/realtime/calls/${encodeURIComponent(callId)}/${action}`,{method:'POST',headers:{authorization:'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(8000)});if(!r.ok){log('sip_provider_'+action+'_http_'+r.status);throw Error('OPENAI_CALL_ACTION_FAILED');}}
  async function backend(body){const ts=String(Math.floor(Date.now()/1000)),encoded=JSON.stringify(body);const sig=crypto.createHmac('sha256',env.BRIDGE_HMAC_SECRET_STAGING).update(`pma-staging:${ts}:${encoded}`).digest('hex');const r=await request(env.PMA_STAGING_BASE_URL+'/api/intake/pma-sip-staging',{method:'POST',headers:{'content-type':'application/json','x-bridge-signature':`${ts}.${sig}`},body:encoded,signal:AbortSignal.timeout(9000)});if(!r.ok)throw Error('INTAKE_UNCONFIRMED');return (await r.json()).result;}
  async function finish(state){if(state.closed)return;state.closed=true;clearTimer(state.deadline);clearTimer(state.closeTimer);try{await api(state.binding.sip_call_id,'hangup');}catch{log('sip_hangup_unconfirmed');}try{await backend({...state.binding,action:'close'});}catch{log('sip_session_close_unconfirmed');}state.ws?.close();sessions.delete(state.binding.sip_call_id);state.resolveDone?.();}
  function attach(binding){
@@ -111,20 +111,26 @@ function createService({env=process.env,request=fetch,Socket=WebSocket,log=()=>{
   return state;
  }
  async function handle(raw,headers){
-  if(!enabled())return {status:503,body:{error:'SIP staging disabled'}};
+  if(!enabled()){
+   // Report configuration names only: no credentials, payloads or caller data.
+   const required=['OPENAI_API_KEY','OPENAI_WEBHOOK_SECRET','BRIDGE_HMAC_SECRET_STAGING','PMA_SIP_CONTROL_SECRET'];
+   const invalid=required.filter(key=>!env[key]);
+   for(const [key,value] of Object.entries({PMA_SIP_ENABLED:'true',STELLAR_BRIDGE_STAGING:'true',PMA_ENVIRONMENT:'staging',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app'}))if(env[key]!==value)invalid.push(key);
+   log('sip_configuration_unavailable:'+invalid.join(','));return {status:503,body:{error:'SIP staging disabled'}};
+  }
   let event;try{event=verifyWebhook(raw,headers,env.OPENAI_WEBHOOK_SECRET);}catch{return {status:401,body:{error:'Invalid webhook'}};}
   if(event.type!=='realtime.call.incoming')return {status:200,body:{ignored:true}};
-  let info;try{info=incoming(event,env);}catch{try{if(/^[-a-zA-Z0-9_]{1,200}$/.test(event.data?.call_id||''))await api(event.data.call_id,'reject',{status_code:403});}catch{log('sip_rejection_unconfirmed');}return {status:200,body:{rejected:true}};}
+  let info;try{info=incoming(event,env);}catch{log('sip_admission_rejected');try{if(/^[-a-zA-Z0-9_]{1,200}$/.test(event.data?.call_id||''))await api(event.data.call_id,'reject',{status_code:403});}catch{log('sip_rejection_unconfirmed');}return {status:200,body:{rejected:true}};}
   if(sessions.has(info.sip_call_id))return {status:200,body:{duplicate:true}};
   // Durable compare-and-set in the staging API also excludes duplicate delivery
   // across processes/restarts. Never automatically accept an ambiguous call twice.
   if(sessions.size+pending>=3)return {status:503,body:{error:'SIP staging capacity reached'}};
   pending++;let accepted=false;
   try{
-   const binding=await backend({...info,action:'start'});
+   log('sip_intake_start');const binding=await backend({...info,action:'start'});
    if(binding?.duplicate)return {status:200,body:{duplicate:true}};
    if(binding?.sip_call_id!==info.sip_call_id||binding?.call_sid!==info.call_sid||typeof binding.session_id!=='string')throw Error();
-   try{await api(info.sip_call_id,'accept',sessionConfig(env));accepted=true;if(dispatchControl)await dispatchControl(binding);else attach(binding);}catch{
+   try{log('sip_accept_start');await api(info.sip_call_id,'accept',sessionConfig(env));accepted=true;log('sip_accept_confirmed');if(dispatchControl)await dispatchControl(binding);else attach(binding);log('sip_control_dispatched');}catch{
     try{await api(info.sip_call_id,'hangup');}catch{}try{await backend({...binding,action:'close'});}catch{}throw Error();
    }
    return {status:200,body:{accepted:true}};
