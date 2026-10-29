@@ -38,6 +38,8 @@ export default function Footer({
           <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: '#C8A96B', marginBottom: '.8rem' }}>Company</div>
           {[
             { href: '/about', label: 'About Stellar Intelligent Technologies' },
+            { href: 'https://pma.stellaruc.com/', label: 'Property Management Assistant' },
+            { href: 'https://biaas.stellaruc.com/', label: 'Business Infrastructure as a Service' },
             { href: 'https://aproposgroupllc.com', label: 'Apropos Group LLC' },
           ].map(({ href, label }) => (
             <div key={href} style={{ marginBottom: '.4rem' }}>

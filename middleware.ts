@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
   const response = await updateSession(request, {
     publicPaths: onOperatorHost ? ['/login'] : onAppHost ? APP_HOST_PUBLIC_PATHS : undefined,
   });
-  if (onTenantHost || onOperatorHost || onAppHost) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  if (onTenantHost || onOperatorHost || onAppHost || request.nextUrl.hostname.toLowerCase().endsWith('.netlify.app')) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 
   if (request.nextUrl.pathname === '/demo') {
     const referer = request.headers.get('referer');
