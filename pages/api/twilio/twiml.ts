@@ -79,6 +79,19 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 <Response><Connect><Stream url="${stagingWs}/support"><Parameter name="bridge_token" value="${token}"/></Stream></Connect><Hangup/></Response>`);
   }
 
+  // Sales: direct ElevenLabs connection when agent ID is configured (no bridge)
+  if (profile === 'sales') {
+    const salesAgentId = process.env.ELEVENLABS_SALES_AGENT_ID;
+    if (salesAgentId) {
+      const params = parseBody(req.body);
+      const esc = (s: string) =>
+        s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return res.status(200).send(
+        `<?xml version="1.0" encoding="UTF-8"?>\n<Response>\n  <Connect>\n    <Stream url="wss://api.elevenlabs.io/v1/convai/twilio?agent_id=${esc(salesAgentId)}">\n      <Parameter name="caller_number" value="${esc(params.From || '')}"/>\n      <Parameter name="call_sid" value="${esc(params.CallSid || '')}"/>\n    </Stream>\n  </Connect>\n</Response>`,
+      );
+    }
+  }
+
   const bridgeWsUrl = process.env.TWILIO_BRIDGE_WS_URL;
   const isStaging = typeof bridgeWsUrl === 'string' && bridgeWsUrl.includes('staging');
   const hmacSecret = (isStaging && process.env.BRIDGE_HMAC_SECRET_STAGING) || process.env.BRIDGE_HMAC_SECRET;
