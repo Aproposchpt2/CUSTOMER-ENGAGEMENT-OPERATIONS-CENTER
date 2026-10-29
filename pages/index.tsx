@@ -1,10 +1,9 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import IntelligentSystemsMenu from '@/components/IntelligentSystemsMenu';
 import {NarrativeHero,Section,QuestionMarquee,WorkToggle,InsightBubbles,ControlCenter,Pricing,FaqNavigator,Offer,DemoCards,Consultation,PageFooter,businessFaq} from '@/components/StellarNarrative';
 import s from '@/styles/stellarNarrative.module.css';
 import {CorporatePortfolio,BusinessBenefits} from '@/components/StellarCorporateExperience';
-export default function Home(){return <div className={s.site}><Head><title>Stellar Intelligent Technologies | Innovative Business Products</title><meta name="description" content="Explore innovative business products for property management, customer engagement, contact center operations, and lead management."/><link rel="canonical" href="https://stellaruc.com/"/><meta property="og:title" content="Stellar Intelligent Technologies | Redefining the Work"/><meta property="og:description" content="Innovative business products that improve productivity, responsiveness, and customer experiences."/><meta property="og:url" content="https://stellaruc.com/"/><meta property="og:type" content="website"/></Head><a href="#main-content" className={s.secondary}>Skip to content</a><header className={s.nav}><strong>STELLAR</strong><nav aria-label="Main navigation"><div><Link href="/">Home</Link><IntelligentSystemsMenu/><Link href="/intake">Contact</Link></div></nav></header><main id="main-content">
+export default function Home(){return <div className={s.site}><a href="#main-content" className={s.secondary}>Skip to content</a><header className={s.nav}><strong>STELLAR</strong><nav aria-label="Main navigation"><div><Link href="/">Home</Link><IntelligentSystemsMenu/><Link href="/intake">Contact</Link></div></nav></header><main id="main-content">
 <NarrativeHero/>
 <QuestionMarquee/>
 <Section id="explore" eyebrow="01 / THE COMPANY" title="Innovative Business Products."><p>STELLAR INTELLIGENT TECHNOLOGIES, operated by Apropos Group LLC, develops business products that help organizations streamline operations, improve customer experiences, automate workflows, and create opportunities for growth.</p><p>We approach technology through the responsibilities businesses need performed—not through technology for its own sake.</p></Section>
