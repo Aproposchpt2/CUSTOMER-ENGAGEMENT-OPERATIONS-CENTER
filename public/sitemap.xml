@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Canonical stellaruc.com URLs only. Support Specialist and PMA rank on their own subdomains
+     (specialist.stellaruc.com, pma.stellaruc.com), which publish their own sitemaps. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://stellaruc.com/</loc></url>
-  <url><loc>https://stellaruc.com/products</loc></url>
-  <url><loc>https://stellaruc.com/products/customer-engagement-operations-center</loc></url>
-  <url><loc>https://stellaruc.com/products/sales-service-system</loc></url>
-  <url><loc>https://stellaruc.com/products/support-specialist</loc></url>
-  <url><loc>https://stellaruc.com/platform</loc></url>
-  <url><loc>https://stellaruc.com/demo</loc></url>
-  <url><loc>https://stellaruc.com/partners</loc></url>
-  <url><loc>https://stellaruc.com/about</loc></url>
-  <url><loc>https://stellaruc.com/platform/flow-authoring</loc></url>
-  <url><loc>https://stellaruc.com/platform/governance-platform</loc></url>
-  <url><loc>https://stellaruc.com/platform/intelligence-qa</loc></url>
-  <url><loc>https://stellaruc.com/platform/live-operations</loc></url>
+  <url><loc>https://stellaruc.com/</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/products</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/products/customer-engagement-operations-center</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/products/sales-service-system</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/platform</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/platform/flow-authoring</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/platform/governance-platform</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/platform/intelligence-qa</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/platform/live-operations</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/demo</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/intake</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/partners</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://stellaruc.com/about</loc><lastmod>2026-10-29</lastmod></url>
 </urlset>
