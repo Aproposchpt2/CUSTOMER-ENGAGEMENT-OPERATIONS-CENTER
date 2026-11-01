@@ -37,7 +37,7 @@ export default function Footer({
         <div>
           <div style={{ fontSize: '.62rem', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: '#C8A96B', marginBottom: '.8rem' }}>Company</div>
           {[
-            { href: '/about', label: 'About Stellar Intelligent Technologies' },
+            { href: '/about', label: 'About Stellar Intelligent Business Systems' },
             { href: 'https://aproposgroupllc.com', label: 'Apropos Group LLC' },
           ].map(({ href, label }) => (
             <div key={href} style={{ marginBottom: '.4rem' }}>
