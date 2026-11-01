@@ -52,7 +52,7 @@ export default function IntakePage() {
   return (
     <>
       <Head>
-        <title>Request a Consultation | STELLAR INTELLIGENT TECHNOLOGIES</title>
+        <title>Request a Consultation | STELLAR INTELLIGENT BUSINESS SYSTEMS</title>
         <meta name="description" content="Tell us how to reach you." />
       </Head>
       <MarketingLayout>
