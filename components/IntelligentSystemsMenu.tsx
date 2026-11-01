@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 
 const systems = [
+  { label: 'CUSTOMER CARE CENTER', href: '/products/customer-care-center' },
   { label: 'CUSTOMER ENGAGEMENT', href: '/products/customer-engagement-operations-center' },
   { label: 'SALES SPECIALIST', href: '/products/sales-service-system' },
   { label: 'SUPPORT SPECIALIST', href: '/products/support-specialist' },
