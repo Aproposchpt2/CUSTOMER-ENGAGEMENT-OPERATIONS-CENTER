@@ -82,3 +82,26 @@
   font-synthesis: none !important;
   letter-spacing: .008em;
 }
+
+/* Calculator/services viewport: .inner was unstyled, making content flush to the window. */
+.site .alt > .inner {
+  width: 100%;
+  max-width: 1250px;
+  margin-inline: auto;
+  padding: 95px 24px;
+  min-width: 0;
+}
+.site .calculator,
+.site .calcGrid,
+.site .calcGrid > section,
+.site .calcField,
+.site .inputWrap,
+.site .marginInputs,
+.site .marginInputs > label {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 650px) {
+  .site .alt > .inner { padding: 75px 20px; }
+  .site .calcResults { margin-inline: 0; padding: 20px 12px; }
+}
