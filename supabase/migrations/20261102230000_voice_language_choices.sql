@@ -11,3 +11,4 @@ revoke all on public.voice_language_choices from anon, authenticated;
 
 comment on table public.voice_language_choices is
   'Keypad language menu: language chosen for a Twilio call SID. Service role only; no caller details.';
+grant select, insert, update on public.voice_language_choices to service_role;
