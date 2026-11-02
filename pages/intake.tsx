@@ -70,7 +70,7 @@ export default function IntakePage() {
           ) : (
             <>
               <div className="eyebrow">GET STARTED</div>
-              <h1>Ready to keep your sales operation open 24/7?</h1>
+              <h1>Discover the right Intelligent Business System for your business.</h1>
               <p className="sub">Tell us how to reach you.</p>
 
               <form onSubmit={submit}>
@@ -103,28 +103,28 @@ export default function IntakePage() {
       </div>
       </MarketingLayout>
       <style jsx>{`
-        :global(body){margin:0;background:#06111f}
-        .page{min-height:70vh;color:#eef8ff;background:radial-gradient(circle at 80% 5%,rgba(53,178,235,.14),transparent 32%),linear-gradient(155deg,#06111f,#071827 55%,#06111f);display:grid;place-items:center;padding:70px 20px}
-        .card{width:100%;max-width:460px;border:1px solid #19384d;border-radius:18px;background:rgba(7,24,38,.78);padding:36px}
-        .eyebrow{color:#69d8ff;font-size:.65rem;font-weight:900;letter-spacing:.16em}
+        :global(body){margin:0;background:#050505}
+        .page{min-height:70vh;color:#F7F4EC;background:radial-gradient(circle at 80% 5%,rgba(200,168,75,.12),transparent 32%),linear-gradient(155deg,#050505,#101010 55%,#050505);display:grid;place-items:center;padding:70px 20px}
+        .card{width:100%;max-width:460px;border:1px solid #C8A84B55;border-radius:18px;background:rgba(15,14,12,.92);padding:36px}
+        .eyebrow{color:#C8A84B;font-size:.65rem;font-weight:900;letter-spacing:.16em}
         h1{font-size:clamp(1.5rem,3.4vw,2rem);letter-spacing:-.02em;margin:12px 0 8px;line-height:1.25}
-        .sub{color:#9eb3c4;margin:0 0 24px;font-size:.95rem}
+        .sub{color:#D3CEC1;margin:0 0 24px;font-size:.95rem}
         form{display:grid;gap:14px}
-        label{color:#718ba0;font-size:.66rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:-6px}
-        input{border:1px solid #29495d;border-radius:9px;background:rgba(255,255,255,.03);color:#eef8ff;padding:12px 14px;font-size:1rem;font-family:inherit}
-        input:focus{outline:none;border-color:#69d8ff}
-        button{margin-top:8px;border:none;border-radius:10px;background:#69d8ff;color:#06111f;padding:14px 18px;font-size:.85rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
+        label{color:#BDB5A4;font-size:.66rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:-6px}
+        input{border:1px solid #C8A84B66;border-radius:9px;background:rgba(255,255,255,.03);color:#F7F4EC;padding:12px 14px;font-size:1rem;font-family:inherit}
+        input:focus{outline:none;border-color:#C8A84B}
+        button{margin-top:8px;border:none;border-radius:10px;background:#C8A84B;color:#050505;padding:14px 18px;font-size:.85rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
         button:hover:not(:disabled){filter:brightness(1.06)}
         button:disabled{opacity:.6;cursor:default}
         .error{color:#ff9696;font-size:.85rem;margin-top:-4px}
-        label.consent{display:flex;gap:10px;align-items:flex-start;margin:4px 0 0;color:#9eb3c4;font-size:.78rem;font-weight:400;letter-spacing:0;text-transform:none;line-height:1.5}
-        label.consent input{width:18px;height:18px;margin:2px 0 0;padding:0;flex:none;accent-color:#69d8ff}
-        .agree{color:#718ba0;font-size:.76rem;line-height:1.5;margin:0}
-        .consent :global(a),.agree :global(a){color:#69d8ff}
+        label.consent{display:flex;gap:10px;align-items:flex-start;margin:4px 0 0;color:#D3CEC1;font-size:.78rem;font-weight:400;letter-spacing:0;text-transform:none;line-height:1.5}
+        label.consent input{width:18px;height:18px;margin:2px 0 0;padding:0;flex:none;accent-color:#C8A84B}
+        .agree{color:#BDB5A4;font-size:.76rem;line-height:1.5;margin:0}
+        .consent :global(a),.agree :global(a){color:#C8A84B}
         .success{text-align:center}
         .success h1{margin-top:12px}
-        .success p{color:#9eb3c4;font-size:1rem;line-height:1.6}
-        .bookingLink{display:inline-block;margin-top:14px;padding:14px 18px;border-radius:10px;background:#69d8ff;color:#06111f;font-weight:900;text-decoration:none;text-align:center}
+        .success p{color:#D3CEC1;font-size:1rem;line-height:1.6}
+        .bookingLink{display:inline-block;margin-top:14px;padding:14px 18px;border-radius:10px;background:#C8A84B;color:#050505;font-weight:900;text-decoration:none;text-align:center}
         .bookingNote{font-size:.8rem!important;margin-top:14px}
       `}</style>
     </>
