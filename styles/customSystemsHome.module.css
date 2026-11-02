@@ -105,3 +105,41 @@
   .site .alt > .inner { padding: 75px 20px; }
   .site .calcResults { margin-inline: 0; padding: 20px 12px; }
 }
+
+/* Entire-homepage viewport containment: preserve design with safe side gutters. */
+.site { width:100%; max-width:100%; min-width:0; overflow-x:clip; }
+.site main, .site section, .site article, .site .inner { min-width:0; max-width:100%; }
+.site .nav, .site .hero, .site .consult, .site .footer { width:100%; max-width:100%; }
+.site .hero > *, .site .consult > * { min-width:0; max-width:100%; }
+.site .section { width:100%; max-width:1250px; margin-inline:auto; }
+.site .alt > .inner { width:min(100%,1250px); margin-inline:auto; }
+.site h1, .site h2, .site h3, .site p, .site .brandSub, .site .developer {
+  overflow-wrap:break-word;
+}
+.site .pillars, .site .cards, .site .calcGrid, .site .calcResults > div,
+.site .marginInputs, .site .marginResults {
+  min-width:0;
+}
+.site .pillars > *, .site .cards > *, .site .calcGrid > * {
+  min-width:0;
+}
+.site .nav { padding-left:max(24px, env(safe-area-inset-left)); padding-right:max(24px, env(safe-area-inset-right)); }
+@media (min-width:1350px) {
+  .site .nav { padding-left:max(24px, calc((100vw - 1300px)/2)); padding-right:max(24px, calc((100vw - 1300px)/2)); }
+}
+@media (max-width:850px) {
+  .site .nav nav { width:100%; min-width:0; gap:12px 18px; }
+  .site .nav nav a { white-space:normal; }
+  .site .hero { padding-inline:24px; }
+}
+@media (max-width:650px) {
+  .site .nav { padding-inline:20px; }
+  .site .hero, .site .consult { padding-inline:20px; }
+  .site .section, .site .alt > .inner { padding-inline:20px; }
+  .site .brand { font-size:clamp(58px,17vw,94px); }
+  .site .brandSub { font-size:clamp(22px,6vw,36px); }
+  .site .hero h1, .site .section h2, .site .alt h2, .site .consult h2 { font-size:clamp(37px,9vw,62px); }
+  .site .pillars article, .site .cards article { padding:24px 20px; }
+  .site .actions { width:100%; }
+  .site .actions a { max-width:100%; text-align:center; }
+}
