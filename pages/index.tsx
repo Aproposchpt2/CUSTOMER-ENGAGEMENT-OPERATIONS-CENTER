@@ -1,23 +1,33 @@
 import Link from 'next/link';
 import IntelligentSystemsMenu from '@/components/IntelligentSystemsMenu';
-import {NarrativeHero,Section,QuestionMarquee,WorkToggle,InsightBubbles,ControlCenter,Pricing,FaqNavigator,Offer,DemoCards,Consultation,PageFooter,businessFaq} from '@/components/StellarNarrative';
+import {NarrativeHero,PageFooter} from '@/components/StellarNarrative';
+import {SystemsShowroom} from '@/components/StellarSystemsShowroom';
 import s from '@/styles/stellarNarrative.module.css';
-import {CorporatePortfolio,BusinessBenefits} from '@/components/StellarCorporateExperience';
-export default function Home(){return <div className={s.site}><a href="#main-content" className={s.secondary}>Skip to content</a><header className={s.nav}><strong>STELLAR</strong><nav aria-label="Main navigation"><div><Link href="/">Home</Link><IntelligentSystemsMenu/><Link href="/intake">Contact</Link></div></nav></header><main id="main-content">
+
+export default function Home(){return <div className={s.site}>
+<a href="#main-content" className={s.secondary}>Skip to content</a>
+<header className={s.nav}><strong>STELLAR</strong><nav aria-label="Main navigation"><div><Link href="/">Home</Link><a href="#systems">Explore the Systems</a><IntelligentSystemsMenu/><a href="#intake">Consultation</a></div></nav></header>
+<main id="main-content">
 <NarrativeHero/>
-<QuestionMarquee/>
-<Section id="explore" eyebrow="01 / THE COMPANY" title="Innovative Business Products."><p>STELLAR INTELLIGENT BUSINESS SYSTEMS, operated by Apropos Group LLC, develops business products that help organizations streamline operations, improve customer experiences, automate workflows, and create opportunities for growth.</p><p>We approach technology through the responsibilities businesses need performed—not through technology for its own sake.</p></Section>
-<Section id="portfolio" eyebrow="02 / OUR BUSINESS PRODUCTS" title="Explore the Stellar business solutions."><p>Choose a product to reveal its role, value, and connected demonstration. Explore Contact Center Solutions, Customer Engagement Solutions, and Lead Management Solutions. Property Management Assistant has its own dedicated product experience.</p><CorporatePortfolio/><p style={{marginTop:28}}><Link href="/products/customer-care-center" className={s.primary}>Explore the STELLAR Customer Care Center ↗</Link></p></Section>
-<Section id="why-stellar" eyebrow="03 / WHY BUSINESSES CHOOSE STELLAR" title="Modern tools for measurable business priorities."><p>Select a business outcome to see how a thoughtful intelligent operating model can support it.</p><BusinessBenefits/></Section>
-<Section eyebrow="05 / REDEFINING THE WORK" title="A new division of responsibility."><WorkToggle/></Section>
-<Section eyebrow="06 / OPERATIONAL PRESSURE" title="Find the recurring work that slows teams down."><p>Every business faces interruptions and disconnected handoffs. Explore the challenges that call for a more responsive operating model.</p><InsightBubbles/></Section>
-<Section eyebrow="07 / YOU REMAIN IN CONTROL" title="Your policies. Your operating decisions."><ControlCenter/></Section>
-<Section eyebrow="08 / BUSINESS ECONOMICS" title="Make the financial picture visible."><Pricing/><p>Actual costs and potential savings depend on the business's operating requirements and real usage.</p></Section>
-<Section eyebrow="09 / PRODUCT DEMONSTRATIONS" title="Experience Our Products In Action."><p>The demonstration is the proof—not the sales pitch. Explore the configured systems and evaluate how they handle realistic business conversations.</p><DemoCards/><p>Demonstrations are subject to the existing live-demo configuration. Never interpret an unconfirmed request as completed.</p></Section>
-<Section eyebrow="10 / BUSINESS QUESTIONS" title="Answers to the questions that matter."><FaqNavigator items={businessFaq}/></Section>
-<Section eyebrow="11 / CORPORATE PHILOSOPHY" title="TECHNOLOGY HANDLES THE PREDICTABLE. STAFF HANDLE THE EXCEPTIONAL."><p>Intelligent systems support defined, repeatable work. Your staff remain essential for human judgment, relationships, and exceptional service.</p></Section>
-<Section eyebrow="12 / EXPERIENCE THE DIFFERENCE" title="Experience The Difference."><p>Hear the products in action, then explore the business requirements that make an implementation successful.</p><Link href="/demo" className={s.primary}>Launch Demo ↗</Link></Section>
-<Section eyebrow="13 / INTRODUCTORY OFFER" title="Begin with a considered advantage."><Offer/></Section>
-<Section eyebrow="14 / BUSINESS CONVERSATION" title="Plan the operating model first."><Consultation/></Section>
-<Section eyebrow="15 / BUSINESS INTAKE" title="Tell Us About Your Business."><p>Describe your requirements so the right combination of business products and workflows can be evaluated.</p><Link href="/intake" className={s.primary}>Submit Business Requirements ↗</Link></Section>
+<section style={{maxWidth:1200,margin:'0 auto',padding:'75px 28px 0',textAlign:'center'}}>
+<p className={s.eyebrow}>DISCOVER WHY BUSINESSES ARE CHOOSING INTELLIGENT TECHNOLOGY</p>
+<h2 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:'clamp(40px,5.8vw,74px)',fontWeight:400,lineHeight:1.08,margin:'20px auto',maxWidth:1020}}>You've heard about the new workforce.<br/><span style={{color:'#E4C878'}}>Now discover the systems behind it.</span></h2>
+<a href="#systems" className={s.primary}>Explore the Intelligent Business Systems ↘</a>
+</section>
+<SystemsShowroom/>
+<section id="philosophy" className={s.section} style={{maxWidth:1200,textAlign:'center',paddingTop:105,paddingBottom:105}}>
+<p className={s.eyebrow}>02 / OUR WORKFORCE PHILOSOPHY</p>
+<h2>REDEFINING TODAY&apos;S WORKFORCE.</h2>
+<p style={{margin:'0 auto',fontSize:19,lineHeight:1.8}}>Intelligent Business Systems handle the predictable. Your people deliver the exceptional.</p>
+<p style={{color:'#E4C878',letterSpacing:'.12em',fontSize:13,margin:'27px auto 0'}}>PRODUCTIVITY · EXTENDED COVERAGE · PROFITABILITY</p>
+</section>
+<section id="intake" className={s.section} style={{maxWidth:1250,textAlign:'center',paddingTop:90}}>
+<p className={s.eyebrow}>03 / LET&apos;S TALK ABOUT YOUR BUSINESS</p>
+<h2>Discover which system<br/>fits your operation.</h2>
+<p style={{margin:'0 auto 25px',fontSize:16,lineHeight:1.8}}>Tell us how to reach you. We&apos;ll explore your customer contact requirements, business workflows and opportunities to improve coverage and productivity.</p>
+<div style={{maxWidth:800,margin:'20px auto',border:'1px solid #C8A84B55',background:'#06111f'}}>
+<iframe title="STELLAR business consultation intake form" src="/intake" loading="lazy" style={{display:'block',width:'100%',height:1120,border:0}}/>
+</div>
+<p style={{fontSize:13,color:'#D3CEC1'}}>The embedded form uses the existing STELLAR intake workflow and optional, unticked SMS consent choice. <Link href="/intake">Open the form in a full page ↗</Link></p>
+</section>
 </main><PageFooter/></div>}
