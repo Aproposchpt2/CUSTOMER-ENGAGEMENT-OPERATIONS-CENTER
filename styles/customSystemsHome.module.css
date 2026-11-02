@@ -47,3 +47,24 @@
   font-family: 'DM Sans', Arial, sans-serif !important;
   font-weight: 400 !important;
 }
+
+/* Verified visual correction: all circled hero text must match the upright STELLAR serif.
+   Stronger section-specific rules override legacy global p/span/em typography. */
+.site .hero p.brand,
+.site .hero p.brandSub,
+.site .hero p.developer,
+.site .hero p.heroLead,
+.site .hero h1,
+.site .hero h1 em,
+.site .hero h1 em *,
+.site .nav a.logo {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-synthesis: none !important;
+}
+.site .hero p.brand { letter-spacing: .025em; }
+.site .hero p.brandSub { letter-spacing: .04em; }
+.site .hero p.developer { letter-spacing: .015em; }
+.site .hero p.heroLead { letter-spacing: .008em; }
+.site .hero h1 em { color: #E4C878 !important; }
