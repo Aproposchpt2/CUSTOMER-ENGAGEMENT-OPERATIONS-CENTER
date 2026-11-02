@@ -53,7 +53,7 @@ export default function IntakePage() {
     <>
       <Head>
         <title>Request a Consultation | STELLAR INTELLIGENT BUSINESS SYSTEMS</title>
-        <meta name="description" content="Tell us how to reach you." />
+        <meta name="description" content="Tell us how to reach you. We'll discuss your business workflows and customization requirements." />
       </Head>
       <MarketingLayout>
       <div className="page">
@@ -70,7 +70,7 @@ export default function IntakePage() {
           ) : (
             <>
               <div className="eyebrow">GET STARTED</div>
-              <h1>Ready to keep your sales operation open 24/7?</h1>
+              <h1>What would you like to automate in your business?</h1>
               <p className="sub">Tell us how to reach you.</p>
 
               <form onSubmit={submit}>

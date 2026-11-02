@@ -1,0 +1,84 @@
+.site{background:#050505;color:#F7F4EC;min-height:100vh;font:400 16px/1.8 'DM Sans',sans-serif}.site *{box-sizing:border-box}.site a:focus-visible,.site button:focus-visible,.site input:focus-visible{outline:2px solid #E4C878;outline-offset:3px}.skip{position:absolute;left:-10000px}.skip:focus{left:12px;top:12px;z-index:1000;background:#fff;color:#000;padding:8px}.nav{display:flex;position:sticky;top:0;z-index:100;align-items:center;justify-content:space-between;gap:24px;padding:19px max(22px,calc((100vw - 1300px)/2));background:#050505ef;border-bottom:1px solid #C8A84B55}.nav nav{display:flex;gap:25px;flex-wrap:wrap}.nav a{color:#F7F4EC;text-decoration:none;font-size:13px}.nav a:hover{color:#E4C878}.logo{font:400 29px 'Cormorant Garamond',Georgia,serif!important}.logo span{display:block;font:400 10px 'DM Sans',sans-serif;letter-spacing:.13em;color:#E4C878}.hero{text-align:center;padding:100px 24px 120px;min-height:82vh;display:flex;align-items:center;flex-direction:column;justify-content:center;background:radial-gradient(ellipse at 50% 20%,#C8A84B20,transparent 70%),#050505}.brand{font:400 clamp(72px,11vw,145px)/.9 'Cormorant Garamond',Georgia,serif;margin:0}.brandSub{font:400 clamp(27px,4vw,52px)/1.2 'Cormorant Garamond',Georgia,serif;color:#E4C878;letter-spacing:.05em;margin:12px 0}.developer{font:400 27px 'Cormorant Garamond',serif;color:#D3CEC1;margin:6px 0}.rule{width:150px;height:1px;background:#C8A84B;margin:33px auto}.hero h1{font:400 clamp(40px,6.3vw,82px)/1.07 'Cormorant Garamond',Georgia,serif;max-width:1120px;margin:12px auto 24px}.hero h1 em,.section h2 em,.alt h2 em,.consult h2 em{font-style:normal;color:#E4C878}.heroLead{font:400 clamp(28px,3.3vw,44px)/1.2 'Cormorant Garamond',Georgia,serif;color:#E4C878;margin:10px auto;max-width:900px}.lede{font-size:17px;line-height:1.85;color:#D3CEC1;max-width:930px;margin:17px 0 30px}.hero .lede{max-width:870px;text-align:center}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;justify-content:center}.primary,.secondary{display:inline-block;padding:15px 23px;text-decoration:none;font-size:13px;border:1px solid #C8A84B}.primary{background:#C8A84B;color:#050505!important}.secondary{background:transparent;color:#E4C878!important}.section,.sectionWrap{max-width:1250px;margin:auto}.section{padding:95px 24px}.alt{background:#110F0B;border-block:1px solid #C8A84B40}.sectionWrap{padding:100px 24px}.eyebrow{font-size:12px;letter-spacing:.15em;color:#E4C878;text-transform:uppercase}.section h2,.alt h2,.consult h2{font:400 clamp(42px,6vw,76px)/1.06 'Cormorant Garamond',Georgia,serif;margin:16px 0 27px}.pillars,.services{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px;margin-top:40px}.pillars article{padding:35px;background:#15120e;border:1px solid #C8A84B66}.pillars article>span,.cards article>span{font-size:11px;letter-spacing:.13em;color:#E4C878}.pillars h3,.cards h3{font:400 clamp(32px,4vw,47px)/1.12 'Cormorant Garamond',Georgia,serif;margin:16px 0}.pillars p,.cards p{color:#D3CEC1;line-height:1.8}.pillars a,.cards a{color:#E4C878}.flow{margin-top:12px;padding:12px;background:#050505;border-left:2px solid #C8A84B;font-size:12px;letter-spacing:.04em}.flow b{color:#E4C878;margin:0 7px}.motto{border-top:1px solid #C8A84B55;margin:45px 0 0;padding-top:25px;color:#E4C878;font-size:14px;letter-spacing:.07em}.motto strong{color:#F7F4EC;font-weight:500}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:36px}.cards article{border:1px solid #C8A84B66;padding:30px;background:#15120e;transition:border-color .2s,transform .2s}.cards article:hover{border-color:#E4C878;transform:translateY(-3px)}.cards h3{font-size:35px}.cards a{font-size:13px}.consult{padding:105px 24px;text-align:center;display:flex;align-items:center;flex-direction:column}.consult p:not(.eyebrow){max-width:730px;color:#D3CEC1}.fine{font-size:12px!important;color:#999!important;margin-top:22px}.footer{padding:45px 24px;border-top:1px solid #C8A84B55;display:flex;align-items:center;flex-direction:column;color:#D3CEC1;text-align:center}.footer strong{font:400 24px 'Cormorant Garamond',serif}.footer a{color:#E4C878}.calculator{padding:30px;border:1px solid #C8A84B77;background:#0A0907;margin-top:35px}.calcGrid{display:grid;grid-template-columns:1fr 1fr;gap:35px}.calcGrid section{min-width:0}.calculator h3{font:400 32px 'Cormorant Garamond',Georgia,serif;margin:5px 0 22px}.calcField{display:block;margin:15px 0;color:#D3CEC1;font-size:13px}.calcField>span,.calcField small{display:block}.calcField small{font-size:11px;color:#AFA89B}.inputWrap{display:flex;align-items:center;border:1px solid #C8A84B70;margin-top:5px;background:#16130f}.inputWrap b{padding:0 13px;color:#E4C878}.inputWrap input,.marginInputs input{width:100%;min-width:0;background:transparent;color:#fff;padding:11px;font:inherit;border:0}.calcSubtotal{border-top:1px solid #C8A84B55;padding-top:15px;display:flex;justify-content:space-between;gap:8px;color:#D3CEC1}.calcSubtotal strong{color:#E4C878}.calcResults{margin:28px 0;padding:30px;text-align:center;border:1px solid #C8A84B;background:radial-gradient(circle at top,#C8A84B20,transparent 70%),#16130e}.calcResults>p{font-size:12px;letter-spacing:.08em;color:#E4C878}.calcResults>strong{font:400 clamp(35px,5vw,65px) 'Cormorant Garamond',serif;color:#F7F4EC}.calcResults>div{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:20px}.calcResults span{display:block;color:#D3CEC1;font-size:12px}.calcResults b{display:block;color:#E4C878;font-size:18px}.calcResults small{display:block;color:#C6BBA6;margin-top:20px}.margin{border-top:1px solid #C8A84B55;padding-top:22px}.marginInputs,.marginResults{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}.marginInputs label{font-size:13px;color:#D3CEC1}.marginInputs input{border:1px solid #C8A84B77;display:block;margin-top:8px}.marginResults p{border-bottom:1px solid #C8A84B33;display:flex;justify-content:space-between;gap:10px;color:#D3CEC1}.marginResults strong{color:#E4C878}.disclosure{color:#B5AD9D;font-size:12px;margin:25px 0}.calculator>.primary{margin-top:10px}@media(max-width:850px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.nav{align-items:flex-start;flex-direction:column}.nav nav{gap:15px}}@media(max-width:650px){.pillars,.services,.calcGrid,.cards,.calcResults>div,.marginInputs,.marginResults{grid-template-columns:1fr}.hero{padding:70px 20px}.section,.sectionWrap{padding:75px 20px}.calculator{padding:18px}.calcSubtotal{flex-direction:column}}@media(prefers-reduced-motion:reduce){.cards article:hover{transform:none}}
+
+/* STELLAR BRAND TYPOGRAPHY — premium, upright, regular, no bold. */
+/* Scope to the new homepage so other deployed routes remain unchanged. */
+.site,
+.site * {
+  font-weight: 400 !important;
+  font-synthesis: none;
+}
+.site .logo,
+.site .brand,
+.site .brandSub,
+.site .developer,
+.site h1,
+.site h2,
+.site h3,
+.site .heroLead,
+.site .calcResults > strong,
+.site .footer strong {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+.site .brand {
+  font-size: clamp(72px, 11vw, 145px);
+  line-height: .9;
+  letter-spacing: .015em;
+}
+.site .hero h1,
+.site .section h2,
+.site .alt h2,
+.site .consult h2 {
+  font-weight: 400 !important;
+}
+.site .hero em,
+.site .section em,
+.site .alt em,
+.site .consult em {
+  font-style: normal !important;
+}
+.site .logo span,
+.site .nav nav,
+.site .lede,
+.site .eyebrow,
+.site .calculator input,
+.site .calculator label {
+  font-family: 'DM Sans', Arial, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Verified visual correction: all circled hero text must match the upright STELLAR serif.
+   Stronger section-specific rules override legacy global p/span/em typography. */
+.site .hero p.brand,
+.site .hero p.brandSub,
+.site .hero p.developer,
+.site .hero p.heroLead,
+.site .hero h1,
+.site .hero h1 em,
+.site .hero h1 em *,
+.site .nav a.logo {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-synthesis: none !important;
+}
+.site .hero p.brand { letter-spacing: .025em; }
+.site .hero p.brandSub { letter-spacing: .04em; }
+.site .hero p.developer { letter-spacing: .015em; }
+.site .hero p.heroLead { letter-spacing: .008em; }
+.site .hero h1 em { color: #E4C878 !important; }
+
+/* All gold headline continuations follow the exact STELLAR regular upright serif. */
+.site .section h2 em,
+.site .alt h2 em,
+.site .consult h2 em,
+.site .section h2 em *,
+.site .alt h2 em *,
+.site .consult h2 em * {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-synthesis: none !important;
+  letter-spacing: .008em;
+}
