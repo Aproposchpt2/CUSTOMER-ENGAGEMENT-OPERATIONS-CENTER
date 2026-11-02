@@ -12,7 +12,6 @@ export default function Home(){return <div className={s.site}>
 <section style={{maxWidth:1200,margin:'0 auto',padding:'75px 28px 0',textAlign:'center'}}>
 <p className={s.eyebrow}>DISCOVER WHY BUSINESSES ARE CHOOSING INTELLIGENT TECHNOLOGY</p>
 <h2 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:'clamp(40px,5.8vw,74px)',fontWeight:400,lineHeight:1.08,margin:'20px auto',maxWidth:1020}}>You've heard about the new workforce.<br/><span style={{color:'#E4C878'}}>Now discover the systems behind it.</span></h2>
-<p style={{fontSize:17,lineHeight:1.85,color:'#D3CEC1',maxWidth:850,margin:'0 auto'}}>Our intelligent business systems are designed to handle predictable customer interactions and structured operations, allowing your employees to focus on relationships, professional judgment and exceptional service.</p>
 <a href="#systems" className={s.primary}>Explore the Intelligent Business Systems ↘</a>
 </section>
 <SystemsShowroom/>
