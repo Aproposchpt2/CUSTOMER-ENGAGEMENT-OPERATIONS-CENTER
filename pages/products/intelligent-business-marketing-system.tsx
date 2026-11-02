@@ -2,13 +2,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import MarketingLayout from '@/components/MarketingLayout';
 export default function MarketingSystemComingSoon(){
-return <MarketingLayout><Head><title>Intelligent Business Marketing System | Coming Soon | STELLAR</title><meta name="description" content="A new STELLAR Intelligent Business System is in development: coordinated prospect discovery, compliant email outreach, and social media marketing."/></Head>
+return <MarketingLayout><Head><title>Intelligent Business Marketing System | Coming Soon | STELLAR</title><meta name="description" content="Discover the STELLAR Intelligent Business Marketing System: coordinated prospect discovery, compliant email outreach, and social media marketing."/></Head>
 <main style={{background:'#050505',color:'#F7F4EC',minHeight:'100vh',fontFamily:"'DM Sans',sans-serif"}}>
 <section style={{maxWidth:1080,margin:'0 auto',padding:'clamp(80px,10vw,150px) 24px 80px',textAlign:'center'}}>
 <p style={{letterSpacing:'.18em',fontSize:12,color:'#E4C878'}}>STELLAR INTELLIGENT BUSINESS SYSTEMS</p>
 <p style={{color:'#D3CEC1',fontSize:13}}>Operated by Apropos Group LLC · Business Systems Developers</p>
 <div style={{width:140,height:1,background:'#C8A84B',margin:'35px auto'}}/>
-<p style={{fontSize:12,letterSpacing:'.18em',color:'#E4C878'}}>UPCOMING PRODUCT · IN DEVELOPMENT</p>
+<p style={{fontSize:12,letterSpacing:'.18em',color:'#E4C878'}}>INTELLIGENT CUSTOMER ACQUISITION</p>
 <h1 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontWeight:400,fontSize:'clamp(50px,8vw,102px)',lineHeight:1.02,margin:'22px auto'}}>INTELLIGENT BUSINESS<br/><span style={{color:'#E4C878'}}>MARKETING SYSTEM.</span></h1>
 <h2 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontWeight:400,fontSize:'clamp(32px,4vw,53px)',margin:'30px auto 17px'}}>Discover Opportunities. Build Relationships.<br/>Grow Your Business.</h2>
 <p style={{maxWidth:775,margin:'0 auto',fontSize:17,lineHeight:1.9,color:'#D3CEC1'}}>A coordinated marketing operation being developed to bring prospect discovery, lead management, compliant email outreach, and social media campaigns into one intelligent business system.</p>
