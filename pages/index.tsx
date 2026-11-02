@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Head from 'next/head';
 import {OperatingCostCalculator} from '@/components/OperatingCostCalculator';
 import s from '@/styles/customSystemsHome.module.css';
 const examples=[
@@ -9,7 +10,7 @@ const examples=[
 ['Marketing','Customer discovery, outreach and campaign workflows.','/products/intelligent-business-marketing-system'],
 ['Property Management','Resident care, incidents, maintenance and status coordination.','https://pma.stellaruc.com/']
 ] as const;
-export default function Home(){return <div className={s.site}>
+export default function Home(){return <><Head><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous"/><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&family=DM+Sans:wght@400&display=swap" rel="stylesheet"/></Head><div className={s.site}>
 <a href="#content" className={s.skip}>Skip to content</a>
 <header className={s.nav}><Link href="/" className={s.logo}>STELLAR <span>INTELLIGENT BUSINESS SYSTEMS</span></Link><nav aria-label="Corporate navigation"><a href="#value">The Advantage</a><a href="#calculator">Cost Calculator</a><a href="#examples">Examples</a><a href="#consultation">Consultation</a></nav></header>
 <main id="content">
@@ -20,4 +21,4 @@ export default function Home(){return <div className={s.site}>
 <section className={s.alt}><div className={s.inner}><p className={s.eyebrow}>05 / BUSINESS SERVICES</p><h2>Customized systems.<br/><em>Supporting business services.</em></h2><div className={s.pillars}><article><span>MARKETING AS A SERVICE</span><h3>Business Marketing as a Service</h3><p>Coordinate customer discovery, campaign planning, lead development and outreach as part of a managed marketing operation.</p><Link href="/products/intelligent-business-marketing-system">Explore marketing services ↗</Link></article><article><span>INFRASTRUCTURE AS A SERVICE</span><h3>Business Infrastructure as a Service</h3><p>Build the infrastructure foundation required to support connected, adaptable and dependable business operations.</p><a href="https://biaas.stellaruc.com/" target="_blank" rel="noopener noreferrer">Explore infrastructure services ↗</a></article></div></div></section>
 <section id="consultation" className={s.consult}><p className={s.eyebrow}>06 / YOUR NEXT STEP</p><h2>What do you want<br/><em>automated today?</em></h2><p>Tell us about the work your organization performs repeatedly, your coverage requirements and the outcomes you want to improve. We'll begin with your business—not a preselected system.</p><div className={s.actions}><Link className={s.primary} href="/intake">Discuss My Business ↗</Link><a className={s.secondary} href="https://calendar.app.google/DNAMvEyWbg2jfxaN8" target="_blank" rel="noopener noreferrer">Book a Consultation ↗</a></div><p className={s.fine}>Consultation requests use the existing secure intake process, with SMS consent optional and unchecked by default.</p></section>
 </main><footer className={s.footer}><strong>STELLAR INTELLIGENT BUSINESS SYSTEMS</strong><span>Business Systems Developers</span><p><Link href="/privacy">Privacy</Link> · <Link href="/terms">Terms</Link> · <Link href="/sms-terms">SMS Terms</Link> · <Link href="/intake">Contact</Link></p></footer>
-</div>}
+</div></>}
