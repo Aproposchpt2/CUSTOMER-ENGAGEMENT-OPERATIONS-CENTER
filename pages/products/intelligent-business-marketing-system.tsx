@@ -1,0 +1,19 @@
+import Head from 'next/head';
+import Link from 'next/link';
+import MarketingLayout from '@/components/MarketingLayout';
+export default function MarketingSystemComingSoon(){
+return <MarketingLayout><Head><title>Intelligent Business Marketing System | Coming Soon | STELLAR</title><meta name="description" content="A new STELLAR Intelligent Business System is in development: coordinated prospect discovery, compliant email outreach, and social media marketing."/></Head>
+<main style={{background:'#050505',color:'#F7F4EC',minHeight:'100vh',fontFamily:"'DM Sans',sans-serif"}}>
+<section style={{maxWidth:1080,margin:'0 auto',padding:'clamp(80px,10vw,150px) 24px 80px',textAlign:'center'}}>
+<p style={{letterSpacing:'.18em',fontSize:12,color:'#E4C878'}}>STELLAR INTELLIGENT BUSINESS SYSTEMS</p>
+<p style={{color:'#D3CEC1',fontSize:13}}>Operated by Apropos Group LLC · Business Systems Developers</p>
+<div style={{width:140,height:1,background:'#C8A84B',margin:'35px auto'}}/>
+<p style={{fontSize:12,letterSpacing:'.18em',color:'#E4C878'}}>UPCOMING PRODUCT · IN DEVELOPMENT</p>
+<h1 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontWeight:400,fontSize:'clamp(50px,8vw,102px)',lineHeight:1.02,margin:'22px auto'}}>INTELLIGENT BUSINESS<br/><span style={{color:'#E4C878'}}>MARKETING SYSTEM.</span></h1>
+<h2 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontWeight:400,fontSize:'clamp(32px,4vw,53px)',margin:'30px auto 17px'}}>Discover Opportunities. Build Relationships.<br/>Grow Your Business.</h2>
+<p style={{maxWidth:775,margin:'0 auto',fontSize:17,lineHeight:1.9,color:'#D3CEC1'}}>A coordinated marketing operation being developed to bring prospect discovery, lead management, compliant email outreach, and social media campaigns into one intelligent business system.</p>
+<div style={{display:'flex',gap:14,justifyContent:'center',flexWrap:'wrap',marginTop:43}}><Link href="/intake" style={{border:'1px solid #C8A84B',background:'#C8A84B',padding:'16px 26px',color:'#050505',textDecoration:'none'}}>Contact Us for a Consultation ↗</Link><Link href="/#systems" style={{border:'1px solid #C8A84B',padding:'16px 26px',color:'#E4C878',textDecoration:'none'}}>Explore STELLAR Systems ↗</Link></div>
+</section>
+<section style={{background:'#101010',borderTop:'1px solid #C8A84B66',padding:'70px 24px 100px'}}><div style={{maxWidth:1060,margin:'auto'}}><p style={{fontSize:12,letterSpacing:'.15em',color:'#E4C878'}}>THE VISION</p><h2 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:'clamp(36px,5vw,65px)',fontWeight:400,margin:'15px 0 35px'}}>From first opportunity<br/><span style={{color:'#E4C878'}}>to lasting customer relationship.</span></h2><div className="marketing-grid">{[['01','Prospect Discovery','Identify prospective customers for qualification and appropriate outreach.'],['02','Lead Management','Organize and prioritize verified contacts and marketing opportunities.'],['03','Email Campaigns','Plan compliant email outreach, including opt-out and suppression handling.'],['04','Social Media Marketing','Coordinate brand messages and planned campaign activity across social channels.']].map(([n,t,d])=><article key={n} style={{border:'1px solid #C8A84B55',padding:27}}><span style={{color:'#E4C878',fontSize:13}}>{n} / PLANNED CAPABILITY</span><h3 style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:35,fontWeight:400,margin:'18px 0'}}>{t}</h3><p style={{color:'#D3CEC1',lineHeight:1.75}}>{d}</p></article>)}</div><p style={{color:'#D3CEC1',fontSize:13,marginTop:27}}>Development in progress. The capabilities shown are a product roadmap, not a claim that the marketing system is available for purchase or deployment.</p></div></section>
+<style jsx>{`.marketing-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}@media(max-width:650px){.marketing-grid{grid-template-columns:1fr}}`}</style>
+</main></MarketingLayout>}
