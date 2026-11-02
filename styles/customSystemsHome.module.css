@@ -68,3 +68,17 @@
 .site .hero p.developer { letter-spacing: .015em; }
 .site .hero p.heroLead { letter-spacing: .008em; }
 .site .hero h1 em { color: #E4C878 !important; }
+
+/* All gold headline continuations follow the exact STELLAR regular upright serif. */
+.site .section h2 em,
+.site .alt h2 em,
+.site .consult h2 em,
+.site .section h2 em *,
+.site .alt h2 em *,
+.site .consult h2 em * {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-synthesis: none !important;
+  letter-spacing: .008em;
+}
