@@ -227,6 +227,27 @@
 .site .margin { padding-top:14px; }
 .site .marginResults p { margin:6px 0; }
 .site .disclosure { margin:12px 0; }
+/* Calculator: current model, intelligent model and results side by side; margin analysis opens on demand. */
+.site .calcGrid { gap:24px; }
+.site .calcField { font-size:12px; line-height:1.35; }
+.site .calcField small { display:inline; margin-left:4px; }
+.site .calcField > small::before { content:"- "; }
+.site .calcResults { grid-column:1 / -1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+.site .calcResults > p { margin:0; }
+.site .calcResults > strong { font-size:clamp(32px,3vw,44px); line-height:1.1; }
+.site .calcResults > div { width:100%; grid-template-columns:1fr; gap:6px; text-align:left; margin-top:6px; }
+.site .calcResults span { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.site .calcResults b { font-size:15px; white-space:nowrap; }
+.site .calcResults small { margin-top:4px; }
+.site .calcResults > .primary { margin-top:8px; }
+@media(min-width:1000px){
+  .site .calcGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .site .calcResults { grid-column:auto; }
+}
+.site details.margin { margin-top:14px; }
+.site details.margin > summary { cursor:pointer; color:#E4C878; font-size:14px; }
+.site details.margin > .marginInputs { margin-top:12px; }
+.site .disclosure { font-size:11px; line-height:1.45; margin:10px 0 0; }
 /* Nav links must land with the heading below the pinned nav, which grows when it wraps. */
 .site main section[id] { scroll-margin-top:52px; }
 @media(max-width:850px){ .site main section[id] { scroll-margin-top:100px; } }
