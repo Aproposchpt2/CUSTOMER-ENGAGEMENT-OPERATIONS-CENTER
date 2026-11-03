@@ -83,7 +83,8 @@
   letter-spacing: .008em;
 }
 
-.site .section h2.valueHeadline {
+.site .section h2.valueHeadline,
+.site .consult h2.contactHeadline {
   font-size: clamp(27px, 3.4vw, 44px);
   line-height: 1.15;
 }
