@@ -157,8 +157,6 @@
  radial-gradient(ellipse at 50% 125%,rgba(205,158,75,.16),transparent 54%),#050505; }
 .site .hero:before { content:""; position:absolute; pointer-events:none; z-index:-1; top:4%; left:50%; transform:translateX(-50%); width:min(78vw,1050px); height:1px; background:linear-gradient(90deg,transparent,#C8A84B88,transparent); box-shadow:0 0 19px 2px #C8A84B55; }
 .site .hero:after { content:""; position:absolute; pointer-events:none; z-index:-1; bottom:-10vw; left:50%; transform:translateX(-50%); width:125vw; height:18vw; border-top:1px solid #E4C878; border-radius:50% 50% 0 0; box-shadow:0 -5px 22px #C8A84B45; opacity:.72; }
-/* Keep hero text clear of the horizon arc, which rises 8vw above the hero's bottom edge. */
-.site .hero { padding-bottom:calc(8vw + 56px); }
 .site .rule { box-shadow:0 0 14px #C8A84B88; }
 .site .marqueeShell { display:block; width:100%; max-width:100%; overflow:hidden; background:#0b0906; border-top:1px solid #C8A84B88; border-bottom:1px solid #C8A84B88; }
 .site .marqueeHeading { max-width:1250px; margin:auto; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:10px 24px; color:#E4C878; font:400 11px 'DM Sans',sans-serif; letter-spacing:.13em; }
@@ -187,4 +185,18 @@
 }
 @media(max-width:650px){
   .site .masterBrandArt { width:100%; max-height:none; margin-bottom:22px; }
+}
+
+/* The landing section fits one screen below the nav and marquee (about 147px together).
+   The image takes whatever height the text leaves. The horizon arc rises 4vw from the bottom. */
+.site .hero { min-height:calc(100svh - 147px); padding:12px 24px calc(4vw + 16px); }
+.site .hero:after { bottom:-14vw; }
+.site .hero h1 { font-size:clamp(34px,4.2vw,60px); margin:8px auto 6px; }
+.site .hero p.heroLead { font-size:clamp(20px,2.2vw,30px); margin:0 auto; }
+.site .masterBrandArt { width:auto; max-width:100%; max-height:max(200px,calc(100svh - 430px)); margin:0 auto 10px; }
+@media(max-width:650px){
+  .site .hero { min-height:0; padding:16px 20px calc(11vw + 20px); }
+  .site .hero:after { bottom:-7vw; }
+  .site .hero h1 { font-size:clamp(30px,8vw,44px); }
+  .site .masterBrandArt { width:100%; max-height:none; margin-bottom:14px; }
 }
