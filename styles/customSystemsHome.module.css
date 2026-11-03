@@ -83,6 +83,12 @@
   letter-spacing: .008em;
 }
 
+.site .section h2.valueHeadline {
+  font-size: clamp(27px, 3.4vw, 44px);
+  line-height: 1.15;
+}
+.site .lede strong { color: #E4C878; }
+
 /* Calculator/services viewport: .inner was unstyled, making content flush to the window. */
 .site .alt > .inner {
   width: 100%;
