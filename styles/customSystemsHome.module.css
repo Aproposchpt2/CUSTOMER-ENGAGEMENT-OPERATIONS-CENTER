@@ -162,14 +162,15 @@
 .site .rule { box-shadow:0 0 14px #C8A84B88; }
 .site .marqueeShell { display:block; width:100%; max-width:100%; overflow:hidden; background:#0b0906; border-top:1px solid #C8A84B88; border-bottom:1px solid #C8A84B88; }
 .site .marqueeHeading { max-width:1250px; margin:auto; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:10px 24px; color:#E4C878; font:400 11px 'DM Sans',sans-serif; letter-spacing:.13em; }
-.site .marqueeHeading button { font:400 12px 'DM Sans',sans-serif; color:#E4C878; border:1px solid #C8A84B66; background:transparent; padding:5px 12px; cursor:pointer; }
-.site .marqueeWindow { overflow:hidden; width:100%; min-width:0; border-top:1px solid #C8A84B30; padding:14px 0 19px; }
+.site .marqueeHeading { padding-block:3px; font-size:9px; }
+.site .marqueeHeading button { font:400 10px 'DM Sans',sans-serif; color:#E4C878; border:1px solid #C8A84B66; background:transparent; padding:2px 8px; cursor:pointer; }
+.site .marqueeWindow { overflow:hidden; width:100%; min-width:0; border-top:1px solid #C8A84B30; padding:5px 0 6px; }
 .site .marqueeTrack, .site .marqueePaused { display:flex; width:max-content; min-width:0; }
 .site .marqueeTrack { animation:stellarScroll 65s linear infinite; }
 .site .marqueePaused { animation:stellarScroll 65s linear infinite; animation-play-state:paused; }
 .site .marqueeSet { display:flex; flex:none; align-items:center; white-space:nowrap; }
-.site .marqueeItem { display:inline-flex; align-items:center; gap:32px; padding:0 18px; font:400 clamp(21px,2.7vw,34px) 'Cormorant Garamond',Georgia,serif; color:#F7F4EC; letter-spacing:.025em; }
-.site .marqueeStar { color:#E4C878; font-size:18px; }
+.site .marqueeItem { display:inline-flex; align-items:center; gap:20px; padding:0 10px; font:400 clamp(13px,1.15vw,16px) 'Cormorant Garamond',Georgia,serif; color:#F7F4EC; letter-spacing:.025em; }
+.site .marqueeStar { color:#E4C878; font-size:10px; }
 @keyframes stellarScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 @media(max-width:650px) { .site .marqueeHeading { padding-inline:20px; font-size:9px; letter-spacing:.05em; } .site .marqueeItem { gap:18px; padding:0 12px; } .site .hero:after { bottom:-7vw; } }
 @media(prefers-reduced-motion:reduce) { .site .marqueeTrack,.site .marqueePaused { animation:none; flex-wrap:wrap; width:100%; } .site .marqueeSet:nth-child(2) { display:none; } .site .marqueeSet { flex-wrap:wrap; white-space:normal; } }
