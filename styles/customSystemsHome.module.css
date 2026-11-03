@@ -200,3 +200,30 @@
   .site .hero h1 { font-size:clamp(30px,8vw,44px); }
   .site .masterBrandArt { width:100%; max-height:none; margin-bottom:14px; }
 }
+
+/* Sections below the landing: tighter spacing and type so each sits closer to one screen. */
+.site .section, .site .alt > .inner { padding-block:48px; }
+.site .consult { padding-block:64px; }
+.site .section h2, .site .alt h2 { font-size:clamp(30px,3.6vw,48px); line-height:1.1; margin:0 0 14px; }
+.site .section h2.valueHeadline { font-size:clamp(26px,3vw,40px); }
+.site .lede { margin:6px 0 12px; font-size:16px; line-height:1.6; }
+.site .pillars { margin-top:22px; }
+.site .pillars article { padding:24px; }
+.site .pillars h3 { font-size:clamp(26px,2.6vw,34px); margin:10px 0; }
+.site .pillars p, .site .cards p { line-height:1.6; margin:0 0 10px; }
+.site .flow { margin-top:8px; padding:9px 12px; }
+.site .cards { margin-top:18px; }
+.site .cards article { padding:18px 20px; }
+.site .cards h3 { font-size:28px; margin:8px 0; }
+.site .calculator { margin-top:16px; padding:20px 24px; }
+.site .calculator h3 { font-size:28px; margin:0 0 10px; }
+.site .calcField { margin:8px 0; }
+.site .inputWrap { margin-top:3px; }
+.site .inputWrap input, .site .marginInputs input { padding:6px 10px; }
+.site .calcSubtotal { padding-top:10px; }
+.site .calcResults { margin:16px 0; padding:16px 20px; }
+.site .calcResults > div { margin-top:10px; }
+.site .calcResults small { margin-top:10px; }
+.site .margin { padding-top:14px; }
+.site .marginResults p { margin:6px 0; }
+.site .disclosure { margin:12px 0; }
