@@ -227,3 +227,7 @@
 .site .margin { padding-top:14px; }
 .site .marginResults p { margin:6px 0; }
 .site .disclosure { margin:12px 0; }
+/* Nav links must land with the heading below the pinned nav, which grows when it wraps. */
+.site main section[id] { scroll-margin-top:52px; }
+@media(max-width:850px){ .site main section[id] { scroll-margin-top:100px; } }
+@media(max-width:650px){ .site main section[id] { scroll-margin-top:136px; } }
