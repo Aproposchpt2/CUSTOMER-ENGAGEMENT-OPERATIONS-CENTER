@@ -157,6 +157,8 @@
  radial-gradient(ellipse at 50% 125%,rgba(205,158,75,.16),transparent 54%),#050505; }
 .site .hero:before { content:""; position:absolute; pointer-events:none; z-index:-1; top:4%; left:50%; transform:translateX(-50%); width:min(78vw,1050px); height:1px; background:linear-gradient(90deg,transparent,#C8A84B88,transparent); box-shadow:0 0 19px 2px #C8A84B55; }
 .site .hero:after { content:""; position:absolute; pointer-events:none; z-index:-1; bottom:-10vw; left:50%; transform:translateX(-50%); width:125vw; height:18vw; border-top:1px solid #E4C878; border-radius:50% 50% 0 0; box-shadow:0 -5px 22px #C8A84B45; opacity:.72; }
+/* Keep hero text clear of the horizon arc, which rises 8vw above the hero's bottom edge. */
+.site .hero { padding-bottom:calc(8vw + 56px); }
 .site .rule { box-shadow:0 0 14px #C8A84B88; }
 .site .marqueeShell { display:block; width:100%; max-width:100%; overflow:hidden; background:#0b0906; border-top:1px solid #C8A84B88; border-bottom:1px solid #C8A84B88; }
 .site .marqueeHeading { max-width:1250px; margin:auto; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:10px 24px; color:#E4C878; font:400 11px 'DM Sans',sans-serif; letter-spacing:.13em; }
