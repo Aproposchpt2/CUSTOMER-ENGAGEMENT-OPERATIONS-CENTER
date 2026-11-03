@@ -164,3 +164,17 @@
 @keyframes stellarScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 @media(max-width:650px) { .site .marqueeHeading { padding-inline:20px; font-size:9px; letter-spacing:.05em; } .site .marqueeItem { gap:18px; padding:0 12px; } .site .hero:after { bottom:-7vw; } }
 @media(prefers-reduced-motion:reduce) { .site .marqueeTrack,.site .marqueePaused { animation:none; flex-wrap:wrap; width:100%; } .site .marqueeSet:nth-child(2) { display:none; } .site .marqueeSet { flex-wrap:wrap; white-space:normal; } }
+
+/* Approved STELLAR master identity artwork and Logo #2. Preserve native aspect ratio. */
+.site .masterBrandArt {
+  display:block;
+  width:min(100%,1200px);
+  height:auto;
+  max-height:min(66svh,690px);
+  object-fit:contain;
+  margin:0 auto 28px;
+  border:0;
+}
+@media(max-width:650px){
+  .site .masterBrandArt { width:100%; max-height:none; margin-bottom:22px; }
+}
