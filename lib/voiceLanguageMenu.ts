@@ -47,3 +47,62 @@ export function initiationResponse(language: VoiceLanguage, callerId: unknown) {
     ...(language === 'es' ? { conversation_config_override: { agent: { language: 'es' } } } : {}),
   };
 }
+
+// Stellar auto-attendant for the one main number. Language first, then department. The demo
+// agent answers on this number itself; Sales and Support are reached by dialing their own lines.
+// Each of those lines opens with the language menu above, so the dial sends the caller's choice
+// as a keypress and the caller is not asked twice.
+const ATTENDANT_PATH = '/api/twilio/attendant';
+export const SALES_LINE = '+17253305102';
+export const SUPPORT_LINE = '+17029351414';
+
+function attendantPrompt(language: VoiceLanguage): string {
+  return language === 'es'
+    ? '<Say voice="Polly.Lupe" language="es-US">Gracias por llamar a Stellar Intelligent Software Developers. Para ventas, oprima 1. Para soporte, oprima 2. Para probar nuestra demostración del Centro de Atención al Cliente, oprima 3.</Say>'
+    : '<Say voice="Polly.Joanna" language="en-US">Thank you for calling Stellar Intelligent Software Developers. For Sales, press 1. For Support, press 2. To try our Customer Care Center demo, press 3.</Say>';
+}
+
+export function attendantLanguageTwiml(): string {
+  return `${XML_HEADER}<Response>`
+    + `<Gather input="dtmf" numDigits="1" timeout="4" method="POST" action="${ATTENDANT_PATH}?step=language" actionOnEmptyResult="true">`
+    + '<Say voice="Polly.Joanna" language="en-US">For English, press 1.</Say>'
+    + '<Say voice="Polly.Lupe" language="es-US">Para español, oprima 2.</Say>'
+    + '</Gather>'
+    + `<Redirect method="POST">${ATTENDANT_PATH}?step=language</Redirect>`
+    + '</Response>';
+}
+
+export function attendantDepartmentTwiml(language: VoiceLanguage, attempt: number): string {
+  const route = `${ATTENDANT_PATH}?step=route&amp;lang=${language}&amp;attempt=${attempt}`;
+  return `${XML_HEADER}<Response>`
+    + `<Gather input="dtmf" numDigits="1" timeout="6" method="POST" action="${route}" actionOnEmptyResult="true">`
+    + attendantPrompt(language)
+    + '</Gather>'
+    + `<Redirect method="POST">${route}</Redirect>`
+    + '</Response>';
+}
+
+function dialLine(line: string, language: VoiceLanguage): string {
+  const languageDigit = language === 'es' ? '2' : '1';
+  return `${XML_HEADER}<Response>`
+    + `<Dial action="${ATTENDANT_PATH}?step=ended&amp;lang=${language}" method="POST"><Number sendDigits="w${languageDigit}">${line}</Number></Dial>`
+    + '</Response>';
+}
+
+export type AttendantRoute = { twiml: string; demoLanguage?: VoiceLanguage };
+
+// One repeat for a missed or wrong key, then Sales, so no caller is left in the menu.
+export function attendantRoute(digits: unknown, language: VoiceLanguage, attempt: number): AttendantRoute {
+  if (digits === '3') return { twiml: connectToAgentTwiml(), demoLanguage: language };
+  if (digits === '2') return { twiml: dialLine(SUPPORT_LINE, language) };
+  if (digits === '1' || attempt >= 2) return { twiml: dialLine(SALES_LINE, language) };
+  return { twiml: attendantDepartmentTwiml(language, attempt + 1) };
+}
+
+export function attendantEndedTwiml(dialStatus: unknown, language: VoiceLanguage): string {
+  if (dialStatus === 'completed' || dialStatus === 'answered') return `${XML_HEADER}<Response><Hangup/></Response>`;
+  const apology = language === 'es'
+    ? '<Say voice="Polly.Lupe" language="es-US">No pudimos completar su llamada. Por favor, intente de nuevo más tarde.</Say>'
+    : '<Say voice="Polly.Joanna" language="en-US">We could not connect your call. Please try again later.</Say>';
+  return `${XML_HEADER}<Response>${apology}<Hangup/></Response>`;
+}
