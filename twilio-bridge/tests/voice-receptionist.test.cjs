@@ -7,10 +7,10 @@ const s={session_id:'11111111-1111-4111-8111-111111111111',call_sid:'CA'+'a1'.re
 const env={STELLAR_BRIDGE_STAGING:'true',PMA_ENVIRONMENT:'staging',VOICE_DEMO_IVR_ENABLED:'true',PMA_STAGING_BASE_URL:'https://pma-validation--ai4cc-staging.netlify.app',BRIDGE_HMAC_SECRET:'synthetic-key',TWILIO_ACCOUNT_SID:s.account_sid,PMA_STAGING_TEST_CALLER:s.caller_number};
 const tick=()=>new Promise(r=>setImmediate(r));
 class Socket extends EventEmitter{readyState=1;sent=[];send(x){this.sent.push(JSON.parse(x));}close(){this.readyState=3;this.emit('close');}message(x){this.emit('message',JSON.stringify(x));}}
-function setup(overrides={}){
+function setup(overrides={},routeAvailable=()=>true){
  const twilio=new Socket(),live=new Socket(),state={choices:[],ends:[],handoffs:[],release:0};
  const entry={reception:async(session,agent=null)=>{if(!agent)return s;state.choices.push(agent);return {...s,agentRoute:agent};},endReception:async(_,r)=>state.ends.push(r),...overrides};
- const controller=startReceptionist({twilioWs:twilio,session:s,startMessage:{event:'start',start:{streamSid:'MZtest',callSid:s.call_sid,accountSid:s.account_sid}},entry,openLive:()=>live,model:'existing-live',reasoningModel:'existing-reasoning',release:()=>state.release++,handoff:(profile,session)=>state.handoffs.push({profile,session})});
+ const controller=startReceptionist({twilioWs:twilio,session:s,startMessage:{event:'start',start:{streamSid:'MZtest',callSid:s.call_sid,accountSid:s.account_sid}},entry,openLive:()=>live,routeAvailable,model:'existing-live',reasoningModel:'existing-reasoning',release:()=>state.release++,handoff:(profile,session)=>state.handoffs.push({profile,session})});
  return {twilio,live,state,controller};
 }
 test('reception token cannot authorize specialist or cross-call access',()=>{
@@ -59,4 +59,23 @@ test('reception gateway rejects already selected sessions and foreign callers',a
  const dep={env,record:async()=>({...s,agentRoute:'support-specialist'})};await assert.rejects(processVoiceDemo(body,dep),/already routed/);
  await assert.rejects(processVoiceDemo({...body,caller_number:'+15555550999'},dep),/binding/);
  await assert.rejects(processVoiceDemo({...body,action:'reception_choose',agentRoute:'other-agent'},dep),/destination/);
+});
+
+test('failed early keypad selection retains a live receptionist and accepts retry',async()=>{
+ let resolve,attempts=0;const gate=new Promise(r=>resolve=r);
+ const x=setup({reception:async(_,agent)=>{if(!agent){await gate;return s;}if(++attempts===1)throw Error('Gateway unavailable');return {...s,agentRoute:agent};}});
+ x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'2'}});
+ resolve();await tick();
+ assert.ok(x.live.sent.some(m=>m.type==='session.start'));
+ assert.equal(x.twilio.readyState,1);assert.equal(x.state.handoffs.length,0);
+ x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'2'}});await tick();
+ assert.equal(x.state.handoffs[0].profile,'sales');assert.equal(x.state.ends.length,0);
+});
+
+test('disabled specialist is rejected before immutable route persistence',async()=>{
+ const x=setup({},agent=>agent!=='property-management-assistant');await tick();
+ x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'3'}});await tick();
+ assert.deepEqual(x.state.choices,[]);assert.equal(x.twilio.readyState,1);
+ x.twilio.message({event:'dtmf',streamSid:'MZtest',dtmf:{digit:'1'}});await tick();
+ assert.equal(x.state.handoffs[0].profile,'support');assert.equal(x.state.ends.length,0);
 });

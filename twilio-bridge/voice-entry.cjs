@@ -76,7 +76,7 @@ function createVoiceEntry(env,request=fetch){
  }
  async function openSession(session){
   const result=await send({action:'stream_start',session_id:session.session_id,call_sid:session.call_sid,agentRoute:session.agentRoute});
-  if(result.session?.agentRoute!==session.agentRoute||result.session?.end_time||result.assets?.agentRoute!==session.agentRoute)throw Error('Route binding rejected');
+  if(result.session?.agentRoute!==session.agentRoute||result.session?.session_id!==session.session_id||result.session?.call_sid!==session.call_sid||result.session?.account_sid!==session.account_sid||result.session?.caller_number!==session.caller_number||result.session?.end_time||result.assets?.agentRoute!==session.agentRoute)throw Error('Route binding rejected');
   return result.assets;
  }
  async function closeSession(session,reason){
