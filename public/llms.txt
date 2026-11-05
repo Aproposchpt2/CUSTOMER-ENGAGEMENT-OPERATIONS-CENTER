@@ -1,6 +1,6 @@
 # Stellar UC — Sales Service System
 > Around-the-clock inbound sales engagement, supported by the Customer Engagement Operations Center.
-Operated by Apropos Group LLC d/b/a Stellar Unified Communications.
+Operated by Apropos Group LLC d/b/a Stellar Intelligent Software Developers.
 The Sales Service System answers approved questions, captures prospect information and supports qualification. Lead Management, Customer 360, activities and tasks give authorized staff the context for human follow-up.
 Customers receive an estimate covering platform access and applicable usage charges. Customers pay for services delivered, not unused usage capacity; when usage is lower, applicable usage charges are lower. Service estimates are provided through a personal consultation. Retaining an existing phone number depends on technical compatibility.
 ## Public pages

@@ -1,8 +1,9 @@
-export const LEGAL_UPDATED = 'November 1, 2026';
+export const LEGAL_UPDATED = 'November 4, 2026';
 
 export const COMPANY = {
   legalName: 'Apropos Group LLC',
-  dba: 'Stellar Intelligent Business Systems',
+  dba: 'Stellar Intelligent Software Developers',
+  smsSender: 'Stellar Intelligent Business Systems',
   address: '5892 Losee Rd, Suite 132, North Las Vegas, NV 89081',
   email: 'jmitchell@aproposgroupllc.com',
   phone: '888.258.9498',
