@@ -5,7 +5,7 @@ import { COMPANY, SMS_NUMBERS } from '@/lib/legal';
 export default function SmsTerms() {
   return <LegalPage title="SMS Terms">
     <h2>Program</h2>
-    <p>{COMPANY.smsSender}, a DBA of {COMPANY.legalName}, sends text messages about your inquiry, service requests, appointment scheduling and service follow-up to people who opt in. Messages are sent from these numbers:</p>
+    <p>{COMPANY.dba}, a DBA of {COMPANY.legalName}, sends text messages about your inquiry, service requests, appointment scheduling and service follow-up to people who opt in. Messages are sent from these numbers:</p>
     <ul>{SMS_NUMBERS.map((n) => <li key={n.tel}>{n.label}: <a href={`tel:${n.tel}`}>{n.display}</a></li>)}</ul>
 
     <h2>Opting in</h2>
