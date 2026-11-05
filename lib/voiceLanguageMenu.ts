@@ -55,11 +55,12 @@ export function initiationResponse(language: VoiceLanguage, callerId: unknown) {
 const ATTENDANT_PATH = '/api/twilio/attendant';
 export const SALES_LINE = '+17253305102';
 export const SUPPORT_LINE = '+17029351414';
+export const PMA_LINE = '+17252010584';
 
 function attendantPrompt(language: VoiceLanguage): string {
   return language === 'es'
-    ? '<Say voice="Polly.Lupe" language="es-US">Gracias por llamar a Stellar Intelligent Software Developers. Para ventas, oprima 1. Para soporte, oprima 2. Para probar nuestra demostración del Centro de Atención al Cliente, oprima 3.</Say>'
-    : '<Say voice="Polly.Joanna" language="en-US">Thank you for calling Stellar Intelligent Software Developers. For Sales, press 1. For Support, press 2. To try our Customer Care Center demo, press 3.</Say>';
+    ? '<Say voice="Polly.Lupe" language="es-US">Gracias por llamar a Stellar Intelligent Software Developers. Para ventas, oprima 1. Para la Asistente de Administración de Propiedades, oprima 2. Para soporte, oprima 3. Para el Centro de Atención al Cliente, oprima 4.</Say>'
+    : '<Say voice="Polly.Joanna" language="en-US">Thank you for calling Stellar Intelligent Software Developers. For Sales, press 1. For the Property Management Assistant, press 2. For Support, press 3. For the Customer Care Center, press 4.</Say>';
 }
 
 export function attendantLanguageTwiml(): string {
@@ -93,8 +94,9 @@ export type AttendantRoute = { twiml: string; demoLanguage?: VoiceLanguage };
 
 // One repeat for a missed or wrong key, then Sales, so no caller is left in the menu.
 export function attendantRoute(digits: unknown, language: VoiceLanguage, attempt: number): AttendantRoute {
-  if (digits === '3') return { twiml: connectToAgentTwiml(), demoLanguage: language };
-  if (digits === '2') return { twiml: dialLine(SUPPORT_LINE, language) };
+  if (digits === '4') return { twiml: connectToAgentTwiml(), demoLanguage: language };
+  if (digits === '3') return { twiml: dialLine(SUPPORT_LINE, language) };
+  if (digits === '2') return { twiml: dialLine(PMA_LINE, language) };
   if (digits === '1' || attempt >= 2) return { twiml: dialLine(SALES_LINE, language) };
   return { twiml: attendantDepartmentTwiml(language, attempt + 1) };
 }

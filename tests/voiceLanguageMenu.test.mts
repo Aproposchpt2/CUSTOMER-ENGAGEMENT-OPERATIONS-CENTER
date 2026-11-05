@@ -45,21 +45,23 @@ test('attendant asks for language first and moves on when nothing is pressed', (
   assert.match(twiml, /step=language/);
 });
 
-test('attendant offers all three departments in the chosen language', () => {
-  assert.match(menu.attendantDepartmentTwiml('en', 1), /For Sales, press 1\. For Support, press 2\. To try our Customer Care Center demo, press 3\./);
-  assert.match(menu.attendantDepartmentTwiml('es', 1), /Para ventas, oprima 1\. Para soporte, oprima 2\./);
+test('attendant offers all four demos in the chosen language', () => {
+  assert.match(menu.attendantDepartmentTwiml('en', 1), /For Sales, press 1\. For the Property Management Assistant, press 2\. For Support, press 3\. For the Customer Care Center, press 4\./);
+  assert.match(menu.attendantDepartmentTwiml('es', 1), /Para ventas, oprima 1\. Para la Asistente de Administración de Propiedades, oprima 2\. Para soporte, oprima 3\. Para el Centro de Atención al Cliente, oprima 4\./);
   assert.match(menu.attendantDepartmentTwiml('es', 1), /lang=es/);
 });
 
-test('sales and support dial their lines and pass the language keypress', () => {
+test('sales, property management and support dial their lines and pass the language keypress', () => {
   const sales = menu.attendantRoute('1', 'en', 1).twiml;
   assert.ok(sales.includes(`<Number sendDigits="w1">${menu.SALES_LINE}</Number>`));
-  const support = menu.attendantRoute('2', 'es', 1).twiml;
+  const pma = menu.attendantRoute('2', 'es', 1).twiml;
+  assert.ok(pma.includes(`<Number sendDigits="w2">${menu.PMA_LINE}</Number>`));
+  const support = menu.attendantRoute('3', 'es', 1).twiml;
   assert.ok(support.includes(`<Number sendDigits="w2">${menu.SUPPORT_LINE}</Number>`));
 });
 
 test('the demo stays on this number and keeps the language', () => {
-  const route = menu.attendantRoute('3', 'es', 1);
+  const route = menu.attendantRoute('4', 'es', 1);
   assert.equal(route.demoLanguage, 'es');
   assert.ok(route.twiml.includes(menu.ELEVENLABS_INBOUND_URL));
 });
