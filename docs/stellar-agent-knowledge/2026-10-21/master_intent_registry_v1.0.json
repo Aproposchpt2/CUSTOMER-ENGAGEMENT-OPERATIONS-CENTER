@@ -1,0 +1,1666 @@
+{
+  "status": "SOURCE_TRANSCRIPTION_NOT_IMPLEMENTATION",
+  "source": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+  "intents": [
+    {
+      "group": "universal",
+      "reference_id": "UNI-001",
+      "intent_id": "GENERAL_GREETING",
+      "source_fields": {
+        "ID": "UNI-001",
+        "Intent": "GENERAL_GREETING",
+        "Trigger/Purpose": "Greeting",
+        "Agent": "Channel Agent",
+        "Action": "Greeting only",
+        "Required Entities": "None",
+        "Data Effect": "No domain write"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-002",
+      "intent_id": "GENERAL_HELP",
+      "source_fields": {
+        "ID": "UNI-002",
+        "Intent": "GENERAL_HELP",
+        "Trigger/Purpose": "Capability question",
+        "Agent": "Channel Agent",
+        "Action": "Explain approved capabilities",
+        "Required Entities": "audience_role",
+        "Data Effect": "Log optional intent event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-003",
+      "intent_id": "GENERAL_INFORMATION",
+      "source_fields": {
+        "ID": "UNI-003",
+        "Intent": "GENERAL_INFORMATION",
+        "Trigger/Purpose": "General business question",
+        "Agent": "Channel Agent",
+        "Action": "Retrieve approved knowledge",
+        "Required Entities": "topic, audience",
+        "Data Effect": "Interaction event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-004",
+      "intent_id": "UNKNOWN_QUESTION",
+      "source_fields": {
+        "ID": "UNI-004",
+        "Intent": "UNKNOWN_QUESTION",
+        "Trigger/Purpose": "No reliable match/answer",
+        "Agent": "Channel Agent",
+        "Action": "Create knowledge gap and follow-up",
+        "Required Entities": "original_question, scope",
+        "Data Effect": "knowledge_gap, follow_up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-005",
+      "intent_id": "HUMAN_AGENT_REQUEST",
+      "source_fields": {
+        "ID": "UNI-005",
+        "Intent": "HUMAN_AGENT_REQUEST",
+        "Trigger/Purpose": "Caller requests a person",
+        "Agent": "Channel Agent",
+        "Action": "Transfer or callback workflow",
+        "Required Entities": "reason, contact",
+        "Data Effect": "handoff_request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-006",
+      "intent_id": "CALLBACK_REQUEST",
+      "source_fields": {
+        "ID": "UNI-006",
+        "Intent": "CALLBACK_REQUEST",
+        "Trigger/Purpose": "Caller requests return call",
+        "Agent": "Channel Agent",
+        "Action": "Capture callback request",
+        "Required Entities": "name, callback, topic",
+        "Data Effect": "callback_task"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-007",
+      "intent_id": "APPOINTMENT_REQUEST",
+      "source_fields": {
+        "ID": "UNI-007",
+        "Intent": "APPOINTMENT_REQUEST",
+        "Trigger/Purpose": "Caller wants appointment",
+        "Agent": "Channel Agent",
+        "Action": "Route product-specific appointment request",
+        "Required Entities": "contact, purpose, preferred_time",
+        "Data Effect": "appointment_request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-008",
+      "intent_id": "CONTACT_UPDATE",
+      "source_fields": {
+        "ID": "UNI-008",
+        "Intent": "CONTACT_UPDATE",
+        "Trigger/Purpose": "Caller updates contact record",
+        "Agent": "Channel Agent",
+        "Action": "Authenticate then update allowed fields",
+        "Required Entities": "contact_id, changed_fields",
+        "Data Effect": "contact + audit"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-009",
+      "intent_id": "CONTACT_CAPTURE",
+      "source_fields": {
+        "ID": "UNI-009",
+        "Intent": "CONTACT_CAPTURE",
+        "Trigger/Purpose": "New contact details",
+        "Agent": "Channel Agent",
+        "Action": "Validate and create/update contact",
+        "Required Entities": "name, one contact method",
+        "Data Effect": "contact"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-010",
+      "intent_id": "EMAIL_CAPTURE",
+      "source_fields": {
+        "ID": "UNI-010",
+        "Intent": "EMAIL_CAPTURE",
+        "Trigger/Purpose": "Email supplied",
+        "Agent": "Channel Agent",
+        "Action": "Confirm spelling and normalize",
+        "Required Entities": "email",
+        "Data Effect": "contact field"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-011",
+      "intent_id": "PHONE_CAPTURE",
+      "source_fields": {
+        "ID": "UNI-011",
+        "Intent": "PHONE_CAPTURE",
+        "Trigger/Purpose": "Phone supplied",
+        "Agent": "Channel Agent",
+        "Action": "Confirm number and preference",
+        "Required Entities": "phone",
+        "Data Effect": "contact field"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-012",
+      "intent_id": "ESCALATION_REQUEST",
+      "source_fields": {
+        "ID": "UNI-012",
+        "Intent": "ESCALATION_REQUEST",
+        "Trigger/Purpose": "User asks for escalation",
+        "Agent": "Channel Agent",
+        "Action": "Create escalation under policy",
+        "Required Entities": "reason, urgency",
+        "Data Effect": "escalation task"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-013",
+      "intent_id": "COMPLAINT",
+      "source_fields": {
+        "ID": "UNI-013",
+        "Intent": "COMPLAINT",
+        "Trigger/Purpose": "Negative service feedback",
+        "Agent": "Channel Agent",
+        "Action": "Capture concern; avoid unverified admission",
+        "Required Entities": "contact, issue",
+        "Data Effect": "complaint/follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-014",
+      "intent_id": "COMPLIMENT",
+      "source_fields": {
+        "ID": "UNI-014",
+        "Intent": "COMPLIMENT",
+        "Trigger/Purpose": "Positive feedback",
+        "Agent": "Channel Agent",
+        "Action": "Capture feedback when configured",
+        "Required Entities": "message",
+        "Data Effect": "feedback event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-015",
+      "intent_id": "FEEDBACK",
+      "source_fields": {
+        "ID": "UNI-015",
+        "Intent": "FEEDBACK",
+        "Trigger/Purpose": "Product/service suggestion",
+        "Agent": "Channel Agent",
+        "Action": "Record feedback",
+        "Required Entities": "message, product",
+        "Data Effect": "feedback"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "universal",
+      "reference_id": "UNI-016",
+      "intent_id": "LANGUAGE_CHANGE",
+      "source_fields": {
+        "ID": "UNI-016",
+        "Intent": "LANGUAGE_CHANGE",
+        "Trigger/Purpose": "User requests supported language",
+        "Agent": "Channel Agent",
+        "Action": "Switch supported locale or escalate",
+        "Required Entities": "language",
+        "Data Effect": "session setting"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 2
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-001",
+      "intent_id": "CONFIRMATION_YES",
+      "source_fields": {
+        "ID": "CTL-001",
+        "Intent": "CONFIRMATION_YES",
+        "Trigger/Purpose": "Affirmation",
+        "Agent": "Conversation Controller",
+        "Action": "Advance pending step",
+        "Required Entities": "pending_action",
+        "Data Effect": "No write unless action executes"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-002",
+      "intent_id": "CONFIRMATION_NO",
+      "source_fields": {
+        "ID": "CTL-002",
+        "Intent": "CONFIRMATION_NO",
+        "Trigger/Purpose": "Rejection",
+        "Agent": "Conversation Controller",
+        "Action": "Cancel/revise pending step",
+        "Required Entities": "pending_action",
+        "Data Effect": "No action"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-003",
+      "intent_id": "CORRECTION",
+      "source_fields": {
+        "ID": "CTL-003",
+        "Intent": "CORRECTION",
+        "Trigger/Purpose": "User corrects earlier data",
+        "Agent": "Conversation Controller",
+        "Action": "Update session state; reconfirm",
+        "Required Entities": "field, corrected_value",
+        "Data Effect": "Audit if persisted"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-004",
+      "intent_id": "CLARIFICATION_REQUEST",
+      "source_fields": {
+        "ID": "CTL-004",
+        "Intent": "CLARIFICATION_REQUEST",
+        "Trigger/Purpose": "User asks agent to explain",
+        "Agent": "Conversation Controller",
+        "Action": "Restate simply",
+        "Required Entities": "topic",
+        "Data Effect": "None"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-005",
+      "intent_id": "REPEAT_REQUEST",
+      "source_fields": {
+        "ID": "CTL-005",
+        "Intent": "REPEAT_REQUEST",
+        "Trigger/Purpose": "User asks repetition",
+        "Agent": "Conversation Controller",
+        "Action": "Repeat requested item only",
+        "Required Entities": "segment",
+        "Data Effect": "None"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-006",
+      "intent_id": "INTERRUPTION",
+      "source_fields": {
+        "ID": "CTL-006",
+        "Intent": "INTERRUPTION",
+        "Trigger/Purpose": "Barge-in detected",
+        "Agent": "Conversation Controller",
+        "Action": "Stop speech and listen",
+        "Required Entities": "audio event",
+        "Data Effect": "Telemetry"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-007",
+      "intent_id": "START_OVER",
+      "source_fields": {
+        "ID": "CTL-007",
+        "Intent": "START_OVER",
+        "Trigger/Purpose": "Restart current flow",
+        "Agent": "Conversation Controller",
+        "Action": "Clear uncommitted state",
+        "Required Entities": "workflow",
+        "Data Effect": "Session event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-008",
+      "intent_id": "CANCEL_REQUEST",
+      "source_fields": {
+        "ID": "CTL-008",
+        "Intent": "CANCEL_REQUEST",
+        "Trigger/Purpose": "Cancel pending action",
+        "Agent": "Conversation Controller",
+        "Action": "Cancel if allowed; verify state",
+        "Required Entities": "operation_id",
+        "Data Effect": "Workflow/audit"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "conversation_control",
+      "reference_id": "CTL-009",
+      "intent_id": "RESUME_PREVIOUS_TASK",
+      "source_fields": {
+        "ID": "CTL-009",
+        "Intent": "RESUME_PREVIOUS_TASK",
+        "Trigger/Purpose": "Resume interrupted task",
+        "Agent": "Conversation Controller",
+        "Action": "Recover session/workflow state",
+        "Required Entities": "operation_id",
+        "Data Effect": "Read workflow"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 3
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-001",
+      "intent_id": "PRODUCT_OVERVIEW",
+      "source_fields": {
+        "ID": "SLS-001",
+        "Intent": "PRODUCT_OVERVIEW",
+        "Trigger/Purpose": "Portfolio question",
+        "Agent": "Sales Specialist",
+        "Action": "Explain portfolio and discover need",
+        "Required Entities": "business_need",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-002",
+      "intent_id": "PRODUCT_COMPARISON",
+      "source_fields": {
+        "ID": "SLS-002",
+        "Intent": "PRODUCT_COMPARISON",
+        "Trigger/Purpose": "Compare offerings",
+        "Agent": "Sales Specialist",
+        "Action": "Compare approved scope",
+        "Required Entities": "products",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-003",
+      "intent_id": "PRODUCT_RECOMMENDATION",
+      "source_fields": {
+        "ID": "SLS-003",
+        "Intent": "PRODUCT_RECOMMENDATION",
+        "Trigger/Purpose": "Best-fit request",
+        "Agent": "Sales Specialist",
+        "Action": "Qualify then recommend",
+        "Required Entities": "problem, coverage, current_process",
+        "Data Effect": "Lead notes"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-004",
+      "intent_id": "CEOC_INQUIRY",
+      "source_fields": {
+        "ID": "SLS-004",
+        "Intent": "CEOC_INQUIRY",
+        "Trigger/Purpose": "CEOC question",
+        "Agent": "Sales Specialist",
+        "Action": "Explain connected operations foundation",
+        "Required Entities": "topic",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-005",
+      "intent_id": "SALES_SPECIALIST_INQUIRY",
+      "source_fields": {
+        "ID": "SLS-005",
+        "Intent": "SALES_SPECIALIST_INQUIRY",
+        "Trigger/Purpose": "Sales agent question",
+        "Agent": "Sales Specialist",
+        "Action": "Explain engagement and lead capture",
+        "Required Entities": "coverage_need",
+        "Data Effect": "Lead optional"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-006",
+      "intent_id": "SUPPORT_SPECIALIST_INQUIRY",
+      "source_fields": {
+        "ID": "SLS-006",
+        "Intent": "SUPPORT_SPECIALIST_INQUIRY",
+        "Trigger/Purpose": "Support product question",
+        "Agent": "Sales Specialist",
+        "Action": "Explain structured support intake",
+        "Required Entities": "support_need",
+        "Data Effect": "Lead optional"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-007",
+      "intent_id": "PROPERTY_MANAGEMENT_INQUIRY",
+      "source_fields": {
+        "ID": "SLS-007",
+        "Intent": "PROPERTY_MANAGEMENT_INQUIRY",
+        "Trigger/Purpose": "PMA question",
+        "Agent": "Sales Specialist",
+        "Action": "Explain communication-centered scope",
+        "Required Entities": "portfolio/use_case",
+        "Data Effect": "Lead optional"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-008",
+      "intent_id": "COMBINED_SYSTEM_INQUIRY",
+      "source_fields": {
+        "ID": "SLS-008",
+        "Intent": "COMBINED_SYSTEM_INQUIRY",
+        "Trigger/Purpose": "Sales + support need",
+        "Agent": "Sales Specialist",
+        "Action": "Explain shared CEOC and distinct workflows",
+        "Required Entities": "sales_need, support_need",
+        "Data Effect": "Lead"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-009",
+      "intent_id": "PRICING_QUESTION",
+      "source_fields": {
+        "ID": "SLS-009",
+        "Intent": "PRICING_QUESTION",
+        "Trigger/Purpose": "Price/fees question",
+        "Agent": "Sales Specialist",
+        "Action": "Use approved commercial knowledge or consultation",
+        "Required Entities": "product, usage context",
+        "Data Effect": "Lead/follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-010",
+      "intent_id": "ROI_QUESTION",
+      "source_fields": {
+        "ID": "SLS-010",
+        "Intent": "ROI_QUESTION",
+        "Trigger/Purpose": "Savings/return question",
+        "Agent": "Sales Specialist",
+        "Action": "Discuss value without guarantee",
+        "Required Entities": "current_cost context",
+        "Data Effect": "Lead note"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-011",
+      "intent_id": "FEATURE_QUESTION",
+      "source_fields": {
+        "ID": "SLS-011",
+        "Intent": "FEATURE_QUESTION",
+        "Trigger/Purpose": "Specific capability",
+        "Agent": "Sales Specialist",
+        "Action": "Return truth-classified answer",
+        "Required Entities": "product, feature",
+        "Data Effect": "Interaction/gap"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-012",
+      "intent_id": "INTEGRATION_QUESTION",
+      "source_fields": {
+        "ID": "SLS-012",
+        "Intent": "INTEGRATION_QUESTION",
+        "Trigger/Purpose": "CRM/telephony/etc.",
+        "Agent": "Sales Specialist",
+        "Action": "Capture requirement; technical review",
+        "Required Entities": "system, workflow, data need",
+        "Data Effect": "Technical follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-013",
+      "intent_id": "DEMO_REQUEST",
+      "source_fields": {
+        "ID": "SLS-013",
+        "Intent": "DEMO_REQUEST",
+        "Trigger/Purpose": "Demo requested",
+        "Agent": "Sales Specialist",
+        "Action": "Create verified demo request",
+        "Required Entities": "contact, products, preferred_time",
+        "Data Effect": "Demo request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-014",
+      "intent_id": "CONSULTATION_REQUEST",
+      "source_fields": {
+        "ID": "SLS-014",
+        "Intent": "CONSULTATION_REQUEST",
+        "Trigger/Purpose": "Consultation requested",
+        "Agent": "Sales Specialist",
+        "Action": "Create verified consultation request",
+        "Required Entities": "contact, need",
+        "Data Effect": "Consultation request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-015",
+      "intent_id": "LEAD_QUALIFICATION",
+      "source_fields": {
+        "ID": "SLS-015",
+        "Intent": "LEAD_QUALIFICATION",
+        "Trigger/Purpose": "Qualification in progress",
+        "Agent": "Sales Specialist",
+        "Action": "Collect structured fit data",
+        "Required Entities": "contact, business, problem, urgency",
+        "Data Effect": "Lead"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-016",
+      "intent_id": "BUSINESS_DISCOVERY",
+      "source_fields": {
+        "ID": "SLS-016",
+        "Intent": "BUSINESS_DISCOVERY",
+        "Trigger/Purpose": "Operational discovery",
+        "Agent": "Sales Specialist",
+        "Action": "Ask one question at a time",
+        "Required Entities": "coverage, volume, process, goals",
+        "Data Effect": "Lead notes"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-017",
+      "intent_id": "COVERAGE_QUESTION",
+      "source_fields": {
+        "ID": "SLS-017",
+        "Intent": "COVERAGE_QUESTION",
+        "Trigger/Purpose": "Coverage schedule",
+        "Agent": "Sales Specialist",
+        "Action": "Explain configurable coverage caveat",
+        "Required Entities": "hours/periods",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-018",
+      "intent_id": "AFTER_HOURS_QUESTION",
+      "source_fields": {
+        "ID": "SLS-018",
+        "Intent": "AFTER_HOURS_QUESTION",
+        "Trigger/Purpose": "After-hours operation",
+        "Agent": "Sales Specialist",
+        "Action": "Explain approved after-hours model",
+        "Required Entities": "schedule",
+        "Data Effect": "Lead optional"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-019",
+      "intent_id": "MISSED_CALL_QUESTION",
+      "source_fields": {
+        "ID": "SLS-019",
+        "Intent": "MISSED_CALL_QUESTION",
+        "Trigger/Purpose": "Missed-call problem",
+        "Agent": "Sales Specialist",
+        "Action": "Quantify pain and recommend fit",
+        "Required Entities": "missed periods, call types",
+        "Data Effect": "Lead"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-020",
+      "intent_id": "IMPLEMENTATION_QUESTION",
+      "source_fields": {
+        "ID": "SLS-020",
+        "Intent": "IMPLEMENTATION_QUESTION",
+        "Trigger/Purpose": "Deployment process",
+        "Agent": "Sales Specialist",
+        "Action": "Describe approved discovery/config/testing process",
+        "Required Entities": "product",
+        "Data Effect": "Follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-021",
+      "intent_id": "ONBOARDING_QUESTION",
+      "source_fields": {
+        "ID": "SLS-021",
+        "Intent": "ONBOARDING_QUESTION",
+        "Trigger/Purpose": "Setup inputs",
+        "Agent": "Sales Specialist",
+        "Action": "List approved setup information",
+        "Required Entities": "business info, KB, routing",
+        "Data Effect": "Follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-022",
+      "intent_id": "OBJECTION_COST",
+      "source_fields": {
+        "ID": "SLS-022",
+        "Intent": "OBJECTION_COST",
+        "Trigger/Purpose": "Cost objection",
+        "Agent": "Sales Specialist",
+        "Action": "Value response; no pressure/guarantee",
+        "Required Entities": "concern",
+        "Data Effect": "Lead note"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-023",
+      "intent_id": "OBJECTION_ALREADY_HAVE_STAFF",
+      "source_fields": {
+        "ID": "SLS-023",
+        "Intent": "OBJECTION_ALREADY_HAVE_STAFF",
+        "Trigger/Purpose": "Staff objection",
+        "Agent": "Sales Specialist",
+        "Action": "Position augmentation",
+        "Required Entities": "coverage gap",
+        "Data Effect": "Lead note"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-024",
+      "intent_id": "OBJECTION_ALREADY_HAVE_VOICEMAIL",
+      "source_fields": {
+        "ID": "SLS-024",
+        "Intent": "OBJECTION_ALREADY_HAVE_VOICEMAIL",
+        "Trigger/Purpose": "Voicemail objection",
+        "Agent": "Sales Specialist",
+        "Action": "Contrast structured conversation/capture",
+        "Required Entities": "current_process",
+        "Data Effect": "Lead note"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "sales",
+      "reference_id": "SLS-025",
+      "intent_id": "OBJECTION_AI_CONCERNS",
+      "source_fields": {
+        "ID": "SLS-025",
+        "Intent": "OBJECTION_AI_CONCERNS",
+        "Trigger/Purpose": "AI accuracy/control concern",
+        "Agent": "Sales Specialist",
+        "Action": "Explain approved knowledge and fallback",
+        "Required Entities": "concern",
+        "Data Effect": "Lead note"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 4
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-001",
+      "intent_id": "SUPPORT_REQUEST",
+      "source_fields": {
+        "ID": "SUP-001",
+        "Intent": "SUPPORT_REQUEST",
+        "Trigger/Purpose": "General support need",
+        "Agent": "Support Specialist",
+        "Action": "Begin structured intake",
+        "Required Entities": "contact, issue",
+        "Data Effect": "Support case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-002",
+      "intent_id": "CASE_CREATION",
+      "source_fields": {
+        "ID": "SUP-002",
+        "Intent": "CASE_CREATION",
+        "Trigger/Purpose": "Ready to submit case",
+        "Agent": "Support Specialist",
+        "Action": "Confirm summary and invoke workflow",
+        "Required Entities": "required case fields, consent",
+        "Data Effect": "Case/workflow"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-003",
+      "intent_id": "CASE_STATUS",
+      "source_fields": {
+        "ID": "SUP-003",
+        "Intent": "CASE_STATUS",
+        "Trigger/Purpose": "Existing case status",
+        "Agent": "Support Specialist",
+        "Action": "Authenticate and retrieve owned case",
+        "Required Entities": "case_id, identity",
+        "Data Effect": "Read case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-004",
+      "intent_id": "CASE_UPDATE",
+      "source_fields": {
+        "ID": "SUP-004",
+        "Intent": "CASE_UPDATE",
+        "Trigger/Purpose": "Add information",
+        "Agent": "Support Specialist",
+        "Action": "Authenticate; append event",
+        "Required Entities": "case_id, update",
+        "Data Effect": "Case event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-005",
+      "intent_id": "TECHNICAL_ISSUE",
+      "source_fields": {
+        "ID": "SUP-005",
+        "Intent": "TECHNICAL_ISSUE",
+        "Trigger/Purpose": "Technical problem",
+        "Agent": "Support Specialist",
+        "Action": "Collect symptoms/impact/prior steps",
+        "Required Entities": "product, issue",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-006",
+      "intent_id": "SERVICE_ISSUE",
+      "source_fields": {
+        "ID": "SUP-006",
+        "Intent": "SERVICE_ISSUE",
+        "Trigger/Purpose": "Service delivery concern",
+        "Agent": "Support Specialist",
+        "Action": "Capture facts and route",
+        "Required Entities": "service, impact",
+        "Data Effect": "Case/complaint"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-007",
+      "intent_id": "BILLING_QUESTION",
+      "source_fields": {
+        "ID": "SUP-007",
+        "Intent": "BILLING_QUESTION",
+        "Trigger/Purpose": "Billing concern",
+        "Agent": "Support Specialist",
+        "Action": "Use approved billing knowledge or follow-up",
+        "Required Entities": "identity, topic",
+        "Data Effect": "Follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-008",
+      "intent_id": "WARRANTY_QUESTION",
+      "source_fields": {
+        "ID": "SUP-008",
+        "Intent": "WARRANTY_QUESTION",
+        "Trigger/Purpose": "Warranty question",
+        "Agent": "Support Specialist",
+        "Action": "Capture details; no determination",
+        "Required Entities": "equipment/service data",
+        "Data Effect": "Warranty follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-009",
+      "intent_id": "URGENT_SUPPORT",
+      "source_fields": {
+        "ID": "SUP-009",
+        "Intent": "URGENT_SUPPORT",
+        "Trigger/Purpose": "High-impact request",
+        "Agent": "Support Specialist",
+        "Action": "Apply priority policy",
+        "Required Entities": "impact, safety signals",
+        "Data Effect": "Priority case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-010",
+      "intent_id": "EMERGENCY_SUPPORT",
+      "source_fields": {
+        "ID": "SUP-010",
+        "Intent": "EMERGENCY_SUPPORT",
+        "Trigger/Purpose": "Potential emergency",
+        "Agent": "Emergency Agent",
+        "Action": "Deterministic safety review",
+        "Required Entities": "hazard signals",
+        "Data Effect": "Critical event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-011",
+      "intent_id": "DOCUMENT_REQUEST",
+      "source_fields": {
+        "ID": "SUP-011",
+        "Intent": "DOCUMENT_REQUEST",
+        "Trigger/Purpose": "Manual/invoice/document",
+        "Agent": "Support Specialist",
+        "Action": "Authenticate and route approved request",
+        "Required Entities": "document_type, identity",
+        "Data Effect": "Document task"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-012",
+      "intent_id": "KNOWLEDGE_REQUEST",
+      "source_fields": {
+        "ID": "SUP-012",
+        "Intent": "KNOWLEDGE_REQUEST",
+        "Trigger/Purpose": "How-to/FAQ",
+        "Agent": "Support Specialist",
+        "Action": "Retrieve approved article",
+        "Required Entities": "product, topic",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "support",
+      "reference_id": "SUP-013",
+      "intent_id": "FOLLOW_UP_REQUEST",
+      "source_fields": {
+        "ID": "SUP-013",
+        "Intent": "FOLLOW_UP_REQUEST",
+        "Trigger/Purpose": "Caller wants follow-up",
+        "Agent": "Support Specialist",
+        "Action": "Create follow-up linked to case/contact",
+        "Required Entities": "case/contact, reason",
+        "Data Effect": "Follow-up task"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 5
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-001",
+      "intent_id": "NO_COOLING",
+      "source_fields": {
+        "ID": "HVC-001",
+        "Intent": "NO_COOLING",
+        "Trigger/Purpose": "No cooling",
+        "Agent": "HVAC Support",
+        "Action": "Safety screen then cooling intake",
+        "Required Entities": "location, equipment, symptoms, impact",
+        "Data Effect": "HVAC case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-002",
+      "intent_id": "NO_HEAT",
+      "source_fields": {
+        "ID": "HVC-002",
+        "Intent": "NO_HEAT",
+        "Trigger/Purpose": "No heat",
+        "Agent": "HVAC Support",
+        "Action": "Safety screen then heating intake",
+        "Required Entities": "location, equipment, symptoms, impact",
+        "Data Effect": "HVAC case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-003",
+      "intent_id": "THERMOSTAT_ISSUE",
+      "source_fields": {
+        "ID": "HVC-003",
+        "Intent": "THERMOSTAT_ISSUE",
+        "Trigger/Purpose": "Thermostat concern",
+        "Agent": "HVAC Support",
+        "Action": "Approved low-risk checks",
+        "Required Entities": "model if safe, display, settings",
+        "Data Effect": "Case/knowledge"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-004",
+      "intent_id": "WEAK_AIRFLOW",
+      "source_fields": {
+        "ID": "HVC-004",
+        "Intent": "WEAK_AIRFLOW",
+        "Trigger/Purpose": "Reduced airflow",
+        "Agent": "HVAC Support",
+        "Action": "Capture vents/filter observations",
+        "Required Entities": "rooms, onset, filter",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-005",
+      "intent_id": "NO_POWER_TO_UNIT",
+      "source_fields": {
+        "ID": "HVC-005",
+        "Intent": "NO_POWER_TO_UNIT",
+        "Trigger/Purpose": "Unit not powered",
+        "Agent": "HVAC Support",
+        "Action": "Safety screen; limited breaker observation",
+        "Required Entities": "equipment, breaker observation",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-006",
+      "intent_id": "SYSTEM_SHORT_CYCLING",
+      "source_fields": {
+        "ID": "HVC-006",
+        "Intent": "SYSTEM_SHORT_CYCLING",
+        "Trigger/Purpose": "Frequent on/off",
+        "Agent": "HVAC Support",
+        "Action": "Capture timing and impact; no diagnosis",
+        "Required Entities": "cycle pattern, equipment",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-007",
+      "intent_id": "STRANGE_NOISE",
+      "source_fields": {
+        "ID": "HVC-007",
+        "Intent": "STRANGE_NOISE",
+        "Trigger/Purpose": "Noise/vibration",
+        "Agent": "HVAC Support",
+        "Action": "Screen smoke/sparks then capture sound",
+        "Required Entities": "sound, timing, system state",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-008",
+      "intent_id": "BURNING_ODOR",
+      "source_fields": {
+        "ID": "HVC-008",
+        "Intent": "BURNING_ODOR",
+        "Trigger/Purpose": "Burning smell",
+        "Agent": "HVAC Support",
+        "Action": "Safety override review",
+        "Required Entities": "odor, smoke/sparks",
+        "Data Effect": "Urgent/critical case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-009",
+      "intent_id": "GAS_ODOR",
+      "source_fields": {
+        "ID": "HVC-009",
+        "Intent": "GAS_ODOR",
+        "Trigger/Purpose": "Gas/sulfur odor",
+        "Agent": "Emergency Agent",
+        "Action": "Immediate evacuation script",
+        "Required Entities": "minimum safe context",
+        "Data Effect": "Critical event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-010",
+      "intent_id": "CO_ALARM",
+      "source_fields": {
+        "ID": "HVC-010",
+        "Intent": "CO_ALARM",
+        "Trigger/Purpose": "CO detector alarm",
+        "Agent": "Emergency Agent",
+        "Action": "Leave and call 911 script",
+        "Required Entities": "minimum safe context",
+        "Data Effect": "Critical event"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-011",
+      "intent_id": "WATER_LEAK",
+      "source_fields": {
+        "ID": "HVC-011",
+        "Intent": "WATER_LEAK",
+        "Trigger/Purpose": "Water/condensate",
+        "Agent": "HVAC Support",
+        "Action": "Determine electrical proximity/severity",
+        "Required Entities": "location, quantity, electrical risk",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-012",
+      "intent_id": "REFRIGERANT_CONCERN",
+      "source_fields": {
+        "ID": "HVC-012",
+        "Intent": "REFRIGERANT_CONCERN",
+        "Trigger/Purpose": "Suspected refrigerant issue",
+        "Agent": "HVAC Support",
+        "Action": "No diagnosis/handling; capture concern",
+        "Required Entities": "symptoms, equipment",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-013",
+      "intent_id": "FROZEN_COIL",
+      "source_fields": {
+        "ID": "HVC-013",
+        "Intent": "FROZEN_COIL",
+        "Trigger/Purpose": "Ice/frozen indicator",
+        "Agent": "HVAC Support",
+        "Action": "Safe observation only; case intake",
+        "Required Entities": "observed ice, airflow",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-014",
+      "intent_id": "OUTDOOR_UNIT_PROBLEM",
+      "source_fields": {
+        "ID": "HVC-014",
+        "Intent": "OUTDOOR_UNIT_PROBLEM",
+        "Trigger/Purpose": "Outdoor unit concern",
+        "Agent": "HVAC Support",
+        "Action": "Safe-distance observation only",
+        "Required Entities": "noise, state, obstruction",
+        "Data Effect": "Case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-015",
+      "intent_id": "FILTER_QUESTION",
+      "source_fields": {
+        "ID": "HVC-015",
+        "Intent": "FILTER_QUESTION",
+        "Trigger/Purpose": "Filter question",
+        "Agent": "HVAC Support",
+        "Action": "Approved knowledge; no unsafe access",
+        "Required Entities": "equipment/filter type if known",
+        "Data Effect": "Interaction"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-016",
+      "intent_id": "ROUTINE_MAINTENANCE",
+      "source_fields": {
+        "ID": "HVC-016",
+        "Intent": "ROUTINE_MAINTENANCE",
+        "Trigger/Purpose": "Maintenance request",
+        "Agent": "HVAC Support",
+        "Action": "Create request",
+        "Required Entities": "equipment, location, preference",
+        "Data Effect": "Appointment request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-017",
+      "intent_id": "SEASONAL_TUNEUP",
+      "source_fields": {
+        "ID": "HVC-017",
+        "Intent": "SEASONAL_TUNEUP",
+        "Trigger/Purpose": "Seasonal service",
+        "Agent": "HVAC Support",
+        "Action": "Create request",
+        "Required Entities": "equipment, preference",
+        "Data Effect": "Appointment request"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-018",
+      "intent_id": "MAINTENANCE_PLAN",
+      "source_fields": {
+        "ID": "HVC-018",
+        "Intent": "MAINTENANCE_PLAN",
+        "Trigger/Purpose": "Plan inquiry",
+        "Agent": "HVAC Support",
+        "Action": "Demo knowledge or sales follow-up",
+        "Required Entities": "contact, question",
+        "Data Effect": "Lead/follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-019",
+      "intent_id": "INSTALLATION_REQUEST",
+      "source_fields": {
+        "ID": "HVC-019",
+        "Intent": "INSTALLATION_REQUEST",
+        "Trigger/Purpose": "New installation",
+        "Agent": "HVAC Support",
+        "Action": "Route to sales",
+        "Required Entities": "property, goals, contact",
+        "Data Effect": "Sales lead"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-020",
+      "intent_id": "REPLACEMENT_REQUEST",
+      "source_fields": {
+        "ID": "HVC-020",
+        "Intent": "REPLACEMENT_REQUEST",
+        "Trigger/Purpose": "Replacement inquiry",
+        "Agent": "HVAC Support",
+        "Action": "Route assessment/estimate",
+        "Required Entities": "equipment, reason, contact",
+        "Data Effect": "Sales lead"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-021",
+      "intent_id": "ENERGY_EFFICIENCY_QUESTION",
+      "source_fields": {
+        "ID": "HVC-021",
+        "Intent": "ENERGY_EFFICIENCY_QUESTION",
+        "Trigger/Purpose": "Efficiency question",
+        "Agent": "HVAC Support",
+        "Action": "General approved info; estimator follow-up",
+        "Required Entities": "equipment, goals",
+        "Data Effect": "Lead/follow-up"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "hvac",
+      "reference_id": "HVC-022",
+      "intent_id": "COMMERCIAL_HVAC_REQUEST",
+      "source_fields": {
+        "ID": "HVC-022",
+        "Intent": "COMMERCIAL_HVAC_REQUEST",
+        "Trigger/Purpose": "Commercial site issue",
+        "Agent": "HVAC Support",
+        "Action": "Capture site contact and impact",
+        "Required Entities": "site, contact, equipment, impact",
+        "Data Effect": "Commercial case"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 6
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-001",
+      "intent_id": "EMERGENCY_GAS_LEAK",
+      "source_fields": {
+        "ID": "SAFE-001",
+        "Intent": "EMERGENCY_GAS_LEAK",
+        "Trigger": "Gas/sulfur odor",
+        "Priority": "Critical",
+        "Required Response": "Evacuate; no switches/phone at site; call 911/utility from safety",
+        "Prohibited": "No troubleshooting"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-002",
+      "intent_id": "EMERGENCY_CO_ALARM",
+      "source_fields": {
+        "ID": "SAFE-002",
+        "Intent": "EMERGENCY_CO_ALARM",
+        "Trigger": "CO alarm",
+        "Priority": "Critical",
+        "Required Response": "Leave immediately and call 911",
+        "Prohibited": "No re-entry assurance"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-003",
+      "intent_id": "EMERGENCY_FIRE",
+      "source_fields": {
+        "ID": "SAFE-003",
+        "Intent": "EMERGENCY_FIRE",
+        "Trigger": "Visible fire",
+        "Priority": "Critical",
+        "Required Response": "Move away and contact emergency services",
+        "Prohibited": "No HVAC dispatch substitution"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-004",
+      "intent_id": "EMERGENCY_SMOKE",
+      "source_fields": {
+        "ID": "SAFE-004",
+        "Intent": "EMERGENCY_SMOKE",
+        "Trigger": "Visible smoke",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No routine intake first"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-005",
+      "intent_id": "EMERGENCY_SPARKING",
+      "source_fields": {
+        "ID": "SAFE-005",
+        "Intent": "EMERGENCY_SPARKING",
+        "Trigger": "Active sparks",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No breaker manipulation advice"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-006",
+      "intent_id": "EMERGENCY_MEDICAL",
+      "source_fields": {
+        "ID": "SAFE-006",
+        "Intent": "EMERGENCY_MEDICAL",
+        "Trigger": "Symptoms/immediate medical danger",
+        "Priority": "Critical",
+        "Required Response": "Contact emergency services",
+        "Prohibited": "No medical diagnosis"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-007",
+      "intent_id": "EMERGENCY_FLOODING",
+      "source_fields": {
+        "ID": "SAFE-007",
+        "Intent": "EMERGENCY_FLOODING",
+        "Trigger": "Major uncontrolled flooding/electrical risk",
+        "Priority": "Critical",
+        "Required Response": "Prioritize safety and emergency contact as appropriate",
+        "Prohibited": "No unsafe access"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "safety",
+      "reference_id": "SAFE-008",
+      "intent_id": "EMERGENCY_ELECTRICAL",
+      "source_fields": {
+        "ID": "SAFE-008",
+        "Intent": "EMERGENCY_ELECTRICAL",
+        "Trigger": "Electrical fire/shock hazard",
+        "Priority": "Critical",
+        "Required Response": "Move away/contact emergency services",
+        "Prohibited": "No touching equipment"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 7
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-001",
+      "intent_id": "WORKFLOW_CREATE_LEAD",
+      "source_fields": {
+        "ID": "WF-001",
+        "Workflow Intent": "WORKFLOW_CREATE_LEAD",
+        "Action": "Create idempotent lead",
+        "Preconditions": "Validated qualification + consent",
+        "Completion Rule": "Lead ID verified",
+        "Data Targets": "leads/contacts/interactions"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-002",
+      "intent_id": "WORKFLOW_CREATE_CASE",
+      "source_fields": {
+        "ID": "WF-002",
+        "Workflow Intent": "WORKFLOW_CREATE_CASE",
+        "Action": "Create idempotent case",
+        "Preconditions": "Validated intake + confirmation",
+        "Completion Rule": "Case ID verified",
+        "Data Targets": "cases/case_events"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-003",
+      "intent_id": "WORKFLOW_CREATE_APPOINTMENT",
+      "source_fields": {
+        "ID": "WF-003",
+        "Workflow Intent": "WORKFLOW_CREATE_APPOINTMENT",
+        "Action": "Create appointment request",
+        "Preconditions": "Contact + preferred window",
+        "Completion Rule": "Request saved, not necessarily confirmed",
+        "Data Targets": "appointment_requests"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-004",
+      "intent_id": "WORKFLOW_UPDATE_CONTACT",
+      "source_fields": {
+        "ID": "WF-004",
+        "Workflow Intent": "WORKFLOW_UPDATE_CONTACT",
+        "Action": "Update allowed contact fields",
+        "Preconditions": "Authentication/authorization",
+        "Completion Rule": "Updated row verified",
+        "Data Targets": "contacts/audit"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-005",
+      "intent_id": "WORKFLOW_ESCALATE",
+      "source_fields": {
+        "ID": "WF-005",
+        "Workflow Intent": "WORKFLOW_ESCALATE",
+        "Action": "Create escalation",
+        "Preconditions": "Policy + reason + target",
+        "Completion Rule": "Task/event saved",
+        "Data Targets": "escalations/audit"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-006",
+      "intent_id": "WORKFLOW_NOTIFY_OWNER",
+      "source_fields": {
+        "ID": "WF-006",
+        "Workflow Intent": "WORKFLOW_NOTIFY_OWNER",
+        "Action": "Request owner notification",
+        "Preconditions": "Event policy",
+        "Completion Rule": "Delivery status separate from business completion",
+        "Data Targets": "notifications/outbox"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-007",
+      "intent_id": "WORKFLOW_NOTIFY_TEAM",
+      "source_fields": {
+        "ID": "WF-007",
+        "Workflow Intent": "WORKFLOW_NOTIFY_TEAM",
+        "Action": "Request team notification",
+        "Preconditions": "Recipient policy",
+        "Completion Rule": "Delivery status tracked",
+        "Data Targets": "notifications/outbox"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-008",
+      "intent_id": "WORKFLOW_STORE_INTERACTION",
+      "source_fields": {
+        "ID": "WF-008",
+        "Workflow Intent": "WORKFLOW_STORE_INTERACTION",
+        "Action": "Persist interaction metadata",
+        "Preconditions": "Tenant/session/correlation",
+        "Completion Rule": "Interaction saved",
+        "Data Targets": "interactions"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-009",
+      "intent_id": "WORKFLOW_GENERATE_TASK",
+      "source_fields": {
+        "ID": "WF-009",
+        "Workflow Intent": "WORKFLOW_GENERATE_TASK",
+        "Action": "Create follow-up task",
+        "Preconditions": "Owner + due rule",
+        "Completion Rule": "Task saved",
+        "Data Targets": "tasks"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-010",
+      "intent_id": "WORKFLOW_CREATE_KNOWLEDGE_GAP",
+      "source_fields": {
+        "ID": "WF-010",
+        "Workflow Intent": "WORKFLOW_CREATE_KNOWLEDGE_GAP",
+        "Action": "Create unanswered-question record",
+        "Preconditions": "Question + scope",
+        "Completion Rule": "Gap saved",
+        "Data Targets": "knowledge_gaps"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-011",
+      "intent_id": "WORKFLOW_CREATE_AUDIT_EVENT",
+      "source_fields": {
+        "ID": "WF-011",
+        "Workflow Intent": "WORKFLOW_CREATE_AUDIT_EVENT",
+        "Action": "Append audit event",
+        "Preconditions": "Actor/action/entity",
+        "Completion Rule": "Append verified",
+        "Data Targets": "audit_events"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    },
+    {
+      "group": "backend_workflow",
+      "reference_id": "WF-012",
+      "intent_id": "WORKFLOW_RECONCILE_UNKNOWN",
+      "source_fields": {
+        "ID": "WF-012",
+        "Workflow Intent": "WORKFLOW_RECONCILE_UNKNOWN",
+        "Action": "Resolve uncertain operation",
+        "Preconditions": "Stable operation identity",
+        "Completion Rule": "Authoritative success/failure/pending",
+        "Data Targets": "workflow ledger"
+      },
+      "source_document": "AI4Businesses_Master_Intent_Catalog_Sales_Support_HVAC_v1.0.docx",
+      "source_table_index": 8
+    }
+  ]
+}
