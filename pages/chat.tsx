@@ -57,7 +57,7 @@ export default function ChatPage() {
   return (
     <>
       <Head>
-        <title>Chat with Support · Stellar Intelligent Business Systems</title>
+        <title>Chat with Support · Stellar Intelligent Software Developers</title>
         <meta name="robots" content="noindex, nofollow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
@@ -123,7 +123,7 @@ export default function ChatPage() {
               </button>
             </div>
           )}
-          <div style={{ marginTop: '6px', textAlign: 'center', fontSize: '.58rem', color: 'rgba(255,255,255,.2)', letterSpacing: '.06em' }}>POWERED BY STELLAR INTELLIGENT BUSINESS SYSTEMS</div>
+          <div style={{ marginTop: '6px', textAlign: 'center', fontSize: '.58rem', color: 'rgba(255,255,255,.2)', letterSpacing: '.06em' }}>POWERED BY STELLAR INTELLIGENT SOFTWARE DEVELOPERS</div>
         </div>
       </div>
     </>

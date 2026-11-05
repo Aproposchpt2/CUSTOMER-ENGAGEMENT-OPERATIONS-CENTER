@@ -1,4 +1,4 @@
-export const BRAND = 'STELLAR INTELLIGENT BUSINESS SYSTEMS';
+export const BRAND = 'STELLAR INTELLIGENT SOFTWARE DEVELOPERS';
 export const ATTRIBUTION = 'Operated by APROPOS GROUP LLC';
 export const TAGLINE = 'Intelligent Technology for the Workplace';
 export const PRODUCT_ROOT = '/products';

@@ -6,7 +6,7 @@ import { LEGAL_UPDATED } from '@/lib/legal';
 
 export default function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return <>
-    <Head><title>{`${title} | Stellar Intelligent Business Systems`}</title></Head>
+    <Head><title>{`${title} | Stellar Intelligent Software Developers`}</title></Head>
     <Header publicProductName="Sales Service System" />
     <main className="legal">
       <article>
