@@ -51,7 +51,7 @@ const NAV = [
   { href: '/dashboard',  label: 'Dashboard'      },
 ];
 
-export default function Header({ publicProductName = 'STELLAR INTELLIGENT BUSINESS SYSTEMS' }: { publicProductName?: string }) {
+export default function Header({ publicProductName = 'STELLAR INTELLIGENT SOFTWARE DEVELOPERS' }: { publicProductName?: string }) {
   const { pathname } = useRouter();
   const [theme, setTheme] = useState<Theme>('black');
   const [workspace, setWorkspace] = useState<WorkspaceContext | null>(null);

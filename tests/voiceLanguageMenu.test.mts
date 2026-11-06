@@ -37,3 +37,43 @@ test('call SID check rejects anything that is not a Twilio call SID', () => {
   assert.equal(menu.isCallSid('CA' + 'a'.repeat(32)), true);
   for (const bad of ['CA123', 'SM' + 'a'.repeat(32), '', null, undefined]) assert.equal(menu.isCallSid(bad), false);
 });
+
+test('attendant asks for language first and moves on when nothing is pressed', () => {
+  const twiml = menu.attendantLanguageTwiml();
+  assert.match(twiml, /For English, press 1\./);
+  assert.match(twiml, /Para español, oprima 2\./);
+  assert.match(twiml, /step=language/);
+});
+
+test('attendant offers all four demos in the chosen language', () => {
+  assert.match(menu.attendantDepartmentTwiml('en', 1), /For Sales, press 1\. For the Property Management Assistant, press 2\. For Support, press 3\. For the Customer Care Center, press 4\./);
+  assert.match(menu.attendantDepartmentTwiml('es', 1), /Para ventas, oprima 1\. Para la Asistente de Administración de Propiedades, oprima 2\. Para soporte, oprima 3\. Para el Centro de Atención al Cliente, oprima 4\./);
+  assert.match(menu.attendantDepartmentTwiml('es', 1), /lang=es/);
+});
+
+test('sales, property management and support dial their lines and pass the language keypress', () => {
+  const sales = menu.attendantRoute('1', 'en', 1).twiml;
+  assert.ok(sales.includes(`<Number sendDigits="w1">${menu.SALES_LINE}</Number>`));
+  const pma = menu.attendantRoute('2', 'es', 1).twiml;
+  assert.ok(pma.includes(`<Number sendDigits="w2">${menu.PMA_LINE}</Number>`));
+  const support = menu.attendantRoute('3', 'es', 1).twiml;
+  assert.ok(support.includes(`<Number sendDigits="w2">${menu.SUPPORT_LINE}</Number>`));
+});
+
+test('the demo stays on this number and keeps the language', () => {
+  const route = menu.attendantRoute('4', 'es', 1);
+  assert.equal(route.demoLanguage, 'es');
+  assert.ok(route.twiml.includes(menu.ELEVENLABS_INBOUND_URL));
+});
+
+test('a missed key repeats once, then goes to Sales', () => {
+  assert.match(menu.attendantRoute('', 'en', 1).twiml, /attempt=2/);
+  assert.ok(menu.attendantRoute('9', 'en', 2).twiml.includes(menu.SALES_LINE));
+  assert.ok(menu.attendantRoute(undefined, 'en', 2).twiml.includes(menu.SALES_LINE));
+});
+
+test('a failed dial tells the caller instead of going silent', () => {
+  assert.match(menu.attendantEndedTwiml('busy', 'en'), /could not connect/);
+  assert.match(menu.attendantEndedTwiml('no-answer', 'es'), /No pudimos/);
+  assert.doesNotMatch(menu.attendantEndedTwiml('completed', 'en'), /could not connect/);
+});

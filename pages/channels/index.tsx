@@ -51,7 +51,7 @@ export default function ChannelsPage() {
     <Head><title>Channel Operations | Intelligent Customer Engagement Operation Center</title></Head>
     <Header />
     <main className="page"><div className="shell">
-      <p className="eyebrow">STELLAR UNIFIED COMMUNICATIONS · DEVELOPMENT OPERATIONS</p>
+      <p className="eyebrow">STELLAR INTELLIGENT SOFTWARE DEVELOPERS · DEVELOPMENT OPERATIONS</p>
       <h1>Channel Operations</h1>
       <p className="lede">Development control surface for the Voice, SMS and Web Chat runtimes. Automatic monitoring is disabled. Check status only when you need a current snapshot.</p>
       <div className="toolbar"><button onClick={() => load().catch((e: Error) => setError(e.message))} disabled={loading}>{loading ? 'Checking…' : 'Check Channel Status'}</button><span>{lastChecked ? `Last checked ${lastChecked}` : 'On-demand only'}</span></div>

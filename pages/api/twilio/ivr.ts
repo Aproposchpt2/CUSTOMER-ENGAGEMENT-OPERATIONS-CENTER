@@ -53,7 +53,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Gather numDigits="1" action="${baseUrl}/api/twilio/ivr-gather" method="POST" timeout="10">
-    <Say voice="Polly.Joanna">You have reached Stellar Intelligent Technologies. Press 1 for Management. Press 2 for Sales Specialist. Press 3 for Support Specialist. Press 0 to repeat this message.</Say>
+    <Say voice="Polly.Joanna">You have reached Stellar Intelligent Software Developers. Press 1 for Management. Press 2 for Sales Specialist. Press 3 for Support Specialist. Press 0 to repeat this message.</Say>
   </Gather>
   <Redirect method="POST">${baseUrl}/api/twilio/ivr</Redirect>
 </Response>`;
