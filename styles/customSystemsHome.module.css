@@ -252,3 +252,69 @@
 .site main section[id] { scroll-margin-top:52px; }
 @media(max-width:850px){ .site main section[id] { scroll-margin-top:100px; } }
 @media(max-width:650px){ .site main section[id] { scroll-margin-top:136px; } }
+
+
+/* Business systems advantage — before the Economics calculator. Regular STELLAR typography. */
+.site .coverageSection {
+  background:#080706;
+  border-top:1px solid #C8A84B40;
+  border-bottom:1px solid #C8A84B40;
+}
+.site .coverageInner {
+  max-width:1250px;
+  margin:0 auto;
+  padding:58px 24px 62px;
+}
+.site .coverageEyebrow {
+  color:#E4C878;
+  font:400 11px/1.5 'DM Sans',Arial,sans-serif;
+  letter-spacing:.16em;
+  margin:0 0 10px;
+}
+.site .coverageSection h2 {
+  font:400 clamp(30px,3.6vw,48px)/1.14 'Cormorant Garamond',Georgia,serif;
+  color:#F7F4EC;
+  margin:0 0 10px;
+}
+.site .coverageIntro {
+  color:#D3CEC1;
+  max-width:800px;
+  margin:0;
+  font-size:16px;
+  line-height:1.7;
+}
+.site .coverageGrid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+  margin-top:25px;
+}
+.site .coverageGrid article {
+  min-width:0;
+  padding:26px 23px;
+  border:1px solid #C8A84B66;
+  background:#15120e;
+}
+.site .coverageGrid article span {
+  color:#E4C878;
+  letter-spacing:.12em;
+  font:400 11px/1.5 'DM Sans',Arial,sans-serif;
+}
+.site .coverageGrid h3 {
+  font:400 clamp(25px,2.5vw,33px)/1.12 'Cormorant Garamond',Georgia,serif;
+  margin:12px 0;
+  color:#F7F4EC;
+}
+.site .coverageGrid p {
+  color:#D3CEC1;
+  font:400 14px/1.7 'DM Sans',Arial,sans-serif;
+  margin:0;
+}
+@media(max-width:850px) {
+  .site .coverageGrid {grid-template-columns:1fr;}
+}
+@media(max-width:650px) {
+  .site .coverageInner {padding:44px 20px 48px;}
+  .site .coverageGrid article {padding:22px 20px;}
+  .site .coverageSection h2 {font-size:clamp(30px,8vw,42px);}
+}
