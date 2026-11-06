@@ -7,8 +7,7 @@ const messages=[
  'CUSTOMIZED BUSINESS SYSTEM DEVELOPMENT',
  'PRODUCTIVITY',
  'PROFITABILITY',
- 'EXTENDED COVERAGE',
- '24/7 COVERAGE OPTIONS'
+ '24/7 365 COVERAGE'
 ];
 export function StellarMarquee(){
  const [paused,setPaused]=useState(false);

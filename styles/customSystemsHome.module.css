@@ -83,6 +83,13 @@
   letter-spacing: .008em;
 }
 
+.site .section h2.valueHeadline,
+.site .consult h2.contactHeadline {
+  font-size: clamp(27px, 3.4vw, 44px);
+  line-height: 1.15;
+}
+.site .lede strong { color: #E4C878; }
+
 /* Calculator/services viewport: .inner was unstyled, making content flush to the window. */
 .site .alt > .inner {
   width: 100%;
@@ -153,14 +160,15 @@
 .site .rule { box-shadow:0 0 14px #C8A84B88; }
 .site .marqueeShell { display:block; width:100%; max-width:100%; overflow:hidden; background:#0b0906; border-top:1px solid #C8A84B88; border-bottom:1px solid #C8A84B88; }
 .site .marqueeHeading { max-width:1250px; margin:auto; display:flex; justify-content:space-between; align-items:center; gap:16px; padding:10px 24px; color:#E4C878; font:400 11px 'DM Sans',sans-serif; letter-spacing:.13em; }
-.site .marqueeHeading button { font:400 12px 'DM Sans',sans-serif; color:#E4C878; border:1px solid #C8A84B66; background:transparent; padding:5px 12px; cursor:pointer; }
-.site .marqueeWindow { overflow:hidden; width:100%; min-width:0; border-top:1px solid #C8A84B30; padding:14px 0 19px; }
+.site .marqueeHeading { padding-block:3px; font-size:9px; }
+.site .marqueeHeading button { font:400 10px 'DM Sans',sans-serif; color:#E4C878; border:1px solid #C8A84B66; background:transparent; padding:2px 8px; cursor:pointer; }
+.site .marqueeWindow { overflow:hidden; width:100%; min-width:0; border-top:1px solid #C8A84B30; padding:5px 0 6px; }
 .site .marqueeTrack, .site .marqueePaused { display:flex; width:max-content; min-width:0; }
 .site .marqueeTrack { animation:stellarScroll 65s linear infinite; }
 .site .marqueePaused { animation:stellarScroll 65s linear infinite; animation-play-state:paused; }
 .site .marqueeSet { display:flex; flex:none; align-items:center; white-space:nowrap; }
-.site .marqueeItem { display:inline-flex; align-items:center; gap:32px; padding:0 18px; font:400 clamp(21px,2.7vw,34px) 'Cormorant Garamond',Georgia,serif; color:#F7F4EC; letter-spacing:.025em; }
-.site .marqueeStar { color:#E4C878; font-size:18px; }
+.site .marqueeItem { display:inline-flex; align-items:center; gap:20px; padding:0 10px; font:400 clamp(13px,1.15vw,16px) 'Cormorant Garamond',Georgia,serif; color:#F7F4EC; letter-spacing:.025em; }
+.site .marqueeStar { color:#E4C878; font-size:10px; }
 @keyframes stellarScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
 @media(max-width:650px) { .site .marqueeHeading { padding-inline:20px; font-size:9px; letter-spacing:.05em; } .site .marqueeItem { gap:18px; padding:0 12px; } .site .hero:after { bottom:-7vw; } }
 @media(prefers-reduced-motion:reduce) { .site .marqueeTrack,.site .marqueePaused { animation:none; flex-wrap:wrap; width:100%; } .site .marqueeSet:nth-child(2) { display:none; } .site .marqueeSet { flex-wrap:wrap; white-space:normal; } }
@@ -178,3 +186,69 @@
 @media(max-width:650px){
   .site .masterBrandArt { width:100%; max-height:none; margin-bottom:22px; }
 }
+
+/* The landing section fits one screen below the nav and marquee (about 147px together).
+   The image takes whatever height the text leaves. The horizon arc rises 4vw from the bottom. */
+.site .hero { min-height:calc(100svh - 147px); padding:12px 24px calc(4vw + 16px); }
+.site .hero:after { bottom:-14vw; }
+.site .hero h1 { font-size:clamp(34px,4.2vw,60px); margin:8px auto 6px; }
+.site .hero p.heroLead { font-size:clamp(20px,2.2vw,30px); margin:0 auto; }
+.site .masterBrandArt { width:auto; max-width:100%; max-height:max(200px,calc(100svh - 430px)); margin:0 auto 10px; }
+@media(max-width:650px){
+  .site .hero { min-height:0; padding:16px 20px calc(11vw + 20px); }
+  .site .hero:after { bottom:-7vw; }
+  .site .hero h1 { font-size:clamp(30px,8vw,44px); }
+  .site .masterBrandArt { width:100%; max-height:none; margin-bottom:14px; }
+}
+
+/* Sections below the landing: tighter spacing and type so each sits closer to one screen. */
+.site .section, .site .alt > .inner { padding-block:48px; }
+.site .consult { padding-block:64px; }
+.site .section h2, .site .alt h2 { font-size:clamp(30px,3.6vw,48px); line-height:1.1; margin:0 0 14px; }
+.site .section h2.valueHeadline { font-size:clamp(26px,3vw,40px); }
+.site .lede { margin:6px 0 12px; font-size:16px; line-height:1.6; }
+.site .pillars { margin-top:22px; }
+.site .pillars article { padding:24px; }
+.site .pillars h3 { font-size:clamp(26px,2.6vw,34px); margin:10px 0; }
+.site .pillars p, .site .cards p { line-height:1.6; margin:0 0 10px; }
+.site .flow { margin-top:8px; padding:9px 12px; }
+.site .cards { margin-top:18px; }
+.site .cards article { padding:18px 20px; }
+.site .cards h3 { font-size:28px; margin:8px 0; }
+.site .calculator { margin-top:16px; padding:20px 24px; }
+.site .calculator h3 { font-size:28px; margin:0 0 10px; }
+.site .calcField { margin:8px 0; }
+.site .inputWrap { margin-top:3px; }
+.site .inputWrap input, .site .marginInputs input { padding:6px 10px; }
+.site .calcSubtotal { padding-top:10px; }
+.site .calcResults { margin:16px 0; padding:16px 20px; }
+.site .calcResults > div { margin-top:10px; }
+.site .calcResults small { margin-top:10px; }
+.site .margin { padding-top:14px; }
+.site .marginResults p { margin:6px 0; }
+.site .disclosure { margin:12px 0; }
+/* Calculator: current model, intelligent model and results side by side; margin analysis opens on demand. */
+.site .calcGrid { gap:24px; }
+.site .calcField { font-size:12px; line-height:1.35; }
+.site .calcField small { display:inline; margin-left:4px; }
+.site .calcField > small::before { content:"- "; }
+.site .calcResults { grid-column:1 / -1; margin:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+.site .calcResults > p { margin:0; }
+.site .calcResults > strong { font-size:clamp(32px,3vw,44px); line-height:1.1; }
+.site .calcResults > div { width:100%; grid-template-columns:1fr; gap:6px; text-align:left; margin-top:6px; }
+.site .calcResults span { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.site .calcResults b { font-size:15px; white-space:nowrap; }
+.site .calcResults small { margin-top:4px; }
+.site .calcResults > .primary { margin-top:8px; }
+@media(min-width:1000px){
+  .site .calcGrid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .site .calcResults { grid-column:auto; }
+}
+.site details.margin { margin-top:14px; }
+.site details.margin > summary { cursor:pointer; color:#E4C878; font-size:14px; }
+.site details.margin > .marginInputs { margin-top:12px; }
+.site .disclosure { font-size:11px; line-height:1.45; margin:10px 0 0; }
+/* Nav links must land with the heading below the pinned nav, which grows when it wraps. */
+.site main section[id] { scroll-margin-top:52px; }
+@media(max-width:850px){ .site main section[id] { scroll-margin-top:100px; } }
+@media(max-width:650px){ .site main section[id] { scroll-margin-top:136px; } }
