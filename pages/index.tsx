@@ -1,3 +1,4 @@
+/* STELLAR approved live demo headline — production release */
 import Link from 'next/link';
 import Head from 'next/head';
 import {OperatingCostCalculator} from '@/components/OperatingCostCalculator';
