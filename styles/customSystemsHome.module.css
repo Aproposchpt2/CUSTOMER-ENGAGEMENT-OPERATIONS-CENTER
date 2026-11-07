@@ -318,3 +318,41 @@
   .site .coverageGrid article {padding:22px 20px;}
   .site .coverageSection h2 {font-size:clamp(30px,8vw,42px);}
 }
+
+/* Live product demonstration callout immediately above intake CTAs. */
+.site .liveDemoCard {
+  width:min(100%,880px);
+  max-width:100%;
+  padding:36px 26px;
+  border:1px solid #C8A84B;
+  background:#15120E;
+  text-align:center;
+  margin:0 auto 36px;
+}
+.site .liveDemoEyebrow {
+  margin:0 0 8px;
+  color:#E4C878!important;
+  font:400 11px/1.5 'DM Sans',Arial,sans-serif;
+  letter-spacing:.16em;
+}
+.site .liveDemoCard h2 {
+  font:400 clamp(30px,4vw,48px)/1.1 'Cormorant Garamond',Georgia,serif;
+  color:#F7F4EC;
+  margin:8px 0 14px;
+}
+.site .liveDemoCard > p:not(.liveDemoEyebrow) {
+  font:400 16px/1.6 'DM Sans',Arial,sans-serif;
+  color:#D3CEC1;
+  margin:0 auto 22px;
+}
+.site .liveDemoPhone {
+  display:inline-block;
+  color:#E4C878;
+  font:400 clamp(24px,4vw,38px)/1.2 'Cormorant Garamond',Georgia,serif;
+  text-decoration:underline;
+  text-underline-offset:5px;
+  overflow-wrap:anywhere;
+}
+@media(max-width:650px) {
+  .site .liveDemoCard {padding:28px 18px; margin-bottom:30px;}
+}
